@@ -234,16 +234,20 @@ class AnalysisRunApiTests {
 			.andExpect(jsonPath("$.requestedAt").isNotEmpty())
 			.andExpect(jsonPath("$.startedAt").isNotEmpty())
 			.andExpect(jsonPath("$.completedAt").isNotEmpty())
-			.andExpect(jsonPath("$.executions.length()").value(2))
-			.andExpect(jsonPath("$.executions[0].analyzerId").value("e2e-detector"))
-			.andExpect(jsonPath("$.executions[0].category").value("TECHNOLOGY"))
-			.andExpect(jsonPath("$.executions[0].status").value("COMPLETED"))
-			.andExpect(jsonPath("$.executions[1].analyzerId").value("e2e-structure"))
-			.andExpect(jsonPath("$.executions[1].category").value("STRUCTURE"))
-			.andExpect(jsonPath("$.executions[1].status").value("COMPLETED"))
-			.andExpect(jsonPath("$.executions[1].durationMs").isNumber())
-			.andExpect(jsonPath("$.executions[1].startedAt").isNotEmpty());
-		assertThat(jdbc.queryForObject("SELECT count(*) FROM module_record", Integer.class)).isEqualTo(1);
+			.andExpect(jsonPath("$.executions[?(@.analyzerId=='e2e-detector')].category").value("TECHNOLOGY"))
+			.andExpect(jsonPath("$.executions[?(@.analyzerId=='e2e-detector')].status").value("COMPLETED"))
+			.andExpect(jsonPath("$.executions[?(@.analyzerId=='e2e-structure')].category").value("STRUCTURE"))
+			.andExpect(jsonPath("$.executions[?(@.analyzerId=='e2e-structure')].status").value("COMPLETED"))
+			.andExpect(jsonPath("$.executions[?(@.analyzerId=='e2e-structure')].durationMs").isNotEmpty())
+			.andExpect(jsonPath("$.executions[?(@.analyzerId=='e2e-structure')].startedAt").isNotEmpty())
+			// the real generic detectors and structure analyzer run alongside the stubs
+			.andExpect(jsonPath("$.executions[?(@.analyzerId=='generic-structure-analyzer')].status")
+				.value("COMPLETED"))
+			.andExpect(jsonPath("$.executions[?(@.analyzerId=='manifest-technology-detector')].status")
+				.value("COMPLETED"));
+		assertThat(jdbc.queryForObject("SELECT count(*) FROM module_record", Integer.class))
+			.as("one module from the stub and one from the real structure analyzer")
+			.isEqualTo(2);
 		assertThat(workspaceDirectories()).as("workspace released after the run").isEmpty();
 	}
 

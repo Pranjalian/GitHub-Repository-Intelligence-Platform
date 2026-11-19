@@ -1,0 +1,191 @@
+# Technology signature rules used by ManifestTechnologyDetector.
+# Each rule is data-driven: adding a rule requires no Java code change.
+#
+# Fields:
+#   id          – unique rule identifier
+#   technology  – canonical technology name (used in DetectedTechnology.technology)
+#   kind        – TechnologyKind enum value
+#   confidence  – DETECTED (strong signal) or POSSIBLE (weak/single signal)
+#   globs       – list of Ant-style path patterns; ANY match triggers the rule
+#   version-from-content – optional: a regex applied to the matched file's content;
+#                           the first capture group becomes the detected version
+#
+# Rules are evaluated top-to-bottom; ALL matching rules produce a DetectedTechnology.
+
+rules:
+
+  # ── Build tools ────────────────────────────────────────────────────────────────
+
+  - id: maven-pom
+    technology: Maven
+    kind: BUILD_TOOL
+    confidence: DETECTED
+    globs: ["**/pom.xml"]
+    version-from-content: "<maven.compiler.release>([^<]+)</maven.compiler.release>"
+
+  - id: gradle-groovy
+    technology: Gradle
+    kind: BUILD_TOOL
+    confidence: DETECTED
+    globs: ["**/build.gradle"]
+
+  - id: gradle-kotlin
+    technology: Gradle
+    kind: BUILD_TOOL
+    confidence: DETECTED
+    globs: ["**/build.gradle.kts"]
+
+  - id: npm-package
+    technology: npm
+    kind: PACKAGE_MANAGER
+    confidence: DETECTED
+    globs: ["**/package.json"]
+    version-from-content: "\"node\"\\s*:\\s*\"([^\"]+)\""
+
+  - id: pnpm-lock
+    technology: pnpm
+    kind: PACKAGE_MANAGER
+    confidence: DETECTED
+    globs: ["**/pnpm-lock.yaml"]
+
+  - id: yarn-lock
+    technology: Yarn
+    kind: PACKAGE_MANAGER
+    confidence: DETECTED
+    globs: ["**/yarn.lock"]
+
+  - id: cargo-toml
+    technology: Cargo
+    kind: BUILD_TOOL
+    confidence: DETECTED
+    globs: ["**/Cargo.toml"]
+
+  - id: gemfile
+    technology: Bundler
+    kind: PACKAGE_MANAGER
+    confidence: DETECTED
+    globs: ["**/Gemfile"]
+
+  - id: dotnet-csproj
+    technology: .NET
+    kind: BUILD_TOOL
+    confidence: DETECTED
+    globs: ["**/*.csproj"]
+
+  - id: dotnet-sln
+    technology: .NET
+    kind: BUILD_TOOL
+    confidence: DETECTED
+    globs: ["**/*.sln"]
+
+  # ── Languages (manifest-level signals) ─────────────────────────────────────────
+
+  - id: tsconfig
+    technology: TypeScript
+    kind: LANGUAGE
+    confidence: DETECTED
+    globs: ["**/tsconfig.json", "**/tsconfig.*.json"]
+    version-from-content: "\"typescript\"\\s*:\\s*\"([^\"]+)\""
+
+  - id: go-mod
+    technology: Go
+    kind: LANGUAGE
+    confidence: DETECTED
+    globs: ["**/go.mod"]
+    version-from-content: "^go\\s+([\\d.]+)"
+
+  - id: pyproject-toml
+    technology: Python
+    kind: LANGUAGE
+    confidence: DETECTED
+    globs: ["**/pyproject.toml"]
+    version-from-content: "python_requires\\s*=\\s*\"([^\"]+)\""
+
+  - id: requirements-txt
+    technology: Python
+    kind: LANGUAGE
+    confidence: POSSIBLE
+    globs: ["**/requirements.txt", "**/requirements-*.txt"]
+
+  - id: setup-py
+    technology: Python
+    kind: LANGUAGE
+    confidence: POSSIBLE
+    globs: ["**/setup.py"]
+
+  - id: ruby-gemspec
+    technology: Ruby
+    kind: LANGUAGE
+    confidence: DETECTED
+    globs: ["**/*.gemspec"]
+
+  # ── Frameworks ─────────────────────────────────────────────────────────────────
+
+  - id: spring-boot-parent
+    technology: Spring Boot
+    kind: FRAMEWORK
+    confidence: DETECTED
+    globs: ["**/pom.xml"]
+    version-from-content: "<artifactId>spring-boot-starter-parent</artifactId>[\\s\\S]*?<version>([^<]+)</version>"
+
+  - id: angular-json
+    technology: Angular
+    kind: FRAMEWORK
+    confidence: DETECTED
+    globs: ["**/angular.json"]
+
+  - id: nuxt-config
+    technology: Nuxt
+    kind: FRAMEWORK
+    confidence: DETECTED
+    globs: ["**/nuxt.config.ts", "**/nuxt.config.js"]
+
+  - id: next-config
+    technology: Next.js
+    kind: FRAMEWORK
+    confidence: DETECTED
+    globs: ["**/next.config.js", "**/next.config.ts", "**/next.config.mjs"]
+
+  - id: vite-config
+    technology: Vite
+    kind: BUILD_TOOL
+    confidence: DETECTED
+    globs: ["**/vite.config.ts", "**/vite.config.js", "**/vite.config.mjs"]
+
+  # ── Deployment ─────────────────────────────────────────────────────────────────
+
+  - id: dockerfile
+    technology: Docker
+    kind: DEPLOYMENT
+    confidence: DETECTED
+    globs: ["**/Dockerfile", "**/Dockerfile.*"]
+
+  - id: docker-compose
+    technology: Docker Compose
+    kind: DEPLOYMENT
+    confidence: DETECTED
+    globs: ["**/docker-compose.yml", "**/docker-compose.yaml", "**/docker-compose.*.yml"]
+
+  - id: kubernetes-manifests
+    technology: Kubernetes
+    kind: DEPLOYMENT
+    confidence: POSSIBLE
+    globs: ["**/k8s/**/*.yml", "**/k8s/**/*.yaml", "**/kubernetes/**/*.yml", "**/kubernetes/**/*.yaml"]
+
+  - id: helm-chart
+    technology: Helm
+    kind: DEPLOYMENT
+    confidence: DETECTED
+    globs: ["**/Chart.yaml", "**/Chart.yml"]
+
+  - id: github-actions
+    technology: GitHub Actions
+    kind: DEPLOYMENT
+    confidence: DETECTED
+    globs: ["**/.github/workflows/*.yml", "**/.github/workflows/*.yaml"]
+
+  - id: terraform
+    technology: Terraform
+    kind: DEPLOYMENT
+    confidence: DETECTED
+    globs: ["**/*.tf"]

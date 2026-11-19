@@ -1,0 +1,6 @@
+rules:
+  - id: zig-build
+    technology: Zig
+    kind: BUILD_TOOL
+    confidence: DETECTED
+    globs: ["**/build.zig"]
