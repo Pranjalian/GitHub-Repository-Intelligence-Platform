@@ -44,6 +44,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 				problem.setProperty("resetAt", rateLimit.getResetAt().toString());
 			}
 		}
+		if (ex instanceof SubmissionRateLimitException submissionLimit) {
+			headers.set(HttpHeaders.RETRY_AFTER, String.valueOf(submissionLimit.getRetryAfterSeconds()));
+			problem.setProperty("retryAfterSeconds", submissionLimit.getRetryAfterSeconds());
+		}
 		return new ResponseEntity<>(problem, headers, ex.getStatus());
 	}
 

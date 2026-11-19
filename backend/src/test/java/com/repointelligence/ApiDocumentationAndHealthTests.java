@@ -1,5 +1,6 @@
 package com.repointelligence;
 
+import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -47,8 +48,12 @@ class ApiDocumentationAndHealthTests {
 			.andExpect(jsonPath("$.info.title").value("GitHub Repository Intelligence Platform"))
 			.andExpect(jsonPath("$.info.version").value("0.0.1"))
 			.andExpect(jsonPath("$.info.description").isNotEmpty())
-			// no placeholder business endpoints
-			.andExpect(jsonPath("$.paths").isEmpty());
+			// only the endpoints the UI needs, no placeholders for future phases
+			.andExpect(jsonPath("$.paths", aMapWithSize(4)))
+			.andExpect(jsonPath("$.paths['/api/v1/repositories/analyze']").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/repositories']").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}']").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}/snapshots']").exists());
 	}
 
 	@Test

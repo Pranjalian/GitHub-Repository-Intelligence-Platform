@@ -42,6 +42,18 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+repository:
+  ingestion:
+    # Pre-check against the size GitHub reports; repositories clearly over this are rejected (422).
+    max-repository-size-mb: 200
+  submission:
+    # Cap on queued + running analysis jobs; further new submissions get 429.
+    max-pending-jobs: 10
+    # Token bucket on POST /api/v1/repositories/analyze.
+    rate-limit:
+      capacity: 10
+      refill-period: PT1M
+
 github:
   api-base-url: https://api.github.com
   # Optional but strongly recommended: raises the API limit from 60 to 5,000 requests/hour.
