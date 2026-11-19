@@ -16,6 +16,7 @@ export class ApiError extends Error {
   readonly requestId?: string
   readonly details: string[]
   readonly retryAfterSeconds?: number
+  readonly resetAt?: string
 
   constructor(status: number, message: string, problem?: ProblemDetail) {
     super(message)
@@ -24,6 +25,7 @@ export class ApiError extends Error {
     this.requestId = problem?.requestId
     this.details = problem?.details ?? []
     this.retryAfterSeconds = problem?.retryAfterSeconds
+    this.resetAt = problem?.resetAt
   }
 }
 
