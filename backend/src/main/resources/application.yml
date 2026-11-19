@@ -42,6 +42,21 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+github:
+  api-base-url: https://api.github.com
+  # Optional but strongly recommended: raises the API limit from 60 to 5,000 requests/hour.
+  # Use a fine-grained token with read-only access to public repositories. Never logged.
+  token: ${GITHUB_TOKEN:}
+  api-version: "2022-11-28"
+  connect-timeout: PT5S
+  read-timeout: PT30S
+  # Outbound allowlist for the API host and every redirect hop.
+  allowed-hosts: [api.github.com, codeload.github.com]
+  retry:
+    max-attempts: 3
+    initial-backoff: PT0.5S
+    max-backoff: PT5S
+
 app:
   api:
     title: GitHub Repository Intelligence Platform
