@@ -308,7 +308,7 @@ public class ReportService {
 		return new DependencyDTO(d.getId(), d.getAnalyzerId(), d.getEcosystem(), d.getManifestPath(),
 				d.getModulePath(), d.getNamespace(), d.getName(), d.getDeclaredVersion(), d.getResolvedVersion(),
 				d.getVersionSource(), d.getScope(), d.isDirect(), d.isManagementEntry(), d.getVulnerabilityStatus(),
-				d.getVulnerabilityIds());
+				d.getVulnerabilityIds(), d.getNote());
 	}
 
 }

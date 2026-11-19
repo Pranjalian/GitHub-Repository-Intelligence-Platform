@@ -9,5 +9,5 @@ import java.util.UUID;
 public record DependencyDTO(UUID id, String analyzerId, Ecosystem ecosystem, String manifestPath, String module,
 		String namespace, String name, String declaredVersion, String resolvedVersion, VersionSource versionSource,
 		String scope, boolean direct, boolean managementEntry, VulnerabilityStatus vulnerabilityStatus,
-		List<String> vulnerabilityIds) {
+		List<String> vulnerabilityIds, String note) {
 }

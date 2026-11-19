@@ -133,6 +133,7 @@ public class AnalysisResultWriter {
 			record.setManagementEntry(dependency.managementEntry());
 			record.setVulnerabilityStatus(dependency.vulnerabilityStatus());
 			record.setVulnerabilityIds(dependency.vulnerabilityIds().isEmpty() ? null : dependency.vulnerabilityIds());
+			record.setNote(truncate(dependency.note(), 512));
 			entityManager.persist(record);
 		}
 		result.modules().forEach(module -> {

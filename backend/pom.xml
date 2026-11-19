@@ -21,6 +21,8 @@
 		<spotless.version>3.11.0</spotless.version>
 		<wiremock.version>3.13.2</wiremock.version>
 		<commons-compress.version>1.28.0</commons-compress.version>
+		<javaparser.version>3.28.2</javaparser.version>
+		<maven-model.version>3.9.16</maven-model.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -57,6 +59,18 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-compress</artifactId>
 			<version>${commons-compress.version}</version>
+		</dependency>
+		<!-- Java pack: AST discovery (annotations, methods). Parses source only; executes nothing. -->
+		<dependency>
+			<groupId>com.github.javaparser</groupId>
+			<artifactId>javaparser-core</artifactId>
+			<version>${javaparser.version}</version>
+		</dependency>
+		<!-- Reads pom.xml only: no network, no entity resolution, no artifact download (no maven-resolver) -->
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-model</artifactId>
+			<version>${maven-model.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>

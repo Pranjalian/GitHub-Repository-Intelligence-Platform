@@ -79,6 +79,9 @@ public class DependencyRecord {
 	@Column(name = "vulnerability_ids")
 	private List<String> vulnerabilityIds;
 
+	@Column(name = "note")
+	private String note;
+
 	protected DependencyRecord() {
 	}
 
@@ -94,6 +97,14 @@ public class DependencyRecord {
 
 	public UUID getId() {
 		return id;
+	}
+
+	public String getNote() {
+		return note;
+	}
+
+	public void setNote(String note) {
+		this.note = note;
 	}
 
 	public RepositorySnapshot getSnapshot() {
