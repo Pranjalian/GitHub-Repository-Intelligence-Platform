@@ -5,8 +5,11 @@ import com.repointelligence.common.model.RunStatus;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface AnalysisRunRepository extends JpaRepository<AnalysisRun, UUID> {
 
@@ -25,5 +28,9 @@ public interface AnalysisRunRepository extends JpaRepository<AnalysisRun, UUID> 
 
 	/** Queued + running job cap. */
 	long countByStatusIn(Collection<RunStatus> statuses);
+
+	/** Snapshots that currently have a run in one of the given states (their workspaces are in use). */
+	@Query("select distinct r.snapshot.id from AnalysisRun r where r.status in :statuses")
+	Set<UUID> findSnapshotIdsByStatusIn(@Param("statuses") Collection<RunStatus> statuses);
 
 }

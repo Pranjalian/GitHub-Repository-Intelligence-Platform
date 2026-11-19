@@ -46,6 +46,24 @@ repository:
   ingestion:
     # Pre-check against the size GitHub reports; repositories clearly over this are rejected (422).
     max-repository-size-mb: 200
+    # Compressed archive size; the download aborts as soon as it is exceeded.
+    max-tarball-size-mb: 200
+    # Total decompressed size of the archive (decompression-bomb guard).
+    max-extracted-size-mb: 500
+    # Larger files are catalogued but not extracted.
+    max-file-size-kb: 1024
+    # Catalogued files; the archive entry count is capped at ten times this.
+    max-file-count: 20000
+    excluded-directories: [.git, node_modules, target, build, dist, .gradle, vendor, __pycache__, .idea, .vscode, .venv]
+    # Stay extracted even inside an excluded directory: analyzer inputs such as JaCoCo reports.
+    excluded-exceptions: ["**/jacoco*.xml", "**/jacoco/*.xml"]
+  workspace:
+    # Where snapshots are extracted (one directory per snapshot).
+    root: ${WORKSPACE_ROOT:./.workspace}
+    # Keep a workspace this long after its run ends; PT0S deletes it immediately.
+    retain-after-analysis: PT0S
+    # How often orphaned workspaces are swept (also swept once at startup).
+    sweep-interval: PT1H
   submission:
     # Cap on queued + running analysis jobs; further new submissions get 429.
     max-pending-jobs: 10
