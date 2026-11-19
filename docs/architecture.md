@@ -837,7 +837,7 @@ erDiagram
 | **Strategy** | Forward-only migrations; no editing of applied migrations |
 | **Indexes** | On `snapshot_id` (and `run_id`) for all snapshot-scoped tables; unique `(repository_id, commit_sha)`; `analysis_finding(snapshot_id, category, severity)` and `(snapshot_id, fingerprint)` |
 | **Run model** | `analysis_run` = one analysis of a snapshot (rescans create new runs); `analyzer_execution` = one row per analyzer per run. Reports read the latest completed run unless a `runId` is given |
-| **Tests** | Migrations are tested against PostgreSQL via Testcontainers (no H2) |
+| **Tests** | Migrations are tested against real PostgreSQL started from embedded binaries (zonky `embedded-postgres`; no H2, no Docker) |
 
 ---
 
@@ -1247,20 +1247,24 @@ flowchart LR
 
 ### 13.1 Local Development Stack
 
+No Docker is required anywhere in the stack. Everything runs as a native process.
+
 ```mermaid
 graph TD
-    subgraph Docker Compose
-        DB["PostgreSQL 16\nPort 5432"]
-        OLLAMA["Ollama (optional)\nPort 11434"]
+    subgraph Database["Database (choose one)"]
+        EDB["Embedded PostgreSQL 16\n(mvnw spring-boot:test-run)\nrandom port, ephemeral"]
+        NDB["Native PostgreSQL 16\n(local install)\nPort 5432, persistent"]
     end
 
     subgraph Local
         BE["Spring Boot\nPort 8080"]
         FE["Vite Dev Server\nPort 5173"]
+        OLLAMA["Ollama (optional, native install)\nPort 11434"]
     end
 
     FE -->|"proxy /api/*"| BE
-    BE --> DB
+    BE --> EDB
+    BE --> NDB
     BE -.->|"optional"| OLLAMA
 ```
 
@@ -1269,33 +1273,18 @@ graph TD
 | Profile | Purpose |
 |---|---|
 | `default` | Sensible defaults, AI disabled, local PostgreSQL |
-| `dev` | Debug logging, relaxed limits, Docker Compose DB |
-| `test` | PostgreSQL via Testcontainers (no H2), WireMock-served GitHub fixtures (tarballs), no AI |
+| `dev` | Debug logging, relaxed limits, native or embedded PostgreSQL |
+| `test` | Embedded PostgreSQL binaries (no H2, no Docker), WireMock-served GitHub fixtures (tarballs), no AI |
 | `prod` | Secure defaults, externalized config, structured JSON logging |
 
-### 13.3 Docker Compose Services
+### 13.3 Local Services (no Docker)
 
-```yaml
-# Illustrative — actual file will be generated during MVP 0
-services:
-  db:
-    image: postgres:16-alpine        # pin a minor tag; switch to pgvector/pgvector:pg16 in MVP 4
-    environment:
-      POSTGRES_DB: repointelligence
-      POSTGRES_USER: repointel
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    ports: ["5432:5432"]
-    volumes: [pgdata:/var/lib/postgresql/data]
-
-  # Optional: local AI
-  ollama:
-    image: ollama/ollama:<pinned-version>   # never :latest
-    ports: ["11434:11434"]
-    profiles: ["ai"]
-
-volumes:
-  pgdata:
-```
+| Service | How it runs | Notes |
+|---|---|---|
+| **PostgreSQL (zero-install)** | `mvnw spring-boot:test-run` starts the app with embedded PostgreSQL binaries (`TestRepoIntelligenceApplication` + `EmbeddedPostgresConfig`) | Binaries version pinned via `embedded-postgres-binaries-bom`; data discarded on exit |
+| **PostgreSQL (persistent)** | Native PostgreSQL 16 install (Windows: EDB installer); `scripts/db/create-dev-db.sql` creates the `repointel` role and `repointelligence` database | App uses the `DB_URL`/`DB_USERNAME`/`DB_PASSWORD` defaults with `mvnw spring-boot:run` |
+| **pgvector (MVP 4)** | Native install adds the pgvector extension. Tests: open decision, either embedded binaries built with pgvector or a native test database (see the implementation plan) | Stock embedded binaries do not include pgvector |
+| **Ollama (optional, MVP 3+)** | Native Ollama installer, pinned version | Only when local AI is enabled |
 
 ---
 
@@ -1356,7 +1345,7 @@ AI unavailability is not an HTTP error: AI endpoints return 200 with status UNAV
                     │  E2E Tests  │  ← Small number, full flow
                     │ (Playwright)│
                    ┌┴─────────────┴┐
-                   │  Integration   │  ← TestContainers + fixtures
+                   │  Integration   │  ← Embedded PostgreSQL + fixtures
                    │    Tests       │
                   ┌┴───────────────┴┐
                   │   Unit Tests     │  ← Majority, fast, isolated
@@ -1384,7 +1373,7 @@ Fixtures are packaged as tarballs at test-build time and served by WireMock as G
 | Category | Scope | Tools |
 |---|---|---|
 | Unit | Validators, parsers, mappers, service logic | JUnit 5, Mockito |
-| Integration | DB operations (PostgreSQL only, no H2), GitHub client (WireMock), full analyzer runs | Spring Boot Test, Testcontainers, WireMock |
+| Integration | DB operations (PostgreSQL only, no H2), GitHub client (WireMock), full analyzer runs | Spring Boot Test, embedded PostgreSQL (zonky), WireMock |
 | Security | URL validation, archive extraction safety, XXE, secret redaction in responses and logs, prompt injection defense | Dedicated test suite |
 | External tools | Semgrep integration tests | `@Tag("semgrep")`, excluded from default CI |
 | Architecture rules | Core packages do not depend on `analysis.packs.*` | ArchUnit |
@@ -1410,7 +1399,8 @@ Fixtures are packaged as tarballs at test-build time and served by WireMock as G
 | ADR-12 | Commit SHA resolved synchronously at submission; results reused by SHA + analyzer-set hash | Immediate errors for bad repos; no duplicate snapshots; deterministic caching (Problem §5.5) |
 | ADR-13 | Analyzers receive a read-only `AnalysisContext` and return results; the orchestrator persists | Keeps the SPI free of JPA; guarantees fault isolation |
 | ADR-14 | Generic secret scanning for all repositories; Semgrep with vendored local rules; OSV for vulnerabilities (opt-in) | Security is not Java-only; no runtime rule downloads; no source code leaves the server |
-| ADR-15 | PostgreSQL Testcontainers for all DB tests (no H2) | Migrations and `jsonb` behave identically in tests and production |
+| ADR-15 | Embedded PostgreSQL binaries (zonky `embedded-postgres`) for all DB tests (no H2). Supersedes the earlier Testcontainers decision | Migrations and `jsonb` behave identically in tests and production, without requiring Docker |
+| ADR-16 | No Docker dependency for build, test or local run | Docker is not available on all developer machines; native processes and embedded PostgreSQL cover every need |
 
 ---
 
@@ -1454,7 +1444,7 @@ Targets as of this revision. Verify the current stable, mutually compatible vers
 | **Styling** | Tailwind CSS (`@tailwindcss/vite`) | 4.x |
 | **Charts** | Recharts | pinned current |
 | **Diagrams** | Mermaid.js | pinned current |
-| **Testing (backend)** | JUnit 5, Mockito, Testcontainers, WireMock, ArchUnit | pinned current |
+| **Testing (backend)** | JUnit 5, Mockito, zonky `embedded-postgres`, WireMock, ArchUnit | pinned current |
 | **Testing (frontend)** | Vitest, React Testing Library, MSW | pinned current |
 | **Maven model parsing** | `org.apache.maven:maven-model` (no resolver) | current |
 | **Java parsing** | JavaParser (+ symbol solver in MVP 2) | 3.x current |
@@ -1462,6 +1452,6 @@ Targets as of this revision. Verify the current stable, mutually compatible vers
 | **Security scanning** | Generic secret scanner (built-in) + Semgrep CLI (optional, local rules) | pinned current |
 | **Dep vulnerability** | OSV.dev API via `VulnerabilitySource` (opt-in); OWASP Dependency-Check optional later | n/a |
 | **Coverage** | JaCoCo report parsing | (not execution) |
-| **Containerization** | Docker + Docker Compose | current |
+| **Local runtime** | Native processes, no Docker; embedded PostgreSQL for tests and zero-install runs | n/a |
 | **Vector store (MVP 4)** | pgvector | 0.7+ |
 | **Local AI (MVP 3+)** | Ollama | pinned current |

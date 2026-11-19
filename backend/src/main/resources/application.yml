@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: repo-intelligence
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/repointelligence}
+    username: ${DB_USERNAME:repointel}
+    password: ${DB_PASSWORD:repointel_dev}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate   # Flyway owns the schema
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 2MB
+
+server:
+  port: 8080
+  tomcat:
+    max-http-form-post-size: 1MB
+  max-http-request-header-size: 16KB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  api:
+    title: GitHub Repository Intelligence Platform
+    version: 0.0.1
+    description: Deterministic analysis of public GitHub repositories.

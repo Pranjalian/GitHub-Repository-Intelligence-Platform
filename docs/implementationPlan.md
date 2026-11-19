@@ -4,7 +4,7 @@
 **Derived from:** [problemStatement.md](file:///d:/Pranjali_projects/Github_code_analyser/docs/problemStatement.md) · [architecture.md](file:///d:/Pranjali_projects/Github_code_analyser/docs/architecture.md)  
 **Delivery model:** Phased MVPs. Each phase ends with a working, tested, demonstrable application  
 **Rule:** Do **not** start the next MVP until the current one passes all exit criteria  
-**Revision:** v2. Revised after review: tarball ingestion, snapshot workspace, commit-scoped APIs, `AnalysisContext` SPI, generic security scanning, vertical-slice ordering, Testcontainers instead of H2, current dependency versions
+**Revision:** v2. Revised after review: tarball ingestion, snapshot workspace, commit-scoped APIs, `AnalysisContext` SPI, generic security scanning, vertical-slice ordering, Testcontainers instead of H2, current dependency versions. v3: **no Docker dependency**. Tests use embedded PostgreSQL binaries (zonky `embedded-postgres`) instead of Testcontainers; local dev uses embedded PostgreSQL via `spring-boot:test-run` or a native PostgreSQL install instead of Docker Compose
 
 ---
 
@@ -23,8 +23,9 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 
 | Rule | Detail |
 |---|---|
-| **Versions** | Use the current stable, mutually compatible versions at implementation time and record them in the README. Targets as of this revision: Java 21 LTS (25 LTS acceptable), Spring Boot 4.x (fall back to the latest 3.5.x only if a required library lacks Boot 4 support), Flyway 11+, React 19, Vite 7+, TypeScript 5.x, Tailwind CSS 4, TanStack Query 5. Pin Docker images to explicit tags (never `latest`). |
-| **Database in tests** | PostgreSQL via **Testcontainers** for every test that touches the database. **No H2**: it diverges from PostgreSQL on `jsonb`, UUID functions and index syntax. |
+| **Versions** | Use the current stable, mutually compatible versions at implementation time and record them in the README. Targets as of this revision: Java 21 LTS (25 LTS acceptable), Spring Boot 4.x (fall back to the latest 3.5.x only if a required library lacks Boot 4 support), Flyway 11+, React 19, Vite 7+, TypeScript 5.x, Tailwind CSS 4, TanStack Query 5. Pin the embedded PostgreSQL binaries version explicitly (via `embedded-postgres-binaries-bom`). |
+| **No Docker** | The project must build, test and run without Docker (it is not available on all developer machines). Do not add Testcontainers, Docker Compose or Docker-based tooling as a requirement. |
+| **Database in tests** | Real PostgreSQL started from embedded binaries (**zonky `embedded-postgres`**, shared `EmbeddedPostgresConfig`) for every test that touches the database. **No H2**: it diverges from PostgreSQL on `jsonb`, UUID functions and index syntax. |
 | **Migration numbering** | Number Flyway migrations at the time they are written (`V<next>__description.sql`); later MVP steps below do not hard-code version numbers. |
 | **Analyzers never persist** | Analyzers return results; only the orchestrator writes analysis results to the database. |
 | **Commit scoping** | Every repository-derived query is scoped by `snapshot_id`. No API returns data from more than one commit unless that is its explicit purpose (e.g. snapshot list). |
@@ -70,14 +71,15 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
        └── test/
            └── java/com/repointelligence/
                ├── RepoIntelligenceApplicationTests.java
-               └── support/PostgresTestContainerConfig.java
+               ├── TestRepoIntelligenceApplication.java   (runs the app on embedded PostgreSQL)
+               └── support/EmbeddedPostgresConfig.java
    ```
 2. Add dependencies to `pom.xml`:
    - `spring-boot-starter-web`, `spring-boot-starter-data-jpa`, `spring-boot-starter-validation`, `spring-boot-starter-actuator`
    - `postgresql` driver
    - `flyway-core` **and `flyway-database-postgresql`** (required since Flyway 10)
    - `springdoc-openapi-starter-webmvc-ui` (version compatible with the chosen Boot line)
-   - Test: `spring-boot-starter-test`, `spring-boot-testcontainers`, `org.testcontainers:postgresql`, `org.testcontainers:junit-jupiter`
+   - Test: `spring-boot-starter-test` (Boot 4: the per-module `*-test` starters), `io.zonky.test:embedded-postgres`, with `io.zonky.test.postgres:embedded-postgres-binaries-bom` imported to pin the PostgreSQL version
 3. Configure `application.yml`:
    - Server port `8080`
    - Datasource URL/username/password from environment variables with local-dev defaults
@@ -86,50 +88,36 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
    - springdoc: title, version, description
    - `spring.servlet.multipart` / `server.tomcat.max-http-form-post-size` and a JSON request-size limit
 4. Configure `application-dev.yml`: debug logging for `com.repointelligence`, relaxed limits.
-5. Test configuration: a shared `@TestConfiguration` using `@ServiceConnection` with a `PostgreSQLContainer` (image pinned, e.g. `postgres:16-alpine` at a fixed minor tag).
+5. Test configuration: a shared `@TestConfiguration` (`EmbeddedPostgresConfig`) that starts one embedded PostgreSQL per JVM (binaries pinned, e.g. 16.x) and exposes it as the `DataSource`; stopped by a shutdown hook.
+6. `TestRepoIntelligenceApplication` (test sources): `SpringApplication.from(...).with(EmbeddedPostgresConfig.class)` so `mvnw spring-boot:test-run` starts the app with no database install.
 
 **Tests:**
-- [ ] `RepoIntelligenceApplicationTests`: context loads against a Testcontainers PostgreSQL
-- [ ] App starts with `mvnw spring-boot:run` and returns 200 on `/actuator/health`
+- [ ] `RepoIntelligenceApplicationTests`: context loads against embedded PostgreSQL
+- [ ] App starts with `mvnw spring-boot:test-run` (or `spring-boot:run` against a native PostgreSQL) and returns 200 on `/actuator/health`
 
-**Exit gate:** `mvnw clean verify` passes (Docker running); app starts; health endpoint responds.
+**Exit gate:** `mvnw clean verify` passes (no Docker needed); app starts; health endpoint responds.
 
 ---
 
 ### Step 0.2: Set Up PostgreSQL & Flyway Migrations
 
 **What to build:**
-- Docker Compose file for local PostgreSQL
+- Two Docker-free local database options
 - Initial Flyway migration
 
 **Sub-tasks:**
-1. Create `docker-compose.yml` at project root:
-   ```yaml
-   services:
-     db:
-       image: postgres:16-alpine        # pin an explicit minor tag at implementation time
-       environment:
-         POSTGRES_DB: repointelligence
-         POSTGRES_USER: repointel
-         POSTGRES_PASSWORD: ${DB_PASSWORD:-repointel_dev}
-       ports: ["5432:5432"]
-       volumes: [pgdata:/var/lib/postgresql/data]
-       healthcheck:
-         test: ["CMD-SHELL", "pg_isready -U repointel -d repointelligence"]
-         interval: 5s
-         retries: 10
-   volumes:
-     pgdata:
-   ```
+1. Local database, no Docker. Support both and document them in the README:
+   - **Zero-install (default for quick runs):** `mvnw spring-boot:test-run` starts the app on embedded PostgreSQL (Step 0.1). Data is discarded on exit.
+   - **Persistent:** a native PostgreSQL 16 install (Windows: EDB installer). Provide `scripts/db/create-dev-db.sql` that creates the `repointel` role and the `repointelligence` database, run once with `psql -U postgres -f scripts/db/create-dev-db.sql`. The app then starts with `mvnw spring-boot:run` using the `DB_URL`/`DB_USERNAME`/`DB_PASSWORD` defaults.
 2. Create `.env.example` with all environment variables (no real secrets). At minimum: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `GITHUB_TOKEN` (optional, but strongly recommended), `WORKSPACE_ROOT`.
 3. Create `backend/src/main/resources/db/migration/V1__baseline.sql` (e.g. `CREATE EXTENSION IF NOT EXISTS pgcrypto;` if `gen_random_uuid()` is needed on the chosen PostgreSQL version; otherwise a comment-only baseline).
 4. Verify Flyway runs on startup.
 
 **Tests:**
-- [ ] Integration (Testcontainers): Flyway applies all migrations on startup; `flyway_schema_history` populated
-- [ ] Manual: `docker compose up -d db` then app connects
+- [ ] Integration (embedded PostgreSQL): Flyway applies all migrations on startup; `flyway_schema_history` populated
+- [ ] Manual: `mvnw spring-boot:test-run` starts and migrates; if a native PostgreSQL is installed, `create-dev-db.sql` then `mvnw spring-boot:run` connects
 
-**Exit gate:** Database starts via Docker Compose; Flyway migrations run in both dev and tests.
+**Exit gate:** The app runs against embedded and native PostgreSQL without Docker; Flyway migrations run in both dev and tests.
 
 ---
 
@@ -243,12 +231,12 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 
 **Sub-tasks:**
 1. `.github/workflows/ci.yml` (push to `main`, pull requests):
-   - **Backend job** (ubuntu, Docker available for Testcontainers): set up Java, cache Maven, `./mvnw -B clean verify`, upload Surefire/Failsafe reports
+   - **Backend job** (ubuntu; tests use embedded PostgreSQL, no Docker or service container needed): set up Java, cache Maven, `./mvnw -B clean verify`, upload Surefire/Failsafe reports
    - **Frontend job**: set up Node LTS + pnpm, `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test --run`, `pnpm build`
    - Tests needing external CLIs (Semgrep) are tagged and excluded by default (see Step 1.14)
 2. Backend static checks on the project's own code (e.g. Spotless formatting check, or Checkstyle/PMD with a light ruleset) as part of `verify`
 3. `.gitignore`: `target/`, `*.class`, `node_modules/`, `dist/`, IDE folders, `.env`, local workspace root
-4. `README.md`: description; prerequisites (JDK, Node LTS, pnpm, Docker Desktop on Windows); local setup (db, backend, frontend); running tests; selected versions; link to `docs/`
+4. `README.md`: description; prerequisites (JDK, Node LTS, pnpm; optionally a native PostgreSQL 16; **no Docker**); local setup (embedded or native db, backend, frontend); running tests; selected versions; link to `docs/`
 
 **Tests:**
 - [ ] CI green on push for both jobs
@@ -259,10 +247,10 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 
 ### MVP 0: Exit Criteria Checklist
 
-- [ ] Backend starts with `mvnw spring-boot:run`
+- [ ] Backend starts with `mvnw spring-boot:test-run` (embedded PostgreSQL) and with `mvnw spring-boot:run` (native PostgreSQL)
 - [ ] Frontend starts with `pnpm dev`
-- [ ] PostgreSQL runs via Docker Compose
-- [ ] Flyway migrations execute on startup and in Testcontainers tests
+- [ ] Nothing requires Docker
+- [ ] Flyway migrations execute on startup and in embedded-PostgreSQL tests
 - [ ] `/actuator/health` returns `UP`
 - [ ] Swagger UI loads at `/swagger-ui.html`
 - [ ] Dashboard shell renders with navigation
@@ -304,7 +292,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 4. Results are read for the **latest completed run of a snapshot** unless a `runId` is supplied.
 
 **Tests:**
-- [ ] Integration (Testcontainers): all migrations apply cleanly from empty
+- [ ] Integration (embedded PostgreSQL): all migrations apply cleanly from empty
 - [ ] Integration: unique constraints on `(repository_id, commit_sha)` and `(snapshot_id, path)` enforced
 
 **Exit gate:** `mvnw clean verify` passes; schema created.
@@ -715,7 +703,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
    - Kill the process tree on deadline or cancellation
    - Parse the JSON output into findings: `check_id` → `rule_id`, severity mapping, path relative to workspace, start/end line, redacted excerpt
    - Report **actual coverage**: languages and rule files that were run, and files scanned vs. skipped (from Semgrep output). Shown in the security section and capability matrix (Problem §6.6)
-   - Windows note: run Semgrep through WSL or the official Docker image if native support is insufficient on the developer machine. Document the configuration (`analysis.analyzers.semgrep.command`)
+   - Windows note: install Semgrep natively (`pip install semgrep`) or run it through WSL if native support is insufficient on the developer machine. No Docker image. Document the configuration (`analysis.analyzers.semgrep.command`)
 3. `JavaSecurityAnalyzer` is **not** a separate scanner; the Java pack contributes its Semgrep rule folder and a Java-specific capability row
 4. Dedupe: when the secret scanner and Semgrep flag the same location, the orchestrator keeps both rows but the report groups them by `fingerprint`
 5. Dependency vulnerabilities from Step 1.12 appear in the security section alongside code findings, labelled by source
@@ -798,7 +786,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
    - `security-smells`: known secrets (fake values) across Java/YAML/.env/JS, Semgrep-detectable patterns
    - `malicious-archive`: path traversal, symlinks, hard links, oversized file, decompression bomb, a README with prompt-injection text (stored as data; no effect expected in MVP 1)
    - Expected outcomes documented as assertions next to each fixture
-2. End-to-end backend tests (`@SpringBootTest` + Testcontainers + WireMock), full HTTP flow: submit → poll → report
+2. End-to-end backend tests (`@SpringBootTest` + embedded PostgreSQL + WireMock), full HTTP flow: submit → poll → report
 3. Security boundary tests:
    - Malformed/foreign URLs rejected (400); SSRF-style inputs never produce outbound calls (WireMock verifies no unexpected hosts)
    - Malicious archive extracted safely; nothing written outside the workspace
@@ -827,7 +815,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 1. Update `README.md`:
    - Local setup (database, backend, frontend), selected versions
    - `GITHUB_TOKEN` guidance (fine-grained, read-only public access; why it matters for rate limits)
-   - Optional tools: Semgrep (native/WSL/Docker), OSV lookup enable flag
+   - Optional tools: Semgrep (native/WSL), OSV lookup enable flag
    - Configuration reference (limits, workspace, retention, analyzer toggles)
    - How to analyse a repository; how to run tests (including tagged Semgrep tests)
    - Known limitations (direct dependencies only, remote parents/BOMs unresolved, no test execution, coverage only from committed reports, no auth: do not expose publicly)
@@ -1149,7 +1137,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 ### Step 4.1: Code Chunking, Keyword Index & Embeddings
 
 **Sub-tasks:**
-1. Switch the PostgreSQL image to one with pgvector (e.g. `pgvector/pgvector:pg16`, pinned) in Docker Compose and Testcontainers; migration `CREATE EXTENSION IF NOT EXISTS vector`
+1. Enable pgvector without Docker; migration `CREATE EXTENSION IF NOT EXISTS vector`. **Open decision, resolve at the start of this step:** the stock zonky embedded binaries do not ship pgvector. Options: (a) embedded binaries built with pgvector (custom `embedded-postgres-binaries` bundle), or (b) run DB tests against a native PostgreSQL with pgvector installed (`DB_URL`-selected test database), keeping embedded PostgreSQL for tests that don't need vectors. Native dev installs add pgvector from its Windows build.
 2. Migration for `code_chunk`: `id`, `snapshot_id`, `repository_id`, `file_path`, `language`, `module_path`, `class_name`, `method_name`, `chunk_type` (CLASS, METHOD, CONFIG_SECTION, DOC_SECTION), `start_line`, `end_line`, `content` (secret-redacted), `content_hash`, `tsv tsvector` (generated column for keyword search)
 3. Migration for embeddings, **separate per embedding model** because vector dimension is fixed per column: `chunk_embedding(chunk_content_hash, embedding_model, embedding_model_version, dimensions, embedding vector(N))`, keyed by content hash so unchanged chunks are reused across commits; one table or partition per model dimension
 4. `CodeChunker` (`rag.chunking`): Java via the MVP 2 AST (class header + fields, each method); YAML/properties by top-level section; Markdown by heading; fallback line-window chunking for other languages, labelled as such
@@ -1346,7 +1334,7 @@ After each MVP, verify that **all prior exit criteria still pass**:
 |---|---|---|---|---|---|---|---|
 | App starts without AI | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Health check works | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Migrations apply cleanly (Testcontainers) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Migrations apply cleanly (embedded PostgreSQL) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Java repo analyzed | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Non-Java repo generic analysis | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Capability matrix accurate | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -1394,7 +1382,8 @@ After each MVP, verify that **all prior exit criteria still pass**:
 | Capability matrix | Per analyzer | Detected technology × category; no rows for undetected technologies |
 | Async | `@Async` only | After-commit event listener, separate pools, deadlines, cancellation, restart recovery |
 | Rate limits | Wait and retry | Fail fast with reset time; bounded backoff only for transient errors |
-| Test DB | H2 + optional Testcontainers | Testcontainers PostgreSQL only |
+| Test DB | H2 + optional Testcontainers | Embedded PostgreSQL binaries only (v3; Testcontainers in v2) |
+| Docker | Docker Compose for dev DB | Not required anywhere (v3) |
 | Ordering | Backend layers first, UI last | Vertical slice first, then analyzers incrementally |
 | Versions | Boot 3.3, React 18, Vite 5, Tailwind 3, Flyway 10 | Current stable lines at implementation time; `flyway-database-postgresql` added |
 | Later MVPs | — | Secret scrub before prompts, schema validation, call budgets, hosted-provider consent, deterministic search, retrieval eval, per-model embeddings, deterministic impact input |

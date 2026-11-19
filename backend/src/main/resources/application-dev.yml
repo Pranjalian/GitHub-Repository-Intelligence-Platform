@@ -1,0 +1,12 @@
+logging:
+  level:
+    com.repointelligence: DEBUG
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+server:
+  tomcat:
+    max-http-form-post-size: 5MB
