@@ -9,6 +9,13 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate   # Flyway owns the schema
+    properties:
+      hibernate:
+        # Bulk inserts of file records and findings are batched.
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
   flyway:
     enabled: true
   servlet:
