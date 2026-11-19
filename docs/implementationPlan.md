@@ -247,17 +247,17 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 
 ### MVP 0: Exit Criteria Checklist
 
-- [ ] Backend starts with `mvnw spring-boot:test-run` (embedded PostgreSQL) and with `mvnw spring-boot:run` (native PostgreSQL)
-- [ ] Frontend starts with `pnpm dev`
-- [ ] Nothing requires Docker
-- [ ] Flyway migrations execute on startup and in embedded-PostgreSQL tests
-- [ ] `/actuator/health` returns `UP`
-- [ ] Swagger UI loads at `/swagger-ui.html`
-- [ ] Dashboard shell renders with navigation
-- [ ] CI builds, lints and tests both frontend and backend
-- [ ] No AI API key is required anywhere
-- [ ] README documents local setup and selected versions
-- [ ] MVP 0 completion report written (see Step 1.18 for the template)
+- [x] Backend starts with `mvnw spring-boot:test-run` (embedded PostgreSQL) and with `mvnw spring-boot:run` (native PostgreSQL)
+- [x] Frontend starts with `pnpm dev`
+- [x] Nothing requires Docker
+- [x] Flyway migrations execute on startup and in embedded-PostgreSQL tests
+- [x] `/actuator/health` returns `UP`
+- [x] Swagger UI loads at `/swagger-ui.html`
+- [x] Dashboard shell renders with navigation
+- [x] CI builds, lints and tests both frontend and backend
+- [x] No AI API key is required anywhere
+- [x] README documents local setup and selected versions
+- [x] MVP 0 completion report written (see Step 1.18 for the template)
 
 ---
 
