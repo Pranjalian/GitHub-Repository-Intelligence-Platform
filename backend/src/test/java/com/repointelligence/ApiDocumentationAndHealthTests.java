@@ -49,13 +49,16 @@ class ApiDocumentationAndHealthTests {
 			.andExpect(jsonPath("$.info.version").value("0.0.1"))
 			.andExpect(jsonPath("$.info.description").isNotEmpty())
 			// only the endpoints the UI needs, no placeholders for future phases
-			.andExpect(jsonPath("$.paths", aMapWithSize(6)))
+			.andExpect(jsonPath("$.paths", aMapWithSize(9)))
 			.andExpect(jsonPath("$.paths['/api/v1/repositories/analyze']").exists())
 			.andExpect(jsonPath("$.paths['/api/v1/repositories']").exists())
 			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}']").exists())
 			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}/snapshots']").exists())
 			.andExpect(jsonPath("$.paths['/api/v1/analysis-runs/{runId}']").exists())
-			.andExpect(jsonPath("$.paths['/api/v1/analysis-runs/{runId}/cancel']").exists());
+			.andExpect(jsonPath("$.paths['/api/v1/analysis-runs/{runId}/cancel']").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}/reports/{snapshotId}']").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/findings']").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/dependencies']").exists());
 	}
 
 	@Test

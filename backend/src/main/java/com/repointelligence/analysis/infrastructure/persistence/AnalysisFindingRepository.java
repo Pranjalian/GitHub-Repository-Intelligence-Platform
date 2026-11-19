@@ -8,10 +8,11 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface AnalysisFindingRepository extends JpaRepository<AnalysisFinding, UUID> {
+public interface AnalysisFindingRepository extends JpaRepository<AnalysisFinding, UUID>, JpaSpecificationExecutor<AnalysisFinding> {
 
 	List<AnalysisFinding> findBySnapshotIdAndRunId(UUID snapshotId, UUID runId);
 
