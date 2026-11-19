@@ -15,7 +15,6 @@ import com.repointelligence.common.model.Severity;
 import com.repointelligence.repository.domain.FileType;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

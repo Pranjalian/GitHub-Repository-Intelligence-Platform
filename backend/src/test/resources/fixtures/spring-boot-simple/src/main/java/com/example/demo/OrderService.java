@@ -9,7 +9,7 @@ public class OrderService {
 	public double total(int quantity, double price, String currency, String shipping, boolean gift, boolean express,
 			int discountTier) {
 		double total = 0;
-		int unused = 42;
+		int leftover = 42;
 		List<String> notes = new ArrayList<>();
 		if (quantity > 0) {
 			if (price > 0) {

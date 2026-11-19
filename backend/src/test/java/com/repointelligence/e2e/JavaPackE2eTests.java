@@ -110,4 +110,25 @@ class JavaPackE2eTests extends E2eTestBase {
 			.doesNotContain("maven-dependency-analyzer");
 	}
 
+	@Test
+	void javaFixtureReportShowsCategorizedCodeQualityFindingsWithEvidence() throws Exception {
+		Analysis analysis = analyze("acme", "spring-boot-simple", "5".repeat(40), fixture("spring-boot-simple").build());
+
+		String findings = findings(analysis, "&category=CODE_QUALITY");
+
+		assertThat((List<String>) JsonPath.read(findings, "$.items[*].ruleId")).contains("ExcessiveParameterList",
+				"EmptyCatchBlock", "UnusedLocalVariable", "AvoidDeeplyNestedIfStmts");
+		assertThat((List<String>) JsonPath.read(findings, "$.items[?(@.ruleId=='EmptyCatchBlock')].filePath"))
+			.containsExactly("src/main/java/com/example/demo/OrderService.java");
+		assertThat((List<String>) JsonPath.read(findings, "$.items[?(@.ruleId=='EmptyCatchBlock')].sourceUrl"))
+			.allMatch(url -> url.startsWith("https://github.com/acme/spring-boot-simple/blob/" + "5".repeat(40) + "/src/main/java/"));
+		assertThat((List<String>) JsonPath.read(findings, "$.items[?(@.ruleId=='UnusedLocalVariable')].evidence.excerpt"))
+			.anyMatch(e -> e.contains("leftover"));
+		String report = report(analysis);
+		assertThat((List<String>) JsonPath.read(report, "$.sections[?(@.category=='CODE_QUALITY')].status"))
+			.containsExactly("COMPLETED");
+		assertThat((List<String>) JsonPath.read(report, "$.limitations[?(@.analyzerId=='java-code-analyzer')].reason"))
+			.anyMatch(reason -> reason.contains("auxclasspath"));
+	}
+
 }

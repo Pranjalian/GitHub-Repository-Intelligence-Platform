@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Curated, versioned PMD ruleset for the Java code-quality analyzer (ruleset version 1.0.0).
+  Thresholds are set here, so changing them is a ruleset change, not a code change.
+  Rule priorities map to finding severities in JavaCodeAnalyzer (1 critical, 2 high, 3 medium, 4 low, 5 info).
+-->
+<ruleset name="RepoIntel Java Quality"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+	<description>Maintainability and correctness rules that work without a full classpath.</description>
+
+	<!-- design: size and complexity -->
+	<rule ref="category/java/design.xml/CyclomaticComplexity">
+		<priority>3</priority>
+		<properties>
+			<property name="methodReportLevel" value="8"/>
+			<property name="classReportLevel" value="80"/>
+		</properties>
+	</rule>
+	<rule ref="category/java/design.xml/CognitiveComplexity">
+		<priority>3</priority>
+		<properties>
+			<property name="reportLevel" value="15"/>
+		</properties>
+	</rule>
+	<rule ref="category/java/design.xml/GodClass">
+		<priority>2</priority>
+	</rule>
+	<rule ref="category/java/design.xml/NcssCount">
+		<priority>3</priority>
+		<properties>
+			<property name="methodReportLevel" value="60"/>
+			<property name="classReportLevel" value="1500"/>
+		</properties>
+	</rule>
+	<rule ref="category/java/design.xml/ExcessiveParameterList">
+		<priority>3</priority>
+		<properties>
+			<property name="minimum" value="6"/>
+		</properties>
+	</rule>
+	<rule ref="category/java/design.xml/TooManyMethods">
+		<priority>4</priority>
+		<properties>
+			<property name="maxmethods" value="25"/>
+		</properties>
+	</rule>
+	<rule ref="category/java/design.xml/AvoidDeeplyNestedIfStmts">
+		<priority>3</priority>
+		<properties>
+			<property name="problemDepth" value="3"/>
+		</properties>
+	</rule>
+	<rule ref="category/java/design.xml/SimplifyBooleanReturns"/>
+	<rule ref="category/java/design.xml/AvoidThrowingNullPointerException"/>
+
+	<!-- bestpractices -->
+	<rule ref="category/java/bestpractices.xml/UnusedLocalVariable">
+		<priority>4</priority>
+	</rule>
+	<rule ref="category/java/bestpractices.xml/UnusedPrivateField">
+		<priority>4</priority>
+	</rule>
+	<rule ref="category/java/bestpractices.xml/UnusedPrivateMethod">
+		<priority>4</priority>
+	</rule>
+	<rule ref="category/java/bestpractices.xml/UnusedFormalParameter">
+		<priority>4</priority>
+	</rule>
+	<rule ref="category/java/bestpractices.xml/AvoidReassigningParameters"/>
+	<rule ref="category/java/bestpractices.xml/SystemPrintln"/>
+	<rule ref="category/java/bestpractices.xml/PreserveStackTrace"/>
+	<rule ref="category/java/bestpractices.xml/MissingOverride"/>
+	<rule ref="category/java/bestpractices.xml/ForLoopCanBeForeach"/>
+
+	<!-- errorprone -->
+	<rule ref="category/java/errorprone.xml/EmptyCatchBlock">
+		<priority>2</priority>
+	</rule>
+	<rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop"/>
+	<rule ref="category/java/errorprone.xml/ReturnEmptyCollectionRatherThanNull"/>
+	<rule ref="category/java/errorprone.xml/CloseResource"/>
+	<rule ref="category/java/errorprone.xml/CompareObjectsWithEquals"/>
+
+	<!-- codestyle subset -->
+	<rule ref="category/java/codestyle.xml/UnnecessaryImport"/>
+	<rule ref="category/java/codestyle.xml/UnnecessaryReturn"/>
+	<rule ref="category/java/codestyle.xml/UselessParentheses"/>
+</ruleset>
