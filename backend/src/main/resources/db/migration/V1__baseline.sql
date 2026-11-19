@@ -1,0 +1,4 @@
+-- Baseline migration. Intentionally contains no schema objects.
+--
+-- PostgreSQL 13+ provides gen_random_uuid() in core, so the pgcrypto extension is
+-- not needed for UUID primary keys. Application tables arrive in later migrations.

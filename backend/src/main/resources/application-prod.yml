@@ -1,0 +1,11 @@
+# Secure defaults for production-like runs. Structured JSON console logging is configured
+# in logback-spring.xml (prod profile); this customizer redacts secrets from every JSON string value.
+logging:
+  structured:
+    json:
+      customizer: com.repointelligence.common.logging.RedactingJsonMembersCustomizer
+
+management:
+  endpoint:
+    health:
+      show-details: never
