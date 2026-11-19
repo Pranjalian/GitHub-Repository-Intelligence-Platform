@@ -54,6 +54,8 @@ public final class StubAnalyzers {
 
 		private final AtomicInteger applicabilityCalls = new AtomicInteger();
 
+		private Behaviour behaviour = ctx -> AnalyzerResult.empty();
+
 		StubAnalyzer(String id, String version, AnalysisCategory category, CapabilityLevel level) {
 			this.id = id;
 			this.version = version;
@@ -81,12 +83,19 @@ public final class StubAnalyzers {
 			return this;
 		}
 
+		/** What {@code analyze} does: return a result, throw, block until cancelled, ... */
+		public StubAnalyzer behaviour(Behaviour value) {
+			this.behaviour = value;
+			return this;
+		}
+
 		/** A copy of this analyzer with another version (to test that the analyzer-set hash changes). */
 		public StubAnalyzer version(String newVersion) {
 			StubAnalyzer copy = new StubAnalyzer(id, newVersion, category, level);
 			copy.languages = languages;
 			copy.frameworks = frameworks;
 			copy.applicability = applicability;
+			copy.behaviour = behaviour;
 			return copy;
 		}
 
@@ -109,9 +118,23 @@ public final class StubAnalyzers {
 		}
 
 		@Override
-		public AnalyzerResult analyze(AnalysisContext context) {
-			return AnalyzerResult.empty();
+		public AnalyzerResult analyze(AnalysisContext context) throws Exception {
+			return behaviour.run(context);
 		}
+
+	}
+
+	@FunctionalInterface
+	public interface Behaviour {
+
+		AnalyzerResult run(AnalysisContext context) throws Exception;
+
+	}
+
+	@FunctionalInterface
+	public interface DetectBehaviour {
+
+		List<DetectedTechnology> run(AnalysisContext context) throws Exception;
 
 	}
 
@@ -121,9 +144,16 @@ public final class StubAnalyzers {
 
 		private final String version;
 
+		private DetectBehaviour behaviour = ctx -> List.of();
+
 		public StubDetector(String id, String version) {
 			this.id = id;
 			this.version = version;
+		}
+
+		public StubDetector behaviour(DetectBehaviour value) {
+			this.behaviour = value;
+			return this;
 		}
 
 		@Override
@@ -133,8 +163,8 @@ public final class StubAnalyzers {
 		}
 
 		@Override
-		public List<DetectedTechnology> detect(AnalysisContext context) {
-			return List.of();
+		public List<DetectedTechnology> detect(AnalysisContext context) throws Exception {
+			return behaviour.run(context);
 		}
 
 	}

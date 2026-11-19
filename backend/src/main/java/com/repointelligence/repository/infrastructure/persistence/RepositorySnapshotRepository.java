@@ -6,6 +6,9 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface RepositorySnapshotRepository extends JpaRepository<RepositorySnapshot, UUID> {
 
@@ -18,5 +21,11 @@ public interface RepositorySnapshotRepository extends JpaRepository<RepositorySn
 	Page<RepositorySnapshot> findByRepositoryIdOrderByCreatedAtDesc(UUID repositoryId, Pageable pageable);
 
 	Optional<RepositorySnapshot> findFirstByRepositoryIdOrderByCreatedAtDesc(UUID repositoryId);
+
+	/** Startup recovery: ingestion interrupted by a restart did not finish; a later run starts it again. */
+	@Modifying(flushAutomatically = true, clearAutomatically = true)
+	@Query("update RepositorySnapshot s set s.ingestionStatus = com.repointelligence.common.model.IngestionStatus.FAILED, "
+			+ "s.ingestionError = :reason where s.ingestionStatus = com.repointelligence.common.model.IngestionStatus.INGESTING")
+	int failInterruptedIngestions(@Param("reason") String reason);
 
 }

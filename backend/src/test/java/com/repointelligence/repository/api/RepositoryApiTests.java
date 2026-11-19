@@ -79,6 +79,8 @@ class RepositoryApiTests {
 		registry.add("github.api-base-url", () -> "http://localhost:" + GITHUB.port());
 		registry.add("github.allowed-hosts", () -> "localhost");
 		registry.add("github.require-https", () -> "false");
+		// These tests assert on queued runs; the pipeline itself is tested in AnalysisOrchestratorTests.
+		registry.add("analysis.jobs.enabled", () -> "false");
 	}
 
 	@AfterAll

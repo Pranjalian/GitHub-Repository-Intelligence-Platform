@@ -32,6 +32,12 @@ public record AnalysisContext(GitHubRepositoryRef repositoryRef, UUID snapshotId
 				deadline, cancellation);
 	}
 
+	/** The same context with another cancellation token (the orchestrator adds a per-analyzer one). */
+	public AnalysisContext withCancellation(CancellationToken token) {
+		return new AnalysisContext(repositoryRef, snapshotId, runId, commitSha, workspace, files, technologies, settings,
+				deadline, token);
+	}
+
 	/** Files whose content is in the workspace (not binary, not skipped). */
 	public List<FileInfo> extractedFiles() {
 		return files.stream().filter(FileInfo::extracted).toList();

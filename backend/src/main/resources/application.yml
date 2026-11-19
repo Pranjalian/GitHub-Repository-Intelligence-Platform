@@ -42,6 +42,20 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+analysis:
+  jobs:
+    # Set to false to stop queued runs from starting automatically.
+    enabled: true
+    max-concurrent-jobs: 2
+    queue-capacity: 100
+    # Time budget for one run, ingestion included. Analyzers still running at the deadline are stopped.
+    max-analysis-duration: PT15M
+  results:
+    # Longest string kept in finding evidence; longer text is truncated (after redaction).
+    max-excerpt-length: 500
+    # Findings stored per analyzer; the rest are dropped and the execution records it.
+    max-findings-per-analyzer: 5000
+
 repository:
   ingestion:
     # Pre-check against the size GitHub reports; repositories clearly over this are rejected (422).
