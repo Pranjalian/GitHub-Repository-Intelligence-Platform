@@ -40,6 +40,11 @@ public record Applicability(Kind kind, String reason) {
 		return new Applicability(Kind.DISABLED, "disabled by configuration");
 	}
 
+	/** Switched off (not configured), with the reason shown to users, e.g. "vulnerability lookup disabled". */
+	public static Applicability disabled(String reason) {
+		return new Applicability(Kind.DISABLED, reason);
+	}
+
 	public boolean isApplicable() {
 		return kind == Kind.APPLICABLE;
 	}

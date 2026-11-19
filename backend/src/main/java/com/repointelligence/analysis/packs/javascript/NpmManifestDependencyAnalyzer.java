@@ -15,6 +15,9 @@ import com.repointelligence.common.model.CapabilityLevel;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import com.repointelligence.analysis.vulnerability.VulnerabilityEnricher;
+import java.util.ArrayList;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -55,6 +58,18 @@ public class NpmManifestDependencyAnalyzer implements DependencyAnalyzer {
 
 	private final JsonMapper mapper = JsonMapper.builder().build();
 
+	private final VulnerabilityEnricher vulnerabilities;
+
+	@Autowired
+	public NpmManifestDependencyAnalyzer(VulnerabilityEnricher vulnerabilities) {
+		this.vulnerabilities = vulnerabilities;
+	}
+
+	/** With vulnerability lookup off. */
+	public NpmManifestDependencyAnalyzer() {
+		this(VulnerabilityEnricher.disabled());
+	}
+
 	@Override
 	public AnalyzerDescriptor descriptor() {
 		return DESCRIPTOR;
@@ -68,6 +83,7 @@ public class NpmManifestDependencyAnalyzer implements DependencyAnalyzer {
 	@Override
 	public AnalyzerResult analyze(AnalysisContext context) {
 		AnalyzerResult.Builder result = AnalyzerResult.builder();
+		List<DependencyResult> inventory = new ArrayList<>();
 		int manifests = 0;
 		int dependencies = 0;
 		for (String path : manifests(context.files())) {
@@ -100,13 +116,18 @@ public class NpmManifestDependencyAnalyzer implements DependencyAnalyzer {
 						name = fullName.substring(fullName.indexOf('/') + 1);
 					}
 					String range = entry.getValue().isString() ? entry.getValue().asString() : entry.getValue().toString();
-					result.dependency(new DependencyResult(Ecosystem.NPM, path, modulePath, namespace, name, range, null,
+					inventory.add(new DependencyResult(Ecosystem.NPM, path, modulePath, namespace, name, range, null,
 							VersionSource.DECLARED, section.getValue(), true, false, VulnerabilityStatus.NOT_CHECKED,
 							List.of(), null));
 					dependencies++;
 				}
 			}
 		}
+		VulnerabilityEnricher.Enrichment enriched = vulnerabilities.enrich(inventory);
+		enriched.dependencies().forEach(result::dependency);
+		enriched.findings().forEach(result::finding);
+		enriched.warnings().forEach(result::warning);
+		enriched.limitations().forEach(result::limitation);
 		result.configSummary(Map.of("packageJsonFiles", manifests, "dependencies", dependencies));
 		DESCRIPTOR.limitations().forEach(result::limitation);
 		return result.build();

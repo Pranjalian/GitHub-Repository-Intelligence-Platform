@@ -50,6 +50,17 @@ analysis:
     queue-capacity: 100
     # Time budget for one run, ingestion included. Analyzers still running at the deadline are stopped.
     max-analysis-duration: PT15M
+  vulnerabilities:
+    osv:
+      # Known-vulnerability lookup via OSV.dev. Off by default: it needs outbound network access.
+      # Only package names and versions are sent, never source code. When off, dependencies are
+      # shown as "Not checked", never as free of vulnerabilities.
+      enabled: false
+      endpoint: https://api.osv.dev
+      # Outbound allowlist for the lookup (only used when enabled).
+      allowed-hosts: [api.osv.dev]
+      timeout: PT10S
+      max-retries: 2
   results:
     # Longest string kept in finding evidence; longer text is truncated (after redaction).
     max-excerpt-length: 500

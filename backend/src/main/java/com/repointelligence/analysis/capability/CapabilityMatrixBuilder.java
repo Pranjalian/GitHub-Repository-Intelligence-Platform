@@ -143,7 +143,8 @@ public class CapabilityMatrixBuilder {
 		}
 		return switch (result.kind()) {
 			case NOT_APPLICABLE -> null;
-			case DISABLED -> unavailableRow(technology, descriptor, ExecutionStatus.NOT_CONFIGURED, "disabled by configuration");
+			case DISABLED -> unavailableRow(technology, descriptor, ExecutionStatus.NOT_CONFIGURED,
+					result.reason() != null ? result.reason() : "disabled by configuration");
 			case UNAVAILABLE -> unavailableRow(technology, descriptor, ExecutionStatus.UNAVAILABLE, result.reason());
 			case APPLICABLE -> new CapabilityRow(technology, descriptor.category(), id, descriptor.version(),
 					descriptor.capabilityLevel(), ExecutionStatus.NOT_ANALYZED, null);

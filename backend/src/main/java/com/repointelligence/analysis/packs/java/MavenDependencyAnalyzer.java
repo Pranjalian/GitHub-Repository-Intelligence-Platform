@@ -25,6 +25,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.repointelligence.analysis.vulnerability.VulnerabilityEnricher;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,6 +54,18 @@ public class MavenDependencyAnalyzer implements DependencyAnalyzer {
 				"Profile dependencies are listed with their profile id; whether a profile is active is not evaluated.")
 		.build();
 
+	private final VulnerabilityEnricher vulnerabilities;
+
+	@Autowired
+	public MavenDependencyAnalyzer(VulnerabilityEnricher vulnerabilities) {
+		this.vulnerabilities = vulnerabilities;
+	}
+
+	/** With vulnerability lookup off. */
+	public MavenDependencyAnalyzer() {
+		this(VulnerabilityEnricher.disabled());
+	}
+
 	@Override
 	public AnalyzerDescriptor descriptor() {
 		return DESCRIPTOR;
@@ -68,6 +82,7 @@ public class MavenDependencyAnalyzer implements DependencyAnalyzer {
 		MavenReactor reactor = MavenPomParser.parse(context.workspace(), context.files());
 		AnalyzerResult.Builder result = AnalyzerResult.builder();
 		reactor.warnings().forEach(result::warning);
+		List<DependencyResult> inventory = new ArrayList<>();
 
 		int directCount = 0;
 		int managementCount = 0;
@@ -77,7 +92,7 @@ public class MavenDependencyAnalyzer implements DependencyAnalyzer {
 			context.cancellation().throwIfCancelled();
 			List<ResolvedDependency> dependencies = module.dependencies();
 			for (ResolvedDependency dependency : dependencies) {
-				result.dependency(toResult(module, dependency));
+				inventory.add(toResult(module, dependency));
 				directCount++;
 				if (dependency.profileId() == null && dependency.resolvedVersion() != null) {
 					versionsByArtifact.computeIfAbsent(dependency.coordinate(), k -> new LinkedHashMap<>())
@@ -87,13 +102,19 @@ public class MavenDependencyAnalyzer implements DependencyAnalyzer {
 				}
 			}
 			for (ResolvedDependency entry : module.managementEntries()) {
-				result.dependency(toResult(module, entry));
+				inventory.add(toResult(module, entry));
 				managementCount++;
 			}
 			duplicateFindings(module, dependencies).forEach(result::finding);
 			unresolvedFindings(module, dependencies).forEach(result::finding);
 		}
 		inconsistencyFindings(versionsByArtifact, firstPomByArtifact).forEach(result::finding);
+
+		VulnerabilityEnricher.Enrichment enriched = vulnerabilities.enrich(inventory);
+		enriched.dependencies().forEach(result::dependency);
+		enriched.findings().forEach(result::finding);
+		enriched.warnings().forEach(result::warning);
+		enriched.limitations().forEach(result::limitation);
 
 		result.configSummary(Map.of("pomFiles", reactor.modules().size(), "directDependencies", directCount,
 				"managementEntries", managementCount));

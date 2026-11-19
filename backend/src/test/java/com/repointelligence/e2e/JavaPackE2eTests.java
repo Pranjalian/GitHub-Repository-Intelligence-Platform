@@ -54,6 +54,15 @@ class JavaPackE2eTests extends E2eTestBase {
 			.containsExactly("DEEP");
 		assertThat((List<String>) JsonPath.read(report, "$.sections[?(@.category=='DEPENDENCIES')].status"))
 			.containsExactly("COMPLETED");
+		// lookup is off by default: the capability says so and nothing is implied about vulnerabilities
+		assertThat((List<String>) JsonPath.read(report,
+				"$.capabilityMatrix[?(@.analyzerId=='dependency-vulnerability-lookup' && @.technology=='Java')].executionStatus"))
+			.containsExactly("NOT_CONFIGURED");
+		assertThat((List<String>) JsonPath.read(report,
+				"$.capabilityMatrix[?(@.analyzerId=='dependency-vulnerability-lookup' && @.technology=='Java')].limitationReason"))
+			.anyMatch(reason -> reason.contains("vulnerability lookup disabled"));
+		assertThat((List<String>) JsonPath.read(dependencies(analysis, ""), "$.items[*].vulnerabilityStatus"))
+			.containsOnly("NOT_CHECKED");
 		// remote-managed versions are surfaced as an INFO finding, not hidden
 		String findings = findings(analysis, "&category=DEPENDENCIES");
 		assertThat((List<String>) JsonPath.read(findings, "$.items[*].ruleId")).contains("maven-remote-managed-versions");
