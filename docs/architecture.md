@@ -1063,7 +1063,7 @@ flowchart LR
 | **Repository ingestion** | Tarball size cap while streaming, decompressed-size and entry-count caps (bomb-safe), per-file size limit, zip-slip path check, symlinks/hard links skipped, binaries excluded from analysis, workspace cleanup |
 | **Untrusted XML** | `pom.xml`, `jacoco.xml` and other XML parsed with external entities and external DTD loading disabled (XXE) |
 | **External tools** | Semgrep runs as a subprocess with local rules, `--metrics=off`, timeouts, output caps, minimal environment, and is killed on deadline or cancel |
-| **Code execution** | Disabled by default; if enabled, runs in isolated container with no network, resource caps, read-only mounts |
+| **Code execution** | Disabled by default; if enabled, runs in an isolated worker/sandbox with no network, resource caps, read-only access. Must not make Docker a requirement for the rest of the platform |
 | **AI prompts** | System prompt separated from repository data; repo content marked as untrusted data; model told not to follow instructions from data |
 | **Secret handling** | A single `SecretRedactor` is applied to every evidence excerpt (from any analyzer), to logs (Logback converter), and to AI prompts; `GITHUB_TOKEN`/`Authorization` never logged; API keys via env vars only |
 | **API security** | CORS configured; request size limits; rate limit on `POST /analyze`; queued-job cap (429); input validation on all endpoints. **No authentication in MVP 0–1: local single-user only, not for public exposure** |

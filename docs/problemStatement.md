@@ -322,7 +322,9 @@ configuration files are untrusted input.
 -   Do not execute repository code on the main application server.
 -   Do not execute build scripts by default.
 -   If build/test execution is enabled, use an isolated, disposable
-    worker or container with resource and network restrictions.
+    worker or sandbox with resource and network restrictions. The
+    isolation mechanism must not make Docker a requirement for normal
+    operation.
 -   Apply repository size, file count, file size, processing time and
     memory limits.
 -   Block or safely handle symlinks and path traversal.
@@ -376,7 +378,10 @@ implementing analysis features.
 -   Application configuration profiles.
 -   Centralized error handling and validation.
 -   Structured logging with sensitive-data redaction.
--   Docker Compose for local development where practical.
+-   Local development without Docker: the application, database and
+    tests must run as native processes (for example embedded PostgreSQL
+    binaries for tests and zero-install runs, or a native PostgreSQL
+    install), because Docker is not available on all developer machines.
 -   API documentation, preferably OpenAPI.
 -   Basic automated backend and frontend tests.
 -   CI workflow for build, test and static checks.
@@ -1292,14 +1297,15 @@ These requirements apply from MVP 1 onward.
 ## 9.3 Untrusted code and tool execution
 
 -   Do not run arbitrary build scripts on the API server.
--   If build/test execution is implemented, isolate it in a
-    worker/container.
+-   If build/test execution is implemented, isolate it in a separate
+    worker/sandbox (optional feature; never a Docker requirement for
+    the rest of the platform).
 -   Apply CPU, memory, disk, process and time limits.
 -   Disable outbound network by default for untrusted build execution.
 -   Use read-only mounts where practical.
 -   Clean up temporary workspaces after processing.
--   Do not mount application secrets into repository-processing
-    containers.
+-   Do not expose application secrets to repository-processing
+    workers or sandboxes.
 
 ## 9.4 Prompt injection
 
@@ -1595,6 +1601,7 @@ direction. Follow these instructions while implementing.
     license/configuration, document it and provide a graceful
     unavailable state.
 -   Provide reproducible local setup instructions.
+-   Do not require Docker to build, test or run the project.
 -   Update the README as implementation evolves.
 
 ## 15.4 AI-specific restrictions
