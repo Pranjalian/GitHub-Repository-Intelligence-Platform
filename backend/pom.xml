@@ -18,6 +18,7 @@
 		<springdoc.version>3.2.0</springdoc.version>
 		<embedded-postgres.version>2.2.2</embedded-postgres.version>
 		<embedded-postgres-binaries.version>16.16.0</embedded-postgres-binaries.version>
+		<spotless.version>3.11.0</spotless.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -107,6 +108,30 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>${spotless.version}</version>
+				<configuration>
+					<java>
+						<includes>
+							<include>src/**/*.java</include>
+						</includes>
+						<removeUnusedImports/>
+						<trimTrailingWhitespace/>
+						<endWithNewline/>
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<id>spotless-check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

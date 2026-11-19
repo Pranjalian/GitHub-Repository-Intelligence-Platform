@@ -73,6 +73,25 @@ pnpm lint && pnpm typecheck && pnpm test --run && pnpm build
 
 Backend database tests use embedded PostgreSQL (no H2, no Docker).
 
+`./mvnw verify` also runs a Spotless check (unused imports, trailing whitespace, final newline). Fix violations with `./mvnw spotless:apply`.
+
+## Continuous integration
+
+[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on pushes to `main` and on pull requests:
+
+- **Backend:** JDK 25, `./mvnw -B clean verify` (tests on embedded PostgreSQL, no Docker, plus the Spotless check). Test reports are uploaded as an artifact.
+- **Frontend:** Node 22, `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test --run`, `pnpm build`.
+
+Tests that need external CLIs (for example Semgrep) will be tagged and excluded by default.
+
+## Troubleshooting
+
+- **Maven fails with "release version 25 not supported":** `JAVA_HOME` points to an older JDK. Set it to JDK 25 and open a new terminal.
+- **Port 8080 or 5173 already in use:** stop the previous run of the backend or `pnpm dev`.
+- **Frontend tests crash on startup with an undici error:** your Node is older than a dependency requires; jsdom is pinned to a release that supports Node 22.12+.
+- **Backend cannot connect to PostgreSQL:** use `./mvnw spring-boot:test-run` (embedded database), or run `scripts/db/create-dev-db.sql` against your native PostgreSQL and check `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`.
+- **`mvnw: Permission denied` on Linux/macOS:** run `chmod +x mvnw`.
+
 ## Selected versions
 
 | Component | Version |
