@@ -48,13 +48,30 @@ Flyway applies the migrations in `backend/src/main/resources/db/migration/` on s
 
 Check it is running: `http://localhost:8080/actuator/health` should return `{"status":"UP"}`.
 
+## Running the frontend
+
+Requires Node.js 22+ and pnpm (`npm i -g pnpm`). All commands run from `frontend/`.
+
+```sh
+pnpm install
+pnpm dev        # http://localhost:5173, proxies /api to http://localhost:8080
+```
+
+Start the backend first (see above) so the `/api` proxy has something to reach.
+
+Repository-derived text (file paths, code excerpts, findings) is untrusted: it must never be rendered as HTML. Do not use `dangerouslySetInnerHTML`; ESLint fails the build if it appears.
+
 ## Running tests
 
 ```sh
+# backend (from backend/)
 ./mvnw clean verify
+
+# frontend (from frontend/)
+pnpm lint && pnpm typecheck && pnpm test --run && pnpm build
 ```
 
-Database tests use embedded PostgreSQL (no H2, no Docker).
+Backend database tests use embedded PostgreSQL (no H2, no Docker).
 
 ## Selected versions
 
@@ -65,3 +82,14 @@ Database tests use embedded PostgreSQL (no H2, no Docker).
 | springdoc-openapi | 3.2.0 |
 | PostgreSQL (embedded, tests) | 16.16 |
 | zonky embedded-postgres | 2.2.2 |
+| Node.js (tested) | 22.14 |
+| pnpm | 12 |
+| React / React DOM | 19.3 |
+| React Router | 8.5 |
+| Vite | 8.3 |
+| TypeScript | 5.9 |
+| Tailwind CSS | 4.3 |
+| TanStack Query | 5.108 |
+| Vitest / jsdom / MSW | 5.1 / 29.1 / 3.0 |
+
+jsdom is pinned to 29.x because jsdom 31 requires Node 22.22+.
