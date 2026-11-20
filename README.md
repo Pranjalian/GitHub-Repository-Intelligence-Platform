@@ -1,6 +1,8 @@
 # GitHub Repository Intelligence Platform
 
-Evidence-backed analysis of public GitHub repositories. See [docs/](docs/) for the problem statement, architecture and implementation plan.
+Evidence-backed analysis of public GitHub repositories. Submit a public repository URL and get a commit-scoped report: technologies, structure, dependencies, code quality, secrets and security rules, tests and (real) coverage, plus an honest capability matrix that says what the platform could not analyze and why. It is deterministic: **no AI and no AI key are needed**, and no code from the analyzed repository is ever executed.
+
+See [docs/](docs/) for the problem statement, architecture, implementation plan and the [MVP 1 completion report](docs/mvp1-completion-report.md).
 
 > Local single-user tool. There is no authentication yet: do not expose it to the public internet.
 
@@ -11,6 +13,46 @@ Evidence-backed analysis of public GitHub repositories. See [docs/](docs/) for t
 - **No Docker required** for building, testing or running
 
 Maven itself is not needed; use the wrapper (`mvnw` / `mvnw.cmd`) in `backend/`.
+
+## How to analyze a repository
+
+1. Start the backend and the frontend (below), open http://localhost:5173 and choose **Add Repository**.
+2. Paste a public GitHub URL (for example `https://github.com/spring-projects/spring-petclinic`, optionally `/tree/<branch>`) and press **Analyze**. Tick *Force full rescan* to re-analyze a commit that was already analyzed.
+3. Watch the progress page, then read the report: Overview (technologies, structure, capability matrix, limitations), Dependencies, Code Quality, Security, Tests & Coverage. Use the snapshot selector to switch between analyzed commits.
+
+API documentation: http://localhost:8080/swagger-ui.html. Flow: `POST /api/v1/repositories/analyze` returns a run id; poll `GET /api/v1/analysis-runs/{runId}`; read `GET /api/v1/repositories/{repositoryId}/reports/{snapshotId}` and the findings, dependencies, tests and coverage endpoints under `/snapshots/{snapshotId}/`.
+
+## GitHub token
+
+Set `GITHUB_TOKEN` to a **fine-grained token with read-only access to public repositories** (no scopes needed for public data). Without it GitHub allows only 60 API requests per hour per IP; with it, 5,000. The token is sent only to GitHub (`api.github.com`, `codeload.github.com`), never logged, and redacted from logs and reports.
+
+## Optional tools and features
+
+- **Semgrep** (security rules for Java). Not required. If the `semgrep` CLI is not found the analyzer is reported as *Unavailable* with the reason, and everything else still runs. Install natively (`pip install semgrep`; on Windows run it through WSL if native support is insufficient) or point to it with `analysis.analyzers.semgrep-security-analyzer.options.command`. Rules are vendored in `backend/src/main/resources/semgrep-rules/`; nothing is downloaded at runtime and metrics are off.
+- **OSV.dev vulnerability lookup** for dependencies. Off by default (`analysis.vulnerabilities.osv.enabled=false`) because it needs outbound network access. When off, every dependency shows *Not checked*, which never means "no known vulnerabilities". When on, only package names and versions are sent, and only for dependencies with a concrete resolved version.
+
+## Configuration reference
+
+All keys live in `backend/src/main/resources/application.yml` and can be overridden with environment variables or `-D` properties.
+
+| Area | Keys |
+|---|---|
+| Limits | `repository.ingestion.max-repository-size-mb`, `max-tarball-size-mb`, `max-extracted-size-mb`, `max-file-size-kb`, `max-file-count`, `excluded-directories` |
+| Workspace | `repository.workspace.root` (`WORKSPACE_ROOT`), `retain-after-analysis`, `sweep-interval` |
+| Jobs and rate limits | `analysis.jobs.max-concurrent-jobs`, `queue-capacity`, `max-analysis-duration`; `repository.submission.max-pending-jobs`, `rate-limit.capacity`, `rate-limit.refill-period` |
+| Results | `analysis.results.max-excerpt-length`, `max-findings-per-analyzer` |
+| GitHub | `github.token`, `api-base-url`, `allowed-hosts`, timeouts, `retry.*` |
+| Analyzer toggles | `analysis.analyzers.<analyzer-id>.enabled` and `.options.*` (for example `java-code-analyzer` option `include-tests`) |
+| Vulnerability lookup | `analysis.vulnerabilities.osv.*` |
+
+## Known limitations
+
+- Only **direct** dependencies are inventoried; transitive dependencies are not resolved.
+- Versions supplied by **remote parents or BOMs** (for example `spring-boot-starter-parent`) are not resolved and are labelled as such.
+- Tests are **never executed**. Coverage appears only when a JaCoCo report is committed in the repository and may be stale; otherwise it says "unavailable", never 0%.
+- "Outdated dependency" detection is not implemented.
+- Deep analysis exists for Java/Maven; other stacks get generic analysis (structure, secrets, test files, npm dependencies) and an honest "unsupported" matrix.
+- There is **no authentication**: this is a local single-user tool. Do not expose it to the public internet.
 
 ## Running the backend
 
@@ -82,7 +124,7 @@ Backend database tests use embedded PostgreSQL (no H2, no Docker).
 - **Backend:** JDK 25, `./mvnw -B clean verify` (tests on embedded PostgreSQL, no Docker, plus the Spotless check). Test reports are uploaded as an artifact.
 - **Frontend:** Node 22, `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test --run`, `pnpm build`.
 
-Tests that need external CLIs (for example Semgrep) will be tagged and excluded by default.
+Tests that need external CLIs (for example Semgrep) are tagged and excluded by default; the Semgrep parser, unavailability and process-kill behaviour are covered without the CLI.
 
 ## Troubleshooting
 
@@ -98,6 +140,9 @@ Tests that need external CLIs (for example Semgrep) will be tagged and excluded 
 |---|---|
 | Java | 25 |
 | Spring Boot | 4.1.2 |
+| PMD (in-process) | 7.29.0 |
+| JavaParser | 3.28.2 |
+| maven-model (POM reading only) | 3.9.16 |
 | springdoc-openapi | 3.2.0 |
 | PostgreSQL (embedded, tests) | 16.16 |
 | zonky embedded-postgres | 2.2.2 |

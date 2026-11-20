@@ -1,5 +1,6 @@
 package com.repointelligence.repository.api;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -11,7 +12,9 @@ import jakarta.validation.constraints.Size;
  * No {@code @URL} validation on purpose: it rejects the supported scheme-less form. The URL is
  * validated by {@code GitHubUrlParser}.
  */
-public record AnalyzeRepositoryRequest(@NotBlank @Size(max = 500) String url, Boolean forceRescan) {
+public record AnalyzeRepositoryRequest(
+		@Schema(description = "A public GitHub repository URL.", example = "https://github.com/spring-projects/spring-petclinic") @NotBlank @Size(max = 500) String url,
+		@Schema(description = "Re-analyze even if this commit was already analyzed.", example = "false") Boolean forceRescan) {
 
 	public AnalyzeRepositoryRequest {
 		if (forceRescan == null) {
