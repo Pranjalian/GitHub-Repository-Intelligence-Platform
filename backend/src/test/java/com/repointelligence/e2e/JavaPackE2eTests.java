@@ -131,4 +131,41 @@ class JavaPackE2eTests extends E2eTestBase {
 			.anyMatch(reason -> reason.contains("auxclasspath"));
 	}
 
+	@Test
+	void fixtureWithACommittedJacocoReportShowsRealCoverageAndTheTestInventory() throws Exception {
+		Analysis analysis = analyze("acme", "spring-boot-simple", "8".repeat(40), fixture("spring-boot-simple").build());
+
+		String coverage = getJson("/api/v1/repositories/" + analysis.repositoryId() + "/snapshots/" + analysis.snapshotId() + "/coverage");
+		assertThat((String) JsonPath.read(coverage, "$.status")).isEqualTo("COMPLETED");
+		assertThat((List<Integer>) JsonPath.read(coverage, "$.records[?(@.name=='com/example/demo/OrderService')].lineCovered"))
+			.containsExactly(21);
+		assertThat((List<Integer>) JsonPath.read(coverage, "$.records[?(@.name=='com/example/demo/OrderService')].branchMissed"))
+			.containsExactly(6);
+		assertThat((List<String>) JsonPath.read(coverage, "$.records[*].reportPath")).containsOnly("target/site/jacoco/jacoco.xml");
+
+		String tests = getJson("/api/v1/repositories/" + analysis.repositoryId() + "/snapshots/" + analysis.snapshotId() + "/tests");
+		assertThat((Integer) JsonPath.read(tests, "$.testMethods")).isEqualTo(2);
+		assertThat((Integer) JsonPath.read(tests, "$.methodsByFramework['JUnit 5']")).isEqualTo(2);
+		assertThat((List<String>) JsonPath.read(tests, "$.records[*].productionSymbol")).containsExactly("com.example.demo.OrderService");
+		assertThat((List<String>) JsonPath.read(tests, "$.untestedClasses")).contains("com.example.demo.Untested");
+	}
+
+	@Test
+	void fixtureWithoutAJacocoReportShowsCoverageUnavailableNotZero() throws Exception {
+		byte[] tar = new com.repointelligence.support.TarGzBuilder()
+			.file("pom.xml", "<project xmlns=\"http://maven.apache.org/POM/4.0.0\"><modelVersion>4.0.0</modelVersion><groupId>g</groupId><artifactId>a</artifactId><version>1</version></project>")
+			.file("src/main/java/demo/Foo.java", "package demo;\npublic class Foo {}\n")
+			.file("src/test/java/demo/FooTest.java",
+					"package demo;\nimport org.junit.jupiter.api.Test;\nclass FooTest { @Test void t() {} }\n")
+			.build();
+		Analysis analysis = analyze("acme", "no-coverage", "9".repeat(40), tar);
+
+		String coverage = getJson("/api/v1/repositories/" + analysis.repositoryId() + "/snapshots/" + analysis.snapshotId() + "/coverage");
+
+		assertThat((String) JsonPath.read(coverage, "$.status")).isEqualTo("NOT_ANALYZED");
+		assertThat((String) JsonPath.read(coverage, "$.message"))
+			.isEqualTo("Coverage unavailable: no JaCoCo report found in the repository. Tests are not executed in MVP 1.");
+		assertThat((List<Object>) JsonPath.read(coverage, "$.records")).isEmpty();
+	}
+
 }

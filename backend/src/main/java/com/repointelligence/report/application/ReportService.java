@@ -15,7 +15,13 @@ import com.repointelligence.analysis.infrastructure.persistence.AnalyzerCapabili
 import com.repointelligence.analysis.infrastructure.persistence.AnalyzerExecutionRepository;
 import com.repointelligence.analysis.infrastructure.persistence.DependencyRecordRepository;
 import com.repointelligence.analysis.infrastructure.persistence.ModuleRecordRepository;
+import com.repointelligence.analysis.infrastructure.persistence.CoverageRecordRepository;
 import com.repointelligence.analysis.infrastructure.persistence.TechnologyFindingRepository;
+import com.repointelligence.analysis.infrastructure.persistence.TestRecordRepository;
+import com.repointelligence.report.api.CoverageRecordDTO;
+import com.repointelligence.report.api.CoverageReportDTO;
+import com.repointelligence.report.api.TestRecordDTO;
+import com.repointelligence.report.api.TestsReportDTO;
 import com.repointelligence.analysis.registry.AnalyzerRegistry;
 import com.repointelligence.analysis.spi.AnalyzerDescriptor;
 import com.repointelligence.common.exception.ResourceNotFoundException;
@@ -91,10 +97,17 @@ public class ReportService {
 
 	private final AnalyzerRegistry registry;
 
+	private final TestRecordRepository testRecords;
+
+	private final CoverageRecordRepository coverageRecords;
+
 	public ReportService(RepositorySnapshotRepository snapshots, AnalysisRunRepository runs,
 			AnalyzerExecutionRepository executions, AnalyzerCapabilityRepository capabilities,
 			TechnologyFindingRepository technologies, ModuleRecordRepository modules,
-			AnalysisFindingRepository findings, DependencyRecordRepository dependencies, AnalyzerRegistry registry) {
+			AnalysisFindingRepository findings, DependencyRecordRepository dependencies, AnalyzerRegistry registry,
+			TestRecordRepository testRecords, CoverageRecordRepository coverageRecords) {
+		this.testRecords = testRecords;
+		this.coverageRecords = coverageRecords;
 		this.snapshots = snapshots;
 		this.runs = runs;
 		this.executions = executions;
@@ -163,6 +176,51 @@ public class ReportService {
 		var spec = ReportSpecifications.dependencies(snapshotId, resolved.run().getId(), ecosystem, module, scope,
 				vulnerable);
 		return PageResponse.from(dependencies.findAll(spec, PageRequest.of(page, size)), ReportService::toDependency);
+	}
+
+	/** Test inventory. Counts are null when no analyzer counted tests (never 0 for "unknown"). */
+	public TestsReportDTO tests(UUID repositoryId, UUID snapshotId) {
+		Resolved resolved = resolve(repositoryId, snapshotId, null);
+		UUID runId = resolved.run().getId();
+		List<TestRecordDTO> records = testRecords.findBySnapshotIdAndRunId(snapshotId, runId)
+			.stream()
+			.sorted(Comparator.comparing(com.repointelligence.analysis.domain.TestRecord::getTestFilePath))
+			.map(t -> new TestRecordDTO(t.getTestFilePath(), t.getTestSymbol(), t.getTestMethodCount(), t.getFramework(),
+					t.getProductionSymbol(), t.getMappingMethod(), t.getConfidence()))
+			.toList();
+		boolean counted = records.stream().anyMatch(r -> r.testMethodCount() != null);
+		Map<String, Integer> byFramework = new java.util.TreeMap<>();
+		records.stream()
+			.filter(r -> r.framework() != null && r.testMethodCount() != null)
+			.forEach(r -> byFramework.merge(r.framework(), r.testMethodCount(), Integer::sum));
+		List<String> untested = findings.findBySnapshotIdAndRunId(snapshotId, runId)
+			.stream()
+			.filter(f -> f.getCategory() == AnalysisCategory.TESTS && "no-test-found".equals(f.getRuleId()))
+			.map(f -> String.valueOf(f.getEvidence() == null ? f.getFilePath() : f.getEvidence().getOrDefault("class", f.getFilePath())))
+			.sorted()
+			.toList();
+		return new TestsReportDTO(records.isEmpty() ? null : records.size(),
+				counted ? records.stream().mapToInt(r -> r.testMethodCount() == null ? 0 : r.testMethodCount()).sum() : null,
+				counted ? byFramework : null, records, untested);
+	}
+
+	/** Coverage from a real report, or NOT_ANALYZED with the reason: never an estimate, never 0%. */
+	public CoverageReportDTO coverage(UUID repositoryId, UUID snapshotId) {
+		Resolved resolved = resolve(repositoryId, snapshotId, null);
+		List<CoverageRecordDTO> records = coverageRecords.findBySnapshotIdAndRunId(snapshotId, resolved.run().getId())
+			.stream()
+			.sorted(Comparator.comparing(com.repointelligence.analysis.domain.CoverageRecord::getReportPath)
+				.thenComparing(c -> c.getScope().ordinal())
+				.thenComparing(com.repointelligence.analysis.domain.CoverageRecord::getName))
+			.map(c -> new CoverageRecordDTO(c.getReportPath(), c.getScope(), c.getName(), c.getLineCovered(), c.getLineMissed(),
+					c.getBranchCovered(), c.getBranchMissed()))
+			.toList();
+		if (records.isEmpty()) {
+			return new CoverageReportDTO(ExecutionStatus.NOT_ANALYZED,
+					"Coverage unavailable: no JaCoCo report found in the repository. Tests are not executed in MVP 1.", List.of());
+		}
+		return new CoverageReportDTO(ExecutionStatus.COMPLETED,
+				"Coverage from a report committed to the repository; it may be stale relative to this commit.", records);
 	}
 
 	// ── resolution ───────────────────────────────────────────────────────────────────────────────

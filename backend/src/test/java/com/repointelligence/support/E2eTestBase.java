@@ -164,7 +164,9 @@ public abstract class E2eTestBase {
 			TarGzBuilder tar = new TarGzBuilder();
 			try (Stream<Path> files = Files.walk(root)) {
 				for (Path file : files.filter(Files::isRegularFile).sorted().toList()) {
-					tar.file(root.relativize(file).toString().replace('\\', '/'), Files.readAllBytes(file));
+					// a directory named target/ is git-ignored, so fixtures store it as _target/
+					String relative = root.relativize(file).toString().replace('\\', '/').replaceFirst("^_target/", "target/");
+					tar.file(relative, Files.readAllBytes(file));
 				}
 			}
 			return tar;

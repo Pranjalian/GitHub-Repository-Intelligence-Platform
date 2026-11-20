@@ -50,4 +50,14 @@ public class ReportController {
 		return service.dependencies(repositoryId, snapshotId, ecosystem, module, scope, vulnerable, page, size);
 	}
 
+	@GetMapping("/snapshots/{snapshotId}/tests")
+	public TestsReportDTO tests(@PathVariable UUID repositoryId, @PathVariable UUID snapshotId) {
+		return service.tests(repositoryId, snapshotId);
+	}
+
+	@GetMapping("/snapshots/{snapshotId}/coverage")
+	public CoverageReportDTO coverage(@PathVariable UUID repositoryId, @PathVariable UUID snapshotId) {
+		return service.coverage(repositoryId, snapshotId);
+	}
+
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE report PUBLIC "-//JACOCO//DTD Report 1.1//EN" "report.dtd">
+<report name="demo">
+	<package name="com/example/demo">
+		<class name="com/example/demo/OrderService" sourcefilename="OrderService.java">
+			<counter type="INSTRUCTION" missed="10" covered="90"/>
+			<counter type="BRANCH" missed="6" covered="10"/>
+			<counter type="LINE" missed="4" covered="21"/>
+		</class>
+		<class name="com/example/demo/Untested" sourcefilename="Untested.java">
+			<counter type="INSTRUCTION" missed="3" covered="0"/>
+			<counter type="BRANCH" missed="0" covered="0"/>
+			<counter type="LINE" missed="1" covered="0"/>
+		</class>
+		<counter type="INSTRUCTION" missed="13" covered="90"/>
+		<counter type="BRANCH" missed="6" covered="10"/>
+		<counter type="LINE" missed="5" covered="21"/>
+	</package>
+	<counter type="INSTRUCTION" missed="13" covered="90"/>
+	<counter type="BRANCH" missed="6" covered="10"/>
+	<counter type="LINE" missed="5" covered="21"/>
+</report>

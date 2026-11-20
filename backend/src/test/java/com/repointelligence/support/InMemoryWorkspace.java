@@ -92,7 +92,8 @@ public class InMemoryWorkspace implements WorkspaceView {
 	}
 
 	private static FileType typeOf(String path) {
-		if (path.contains("/test/") || path.matches(".*(Test|Tests|IT)\\.java")) {
+		if (path.contains(".test.") || path.contains("_test.") || path.startsWith("tests/") || path.contains("/tests/")
+				|| path.contains("/test/") ||path.matches(".*(Test|Tests|IT)\\.java")) {
 			return FileType.TEST;
 		}
 		if (path.endsWith("pom.xml") || path.endsWith("package.json")) {
