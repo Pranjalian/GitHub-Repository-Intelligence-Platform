@@ -1,0 +1,88 @@
+# Vendored Semgrep rules for the Java pack. Written for this project (no third-party rule text), so there is
+# no rule-license restriction. Semgrep registry packs are never pulled at runtime.
+rules:
+  - id: repointel.java.sql-injection-concatenation
+    languages: [java]
+    severity: ERROR
+    message: SQL built by string concatenation and passed to a query call. Use parameterized queries (PreparedStatement or named parameters).
+    metadata:
+      category: sql-injection
+    pattern-either:
+      - pattern: $S.executeQuery($A + $B)
+      - pattern: $S.executeUpdate($A + $B)
+      - pattern: $S.execute($A + $B)
+      - pattern: $J.query($A + $B, ...)
+      - pattern: $J.update($A + $B, ...)
+      - pattern: $E.createQuery($A + $B)
+      - pattern: $E.createNativeQuery($A + $B)
+
+  - id: repointel.java.unsafe-deserialization
+    languages: [java]
+    severity: ERROR
+    message: Java native deserialization with ObjectInputStream can execute attacker-controlled code if the input is untrusted. Prefer a data format such as JSON or add a deserialization filter.
+    metadata:
+      category: unsafe-deserialization
+    pattern: new ObjectInputStream(...)
+
+  - id: repointel.java.weak-hash
+    languages: [java]
+    severity: WARNING
+    message: MD5 and SHA-1 are broken for security purposes. Use SHA-256 or stronger (and a password hash such as bcrypt or Argon2 for passwords).
+    metadata:
+      category: weak-crypto
+    pattern-either:
+      - pattern: MessageDigest.getInstance("MD5")
+      - pattern: MessageDigest.getInstance("SHA-1")
+      - pattern: MessageDigest.getInstance("SHA1")
+
+  - id: repointel.java.weak-cipher
+    languages: [java]
+    severity: WARNING
+    message: DES, RC4 and ECB mode are weak. Use AES-GCM.
+    metadata:
+      category: weak-crypto
+    pattern-either:
+      - pattern: Cipher.getInstance("DES")
+      - pattern: Cipher.getInstance("DES/...")
+      - pattern: Cipher.getInstance("RC4")
+      - pattern: Cipher.getInstance("AES/ECB/...")
+      - pattern: Cipher.getInstance("AES")
+
+  - id: repointel.java.sensitive-logging
+    languages: [java]
+    severity: WARNING
+    message: A value that looks like a credential is written to the log.
+    metadata:
+      category: sensitive-logging
+    pattern-either:
+      - pattern: $LOG.info(..., $PASSWORD, ...)
+      - pattern: $LOG.debug(..., $PASSWORD, ...)
+      - pattern: $LOG.warn(..., $PASSWORD, ...)
+      - pattern: $LOG.error(..., $PASSWORD, ...)
+    metavariable-regex:
+      metavariable: $PASSWORD
+      regex: (?i).*(password|passwd|secret|apikey|api_key|token).*
+
+  - id: repointel.java.insecure-hostname-verifier
+    languages: [java]
+    severity: ERROR
+    message: A hostname verifier that always returns true disables TLS host name checking.
+    metadata:
+      category: insecure-configuration
+    pattern-either:
+      - pattern: |
+          new HostnameVerifier() {
+            ...
+            public boolean verify(...) { return true; }
+          }
+      - pattern: $C.setHostnameVerifier(($H, $S) -> true)
+
+  - id: repointel.java.csrf-disabled
+    languages: [java]
+    severity: WARNING
+    message: CSRF protection is disabled. This is only safe for stateless APIs that do not use cookies for authentication.
+    metadata:
+      category: insecure-configuration
+    pattern-either:
+      - pattern: $H.csrf().disable()
+      - pattern: $H.csrf($C -> $C.disable())

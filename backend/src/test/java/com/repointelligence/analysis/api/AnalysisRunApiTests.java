@@ -218,9 +218,12 @@ class AnalysisRunApiTests {
 			Thread.sleep(40);
 		}
 
-		assertThat(seen).as("observed statuses").contains("INGESTING", "ANALYZING", "COMPLETED");
+		// Semgrep is unavailable on most machines, which honestly makes the run "completed with warnings"
+		String finalStatus = seen.get(seen.size() - 1);
+		assertThat(finalStatus).isIn("COMPLETED", "COMPLETED_WITH_WARNINGS");
+		assertThat(seen).as("observed statuses").contains("INGESTING", "ANALYZING", finalStatus);
 		assertThat(seen.indexOf("INGESTING")).isLessThan(seen.indexOf("ANALYZING"));
-		assertThat(seen.indexOf("ANALYZING")).isLessThan(seen.indexOf("COMPLETED"));
+		assertThat(seen.indexOf("ANALYZING")).isLessThan(seen.indexOf(finalStatus));
 		assertThat(seen).doesNotContain("FAILED");
 
 		mockMvc.perform(get("/api/v1/analysis-runs/" + runId)).andExpect(status().isOk())
@@ -228,7 +231,8 @@ class AnalysisRunApiTests {
 			.andExpect(jsonPath("$.repositoryId").value(repositoryId))
 			.andExpect(jsonPath("$.snapshotId").isNotEmpty())
 			.andExpect(jsonPath("$.commitSha").value(SHA))
-			.andExpect(jsonPath("$.status").value("COMPLETED"))
+			.andExpect(jsonPath("$.status").value(org.hamcrest.Matchers.anyOf(org.hamcrest.Matchers.is("COMPLETED"),
+				org.hamcrest.Matchers.is("COMPLETED_WITH_WARNINGS"))))
 			.andExpect(jsonPath("$.phase").value("FINISHED"))
 			.andExpect(jsonPath("$.failureReason").doesNotExist())
 			.andExpect(jsonPath("$.requestedAt").isNotEmpty())

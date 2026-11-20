@@ -231,7 +231,7 @@ public class ReportService {
 					counts.getOrDefault(category, Map.of()));
 			List<AnalyzerSummaryDTO> analyzers = inCategory.stream()
 				.map(e -> new AnalyzerSummaryDTO(e.getAnalyzerId(), e.getAnalyzerVersion(), e.getStatus(),
-						levels.get(e.getAnalyzerId())))
+						levels.get(e.getAnalyzerId()), e.getConfigSummary()))
 				.toList();
 			sections.add(new ReportSectionDTO(category, status, analyzers, severityCounts,
 					SectionAggregator.summary(category, status, severityCounts)));
@@ -301,7 +301,7 @@ public class ReportService {
 				f.getAnalyzerId(), f.getAnalysisMethod(), f.getEvidence(),
 				SourceUrls.blobUrl(repository.getOwner(), repository.getName(), sha, f.getFilePath(), f.getStartLine(),
 						f.getEndLine()),
-				f.getSuggestedNextStep());
+				f.getSuggestedNextStep(), f.getFingerprint());
 	}
 
 	private static DependencyDTO toDependency(DependencyRecord d) {

@@ -146,7 +146,7 @@ class GenericAnalysisIntegrationTests {
 
 		orchestrator.execute(runId);
 
-		assertThat(runs.findById(runId).orElseThrow().getStatus()).isEqualTo(RunStatus.COMPLETED);
+		assertThat(runs.findById(runId).orElseThrow().getStatus()).isIn(RunStatus.COMPLETED, RunStatus.COMPLETED_WITH_WARNINGS);
 		assertThat(technologyNames()).contains("Java", "Maven", "Docker");
 
 		List<ModuleRecord> moduleRecords = modules.findAll();
