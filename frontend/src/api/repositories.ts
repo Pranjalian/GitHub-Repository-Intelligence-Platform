@@ -2,6 +2,11 @@ import type {
   AnalysisRun,
   AnalyzeRepositoryResponse,
   ConsolidatedReport,
+  CoverageReport,
+  Dependency,
+  Finding,
+  FindingFilters,
+  TestsReport,
   PageResponse,
   Repository,
   Snapshot,
@@ -30,3 +35,32 @@ export const cancelAnalysisRun = (runId: string) =>
 
 export const getReport = (repositoryId: string, snapshotId: string) =>
   apiFetch<ConsolidatedReport>(`/api/v1/repositories/${repositoryId}/reports/${snapshotId}`)
+
+function query(params: Record<string, string | number | boolean | undefined | null>): string {
+  const search = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== '') {
+      search.set(key, String(value))
+    }
+  }
+  const text = search.toString()
+  return text ? `?${text}` : ''
+}
+
+const snapshotBase = (repositoryId: string, snapshotId: string) =>
+  `/api/v1/repositories/${repositoryId}/snapshots/${snapshotId}`
+
+export const getFindings = (repositoryId: string, snapshotId: string, filters: FindingFilters) =>
+  apiFetch<PageResponse<Finding>>(`${snapshotBase(repositoryId, snapshotId)}/findings${query({ ...filters })}`)
+
+export const getDependencies = (
+  repositoryId: string,
+  snapshotId: string,
+  filters: { ecosystem?: string; module?: string; scope?: string; vulnerable?: boolean; page?: number; size?: number },
+) => apiFetch<PageResponse<Dependency>>(`${snapshotBase(repositoryId, snapshotId)}/dependencies${query({ ...filters })}`)
+
+export const getTests = (repositoryId: string, snapshotId: string) =>
+  apiFetch<TestsReport>(`${snapshotBase(repositoryId, snapshotId)}/tests`)
+
+export const getCoverage = (repositoryId: string, snapshotId: string) =>
+  apiFetch<CoverageReport>(`${snapshotBase(repositoryId, snapshotId)}/coverage`)

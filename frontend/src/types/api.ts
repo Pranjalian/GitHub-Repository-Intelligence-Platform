@@ -165,6 +165,111 @@ export interface ConsolidatedReport {
   technologies: Technology[]
   structure: Structure
   capabilityMatrix: CapabilityMatrixRow[]
-  sections: unknown[]
+  sections: ReportSection[]
   limitations: Limitation[]
+}
+
+export interface AnalyzerSummary {
+  id: string
+  version: string
+  status: ExecutionStatus
+  capabilityLevel: CapabilityLevel | null
+  coverage: Record<string, unknown> | null
+}
+
+/** One section per category; `findingCountsBySeverity` is null (never zeros) when the category was not analyzed. */
+export interface ReportSection {
+  category: AnalysisCategory
+  status: ExecutionStatus
+  analyzers: AnalyzerSummary[]
+  findingCountsBySeverity: Record<Severity, number> | null
+  summary: string
+}
+
+export type AnalysisMethod = 'DETERMINISTIC_SCANNER' | 'PARSER' | 'HEURISTIC' | 'GRAPH_INFERENCE' | 'AI_INTERPRETATION'
+
+export interface Finding {
+  id: string
+  severity: Severity
+  confidence: Confidence
+  category: AnalysisCategory
+  title: string
+  description: string | null
+  filePath: string | null
+  startLine: number | null
+  endLine: number | null
+  module: string | null
+  ruleId: string
+  analyzerId: string
+  analysisMethod: AnalysisMethod
+  evidence: Record<string, unknown> | null
+  sourceUrl: string | null
+  suggestedNextStep: string | null
+  fingerprint: string
+}
+
+export type VulnerabilityStatus = 'NOT_CHECKED' | 'NOT_CHECKABLE' | 'NO_KNOWN_VULNERABILITIES' | 'VULNERABLE'
+export type VersionSource = 'DECLARED' | 'PROPERTY' | 'MANAGED_LOCAL' | 'MANAGED_REMOTE_UNRESOLVED' | 'UNRESOLVED'
+
+export interface Dependency {
+  id: string
+  analyzerId: string
+  ecosystem: 'MAVEN' | 'NPM'
+  manifestPath: string
+  module: string | null
+  namespace: string | null
+  name: string
+  declaredVersion: string | null
+  resolvedVersion: string | null
+  versionSource: VersionSource
+  scope: string | null
+  direct: boolean
+  managementEntry: boolean
+  vulnerabilityStatus: VulnerabilityStatus
+  vulnerabilityIds: string[] | null
+  note: string | null
+}
+
+export interface TestRecord {
+  testFilePath: string
+  testSymbol: string | null
+  testMethodCount: number | null
+  framework: string | null
+  productionSymbol: string | null
+  mappingMethod: string | null
+  confidence: Confidence | null
+}
+
+export interface TestsReport {
+  testClasses: number | null
+  testMethods: number | null
+  methodsByFramework: Record<string, number> | null
+  records: TestRecord[]
+  untestedClasses: string[]
+}
+
+export interface CoverageRecord {
+  reportPath: string
+  scope: 'CLASS' | 'PACKAGE' | 'BUNDLE'
+  name: string
+  lineCovered: number | null
+  lineMissed: number | null
+  branchCovered: number | null
+  branchMissed: number | null
+}
+
+export interface CoverageReport {
+  status: ExecutionStatus
+  message: string
+  records: CoverageRecord[]
+}
+
+export interface FindingFilters {
+  category?: AnalysisCategory
+  severity?: Severity | ''
+  module?: string
+  file?: string
+  sort?: 'severity' | 'file' | 'category' | 'rule'
+  page?: number
+  size?: number
 }

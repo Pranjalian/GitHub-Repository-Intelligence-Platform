@@ -1,5 +1,9 @@
 import { useParams, useSearchParams } from 'react-router'
 import AnalysisProgress from '../components/analysis/AnalysisProgress'
+import DependencyTable from '../components/dependencies/DependencyTable'
+import FindingsList from '../components/findings/FindingsList'
+import SecuritySection from '../components/report/SecuritySection'
+import TestsSection from '../components/tests/TestsSection'
 import CapabilityMatrix from '../components/report/CapabilityMatrix'
 import LimitationsPanel from '../components/report/LimitationsPanel'
 import SnapshotSelector from '../components/report/SnapshotSelector'
@@ -11,7 +15,26 @@ import ErrorState from '../components/ui/ErrorState'
 import RunStatusLabel from '../components/ui/RunStatusLabel'
 import { useReport, useRepository, useSnapshots } from '../hooks/queries'
 import { formatDateTime } from '../lib/format'
-import { isCompleted, type Snapshot } from '../types/api'
+import { isCompleted, type AnalysisCategory, type ReportSection, type Snapshot } from '../types/api'
+
+const TABS: { id: string; label: string; category: AnalysisCategory | null }[] = [
+  { id: 'overview', label: 'Overview', category: null },
+  { id: 'dependencies', label: 'Dependencies', category: 'DEPENDENCIES' },
+  { id: 'code-quality', label: 'Code Quality', category: 'CODE_QUALITY' },
+  { id: 'security', label: 'Security', category: 'SECURITY' },
+  { id: 'tests', label: 'Tests & Coverage', category: 'TESTS' },
+]
+
+/** A category gets a tab only when it was analyzed or has a meaningful status; "not supported" lives in the capability matrix. */
+function visibleTabs(sections: ReportSection[]) {
+  return TABS.filter((tab) => {
+    if (!tab.category) {
+      return true
+    }
+    const section = sections.find((s) => s.category === tab.category)
+    return !!section && section.status !== 'NOT_SUPPORTED' && section.status !== 'NOT_ANALYZED'
+  })
+}
 
 /** The snapshot to show: the one in the URL, else the latest completed, else the newest. */
 function chooseSnapshot(snapshots: Snapshot[], requestedId: string | null): Snapshot | undefined {
@@ -98,13 +121,74 @@ export default function RepositoryOverviewPage({ pollIntervalMs }: { pollInterva
       {completed && report.isPending && <p role="status">Loading report…</p>}
       {completed && report.error && <ErrorState title="Could not load the report" message={report.error.message} />}
       {completed && report.data && (
-        <div className="space-y-8">
-          <TechStack technologies={report.data.technologies} />
-          <StructurePanel structure={report.data.structure} />
-          <CapabilityMatrix rows={report.data.capabilityMatrix} />
-          <LimitationsPanel limitations={report.data.limitations} />
-        </div>
+        <ReportTabs
+          repositoryId={repositoryId}
+          snapshotId={selected.id}
+          report={report.data}
+          tab={searchParams.get('tab') ?? 'overview'}
+          onTab={(tab) => {
+            const next = new URLSearchParams(searchParams)
+            next.set('tab', tab)
+            setSearchParams(next)
+          }}
+        />
       )}
+    </div>
+  )
+}
+
+function ReportTabs({
+  repositoryId,
+  snapshotId,
+  report,
+  tab,
+  onTab,
+}: {
+  repositoryId: string
+  snapshotId: string
+  report: import('../types/api').ConsolidatedReport
+  tab: string
+  onTab: (tab: string) => void
+}) {
+  const tabs = visibleTabs(report.sections)
+  const active = tabs.find((t) => t.id === tab) ?? tabs[0]
+  const modules = report.structure.modules.map((m) => m.path)
+  const section = report.sections.find((s) => s.category === active.category)
+
+  return (
+    <div>
+      <div role="tablist" aria-label="Report sections" className="flex flex-wrap gap-1 border-b border-slate-200">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={t.id === active.id}
+            onClick={() => onTab(t.id)}
+            className={`px-3 py-2 text-sm font-medium ${t.id === active.id ? 'border-b-2 border-slate-900' : 'text-slate-600'}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel" className="pt-4">
+        {active.id === 'overview' && (
+          <div className="space-y-8">
+            <TechStack technologies={report.technologies} />
+            <StructurePanel structure={report.structure} />
+            <CapabilityMatrix rows={report.capabilityMatrix} />
+            <LimitationsPanel limitations={report.limitations} />
+          </div>
+        )}
+        {active.id === 'dependencies' && <DependencyTable repositoryId={repositoryId} snapshotId={snapshotId} />}
+        {active.id === 'code-quality' && (
+          <FindingsList repositoryId={repositoryId} snapshotId={snapshotId} category="CODE_QUALITY" modules={modules} />
+        )}
+        {active.id === 'security' && section && (
+          <SecuritySection repositoryId={repositoryId} snapshotId={snapshotId} section={section} modules={modules} />
+        )}
+        {active.id === 'tests' && <TestsSection repositoryId={repositoryId} snapshotId={snapshotId} />}
+      </div>
     </div>
   )
 }

@@ -1,13 +1,17 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   cancelAnalysisRun,
+  getCoverage,
+  getDependencies,
+  getFindings,
+  getTests,
   getAnalysisRun,
   getReport,
   getRepository,
   listRepositories,
   listSnapshots,
 } from '../api/repositories'
-import { isTerminal } from '../types/api'
+import { isTerminal, type FindingFilters } from '../types/api'
 
 export const useRepositories = (page: number, size = 20) =>
   useQuery({
@@ -47,3 +51,27 @@ export function useCancelRun(runId: string) {
     },
   })
 }
+
+export const useFindings = (repositoryId: string, snapshotId: string, filters: FindingFilters) =>
+  useQuery({
+    queryKey: ['findings', repositoryId, snapshotId, filters],
+    queryFn: () => getFindings(repositoryId, snapshotId, filters),
+    placeholderData: keepPreviousData,
+  })
+
+export const useDependencies = (
+  repositoryId: string,
+  snapshotId: string,
+  filters: { ecosystem?: string; module?: string; scope?: string; vulnerable?: boolean; page?: number; size?: number },
+) =>
+  useQuery({
+    queryKey: ['dependencies', repositoryId, snapshotId, filters],
+    queryFn: () => getDependencies(repositoryId, snapshotId, filters),
+    placeholderData: keepPreviousData,
+  })
+
+export const useTests = (repositoryId: string, snapshotId: string) =>
+  useQuery({ queryKey: ['tests', repositoryId, snapshotId], queryFn: () => getTests(repositoryId, snapshotId) })
+
+export const useCoverage = (repositoryId: string, snapshotId: string) =>
+  useQuery({ queryKey: ['coverage', repositoryId, snapshotId], queryFn: () => getCoverage(repositoryId, snapshotId) })
