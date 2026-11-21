@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   cancelAnalysisRun,
+  getArchitecture,
   getCoverage,
   getDependencies,
   getFindings,
@@ -75,3 +76,10 @@ export const useTests = (repositoryId: string, snapshotId: string) =>
 
 export const useCoverage = (repositoryId: string, snapshotId: string) =>
   useQuery({ queryKey: ['coverage', repositoryId, snapshotId], queryFn: () => getCoverage(repositoryId, snapshotId) })
+
+export const useArchitecture = (repositoryId: string, snapshotId: string | undefined) =>
+  useQuery({
+    queryKey: ['architecture', repositoryId, snapshotId],
+    queryFn: () => getArchitecture(repositoryId, snapshotId as string),
+    enabled: !!snapshotId,
+  })

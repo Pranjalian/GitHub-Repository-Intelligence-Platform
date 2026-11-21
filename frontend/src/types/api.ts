@@ -16,7 +16,14 @@ export const COMPLETED_RUN_STATUSES: readonly RunStatus[] = ['COMPLETED', 'COMPL
 export const isTerminal = (status: RunStatus | undefined): boolean => !!status && TERMINAL_RUN_STATUSES.includes(status)
 export const isCompleted = (status: RunStatus | undefined): boolean => !!status && COMPLETED_RUN_STATUSES.includes(status)
 
-export type AnalysisCategory = 'TECHNOLOGY' | 'STRUCTURE' | 'DEPENDENCIES' | 'CODE_QUALITY' | 'SECURITY' | 'TESTS'
+export type AnalysisCategory =
+  | 'TECHNOLOGY'
+  | 'STRUCTURE'
+  | 'DEPENDENCIES'
+  | 'CODE_QUALITY'
+  | 'SECURITY'
+  | 'TESTS'
+  | 'ARCHITECTURE'
 export type Confidence = 'DETECTED' | 'LIKELY' | 'POSSIBLE' | 'NOT_VERIFIED'
 export type CapabilityLevel = 'GENERIC' | 'BASIC' | 'DEEP' | 'UNSUPPORTED' | 'UNAVAILABLE'
 export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO'
@@ -272,4 +279,137 @@ export interface FindingFilters {
   sort?: 'severity' | 'file' | 'category' | 'rule'
   page?: number
   size?: number
+}
+
+// ── architecture (MVP 2) ─────────────────────────────────────────────────────────────────────
+
+export type ArchitectureLayer = 'CONTROLLER' | 'SERVICE' | 'REPOSITORY' | 'ENTITY' | 'DTO' | 'CONFIGURATION' | 'INFRASTRUCTURE'
+export type LayerMethod = 'ANNOTATION' | 'TYPE_HIERARCHY' | 'API_SIGNATURE' | 'PACKAGE_HEURISTIC'
+export type EdgeResolution = 'RESOLVED' | 'UNRESOLVED' | 'AMBIGUOUS'
+export type EntityRelationshipType = 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'ONE_TO_ONE' | 'MANY_TO_MANY' | 'REPOSITORY_FOR'
+export type PatternType = 'STRATEGY' | 'FACTORY' | 'ADAPTER' | 'REPOSITORY'
+
+export interface LayerClass {
+  name: string
+  fullyQualifiedName: string
+  filePath: string
+  line: number | null
+  confidence: Confidence
+  method: LayerMethod
+  evidence: Evidence[]
+  sourceUrl: string | null
+}
+
+export interface ArchitectureLayerGroup {
+  layer: ArchitectureLayer
+  total: number
+  classes: LayerClass[]
+}
+
+export interface ArchitectureEndpoint {
+  httpMethod: string
+  route: string
+  routeResolved: boolean
+  controller: string | null
+  handler: string | null
+  requestType: string | null
+  responseType: string | null
+  filePath: string
+  line: number | null
+  sourceUrl: string | null
+}
+
+export interface EntityRelation {
+  field: string | null
+  type: EntityRelationshipType
+  target: string | null
+  targetResolved: boolean
+  attributes: Record<string, string>
+}
+
+export interface ArchitectureEntity {
+  name: string
+  fullyQualifiedName: string
+  table: string | null
+  filePath: string
+  line: number | null
+  sourceUrl: string | null
+  relationships: EntityRelation[]
+  repositories: string[]
+}
+
+export interface Injection {
+  from: string | null
+  to: string | null
+  resolution: EdgeResolution
+  confidence: Confidence | null
+  via: string | null
+  member: string | null
+  filePath: string | null
+  line: number | null
+  sourceUrl: string | null
+}
+
+export interface ChainStep {
+  name: string
+  fullyQualifiedName: string
+  layer: ArchitectureLayer | null
+}
+
+export interface ModuleDependency {
+  source: string
+  target: string
+  evidence: Evidence[]
+}
+
+export interface ArchitectureCycle {
+  rule: string
+  severity: Severity
+  confidence: Confidence
+  title: string
+  description: string | null
+  members: string[]
+  edges: Record<string, unknown>[]
+  filePath: string | null
+  line: number | null
+  sourceUrl: string | null
+}
+
+export interface PatternCandidate {
+  pattern: PatternType
+  confidence: Confidence
+  summary: string | null
+  symbols: string[]
+  evidence: Record<string, unknown>
+}
+
+export interface ArchitectureDiagrams {
+  layers: string | null
+  modules: string | null
+  apiFlow: string | null
+  entities: string | null
+  notes: string[]
+}
+
+/** Architecture of one snapshot; `supported` is false (and the lists are empty) when no analyzer applies. */
+export interface ArchitectureReport {
+  repositoryId: string
+  snapshotId: string
+  runId: string
+  commitSha: string
+  supported: boolean
+  status: ExecutionStatus
+  analyzers: { id: string; version: string; status: ExecutionStatus; capabilityLevel: CapabilityLevel | null }[]
+  unsupported: string[]
+  summary: Record<string, number>
+  layers: ArchitectureLayerGroup[]
+  endpoints: ArchitectureEndpoint[]
+  entities: ArchitectureEntity[]
+  injections: Injection[]
+  diChains: ChainStep[][]
+  moduleDependencies: ModuleDependency[]
+  cycles: ArchitectureCycle[]
+  patterns: PatternCandidate[]
+  diagrams: ArchitectureDiagrams
+  limitations: string[]
 }

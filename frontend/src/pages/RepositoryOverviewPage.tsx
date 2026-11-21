@@ -1,5 +1,6 @@
-import { useParams, useSearchParams } from 'react-router'
+import { Link, useParams, useSearchParams } from 'react-router'
 import AnalysisProgress from '../components/analysis/AnalysisProgress'
+import ArchitectureSection from '../components/architecture/ArchitectureSection'
 import DependencyTable from '../components/dependencies/DependencyTable'
 import FindingsList from '../components/findings/FindingsList'
 import SecuritySection from '../components/report/SecuritySection'
@@ -23,6 +24,7 @@ const TABS: { id: string; label: string; category: AnalysisCategory | null }[] =
   { id: 'code-quality', label: 'Code Quality', category: 'CODE_QUALITY' },
   { id: 'security', label: 'Security', category: 'SECURITY' },
   { id: 'tests', label: 'Tests & Coverage', category: 'TESTS' },
+  { id: 'architecture', label: 'Architecture', category: 'ARCHITECTURE' },
 ]
 
 /** A category gets a tab only when it was analyzed or has a meaningful status; "not supported" lives in the capability matrix. */
@@ -188,6 +190,17 @@ function ReportTabs({
           <SecuritySection repositoryId={repositoryId} snapshotId={snapshotId} section={section} modules={modules} />
         )}
         {active.id === 'tests' && <TestsSection repositoryId={repositoryId} snapshotId={snapshotId} />}
+        {active.id === 'architecture' && (
+          <div className="space-y-3">
+            <Link
+              to={`/repositories/${repositoryId}/arch?snapshot=${snapshotId}`}
+              className="text-sm text-blue-700 hover:underline"
+            >
+              Open the architecture page
+            </Link>
+            <ArchitectureSection repositoryId={repositoryId} snapshotId={snapshotId} />
+          </div>
+        )}
       </div>
     </div>
   )

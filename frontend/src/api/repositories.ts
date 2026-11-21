@@ -1,5 +1,6 @@
 import type {
   AnalysisRun,
+  ArchitectureReport,
   AnalyzeRepositoryResponse,
   ConsolidatedReport,
   CoverageReport,
@@ -35,6 +36,9 @@ export const cancelAnalysisRun = (runId: string) =>
 
 export const getReport = (repositoryId: string, snapshotId: string) =>
   apiFetch<ConsolidatedReport>(`/api/v1/repositories/${repositoryId}/reports/${snapshotId}`)
+
+export const getArchitecture = (repositoryId: string, snapshotId: string) =>
+  apiFetch<ArchitectureReport>(`/api/v1/repositories/${repositoryId}/snapshots/${snapshotId}/architecture`)
 
 function query(params: Record<string, string | number | boolean | undefined | null>): string {
   const search = new URLSearchParams()
