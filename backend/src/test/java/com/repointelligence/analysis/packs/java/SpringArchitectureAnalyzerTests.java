@@ -89,7 +89,7 @@ class SpringArchitectureAnalyzerTests {
 		// every edge is anchored to a file and line
 		assertThat(architecture.edges()).allSatisfy(e -> assertThat(e.evidence()).containsKeys("file", "line"));
 		assertThat(result.configSummary()).containsEntry("types", 27).containsEntry("javaFiles", 27);
-		assertThat(result.limitations()).anyMatch(l -> l.contains("UNRESOLVED"));
+		assertThat((Integer) result.configSummary().get("unresolvedEdges")).isPositive();
 	}
 
 	/** Matches fixtures/spring-boot-architecture/EXPECTED.md exactly. */

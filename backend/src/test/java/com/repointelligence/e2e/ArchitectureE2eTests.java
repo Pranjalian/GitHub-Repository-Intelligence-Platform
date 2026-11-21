@@ -131,7 +131,8 @@ class ArchitectureE2eTests extends E2eTestBase {
 		assertThat((List<Object>) JsonPath.read(json, "$.endpoints")).isEmpty();
 		assertThat((String) JsonPath.read(json, "$.diagrams.layers")).isNull();
 		assertThat((List<String>) JsonPath.read(json, "$.limitations"))
-			.contains("Architecture not supported for TypeScript: no analyzer pack for TypeScript");
+			.anyMatch(l -> l.startsWith("Architecture is not analysed for ") && l.contains("TypeScript")
+					&& l.endsWith("(no analyzer pack)."));
 
 		String report = report(analysis);
 		assertThat((List<String>) JsonPath.read(report,

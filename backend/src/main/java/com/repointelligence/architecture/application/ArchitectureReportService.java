@@ -278,7 +278,11 @@ public class ArchitectureReportService {
 			result.add(unresolved + " of " + summary.get("relationships")
 					+ " relationships are not resolved to a symbol of this commit; diagrams and chains use resolved ones only.");
 		}
-		unsupported.forEach(u -> result.add("Architecture not supported for " + u));
+		if (!unsupported.isEmpty()) {
+			result.add("Architecture is not analysed for " + unsupported.stream()
+				.map(u -> u.contains(":") ? u.substring(0, u.indexOf(':')) : u)
+				.collect(Collectors.joining(", ")) + " (no analyzer pack).");
+		}
 		return List.copyOf(result);
 	}
 

@@ -373,7 +373,9 @@ com.repointelligence
 │       │   ├── JavaCodeAnalyzer.java            # PMD 7
 │       │   ├── JavaTestAnalyzer.java            # + JacocoReportParser
 │       │   ├── semgrep-rules/                   # Java rules contributed to Semgrep
-│       │   ├── SpringArchitectureAnalyzer.java  # MVP 2
+│       │   ├── SpringArchitectureAnalyzer.java  # MVP 2 (DEEP, category ARCHITECTURE)
+│       │   ├── architecture/                    # MVP 2: JavaProjectModel, TypeResolver, SymbolGraphBuilder,
+│       │   │                                    #   SpringDiscovery (+ architecture/spring-architecture.yml), ModuleLayout
 │       │   └── JavaImpactAnalyzer.java          # MVP 5
 │       ├── javascript/              # MVP 1: NpmManifestDependencyAnalyzer (BASIC); deeper later
 │       ├── python/                  # (future)
@@ -381,10 +383,10 @@ com.repointelligence
 │       └── dotnet/                  # (future)
 │
 ├── architecture/                    # MVP 2
-│   ├── api/
-│   ├── application/
-│   ├── parser/                      # Shared parser abstractions
-│   └── graph/                       # Layer/module/symbol graph
+│   ├── api/                         # ArchitectureController, ArchitectureReportDTO
+│   ├── application/                 # ArchitectureReportService (DI chains), ArchitectureDiagramService (Mermaid)
+│   ├── domain/                      # CodeSymbol, DependencyEdge, ApiEndpoint, EntityRelationship, LayerAssignment, ...
+│   └── infrastructure/persistence/  # Spring Data repositories
 │
 ├── ai/                              # MVP 3+
 │   ├── api/                         # AI REST controllers
@@ -422,6 +424,8 @@ com.repointelligence
     ├── application/                 # Report generation service
     └── domain/                      # ConsolidatedReport, ReportSection
 ```
+
+> **MVP 2 implementation note (deviation):** the planned `architecture/parser` and `architecture/graph` packages were not created. Parsing is Java-specific and lives in the Java pack (`analysis.packs.java.architecture`), so the core never imports a pack; graph views that are not stored (DI chains, diagrams) are computed at read time in `architecture.application`.
 
 > JPA entities and Spring Data repositories are co-located with their owning module (`<module>.domain` / `<module>.infrastructure`); there is no shared `persistence` package. Core packages must not import from `analysis.packs.*` (enforce with an ArchUnit test).
 
@@ -593,6 +597,10 @@ erDiagram
     REPOSITORY_SNAPSHOT ||--o{ API_ENDPOINT : "exposes endpoints"
     REPOSITORY_SNAPSHOT ||--o{ CODE_SYMBOL : "contains symbols"
     REPOSITORY_SNAPSHOT ||--o{ DEPENDENCY_EDGE : "has dependency edges"
+    REPOSITORY_SNAPSHOT ||--o{ ENTITY_RELATIONSHIP : "JPA associations, repository-entity mappings (MVP 2)"
+    REPOSITORY_SNAPSHOT ||--o{ LAYER_ASSIGNMENT : "inferred layers (MVP 2)"
+    REPOSITORY_SNAPSHOT ||--o{ PATTERN_CANDIDATE : "inferred pattern candidates (MVP 2)"
+    REPOSITORY_SNAPSHOT ||--o{ MODULE_DEPENDENCY : "Maven module dependencies (MVP 2)"
     REPOSITORY_SNAPSHOT ||--o{ TEST_RECORD : "has test records"
 
     REPOSITORY_SNAPSHOT ||--o{ AI_USAGE_RECORD : "logs AI usage"
@@ -852,6 +860,8 @@ erDiagram
 - **Documented:** OpenAPI 3.0 via springdoc-openapi
 
 ### 6.2 MVP 1 API Endpoints
+
+> MVP 2 adds `GET /api/v1/repositories/{id}/snapshots/{snapshotId}/architecture` (optional `?runId=`): layers, endpoints, entities, injection and DI chains, module dependencies, cycles, pattern candidates and Mermaid diagrams with confidence, evidence and limitations; `supported: false` when no architecture analyzer applies.
 
 | Method | Endpoint | Purpose | Response |
 |---|---|---|---|
@@ -1421,6 +1431,8 @@ Fixtures are packaged as tarballs at test-build time and served by WireMock as G
 | ADR-14 | Generic secret scanning for all repositories; Semgrep with vendored local rules; OSV for vulnerabilities (opt-in) | Security is not Java-only; no runtime rule downloads; no source code leaves the server |
 | ADR-15 | Embedded PostgreSQL binaries (zonky `embedded-postgres`) for all DB tests (no H2). Supersedes the earlier Testcontainers decision | Migrations and `jsonb` behave identically in tests and production, without requiring Docker |
 | ADR-16 | No Docker dependency for build or test. **Revised (v4):** Docker Compose is the recommended local run; native-process runs stay supported | Docker is not available on all developer machines, so builds, tests and CI test jobs stay Docker-free. For running, Compose gives a one-command, persistent setup with Semgrep included |
+| ADR-17 | MVP 2 resolves Java names with its own source-level resolver (imports, package, nested and inherited nested types, a project index) instead of JavaParser's `JavaSymbolSolver` | Without a classpath the symbol solver cannot resolve third-party types either and throws on them; the own resolver is deterministic, fast, needs no extra dependencies (Guava, Javassist) and never guesses: outside the snapshot means `UNRESOLVED` with the imported name, several matches mean `AMBIGUOUS`. JDK types are recognised by name and left out of the graph |
+| ADR-18 | `entity_relationship` table for JPA associations and repository-to-entity mappings (not in the original schema); dependency cycles are stored as `ARCHITECTURE` findings (`injection-cycle`, `type-cycle`) | The planned tables had no place for either; findings reuse severity, evidence, fingerprint and the findings UI |
 
 ---
 
@@ -1467,7 +1479,7 @@ Targets as of this revision. Verify the current stable, mutually compatible vers
 | **Testing (backend)** | JUnit 5, Mockito, zonky `embedded-postgres`, WireMock, ArchUnit | pinned current |
 | **Testing (frontend)** | Vitest, React Testing Library, MSW | pinned current |
 | **Maven model parsing** | `org.apache.maven:maven-model` (no resolver) | current |
-| **Java parsing** | JavaParser (+ symbol solver in MVP 2) | 3.x current |
+| **Java parsing** | JavaParser (no symbol solver; own source-level resolver, ADR-17) | 3.x current |
 | **Code quality** | PMD (in-process, `PmdAnalysis`) | 7.x |
 | **Security scanning** | Generic secret scanner (built-in) + Semgrep CLI (optional, local rules) | pinned current |
 | **Dep vulnerability** | OSV.dev API via `VulnerabilitySource` (opt-in); OWASP Dependency-Check optional later | n/a |

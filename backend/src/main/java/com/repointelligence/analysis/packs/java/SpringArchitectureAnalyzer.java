@@ -107,11 +107,8 @@ public class SpringArchitectureAnalyzer implements ArchitectureAnalyzer {
 		if (graph.edgesTruncated()) {
 			result.limitation("Only the first " + maxEdges + " relationships were kept.");
 		}
+		// unresolved and ambiguous counts are in the config summary; the architecture report states them once
 		SymbolGraphBuilder.Stats stats = graph.stats();
-		if (stats.unresolvedEdges() + stats.ambiguousEdges() > 0) {
-			result.limitation(stats.unresolvedEdges() + " relationships point outside the snapshot (UNRESOLVED) and "
-					+ stats.ambiguousEdges() + " match several project symbols (AMBIGUOUS); neither is guessed.");
-		}
 
 		if (discovery.unresolvedRoutes() > 0) {
 			result.limitation(discovery.unresolvedRoutes() + " endpoint paths use expressions that are not compile-time "

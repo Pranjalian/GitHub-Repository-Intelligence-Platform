@@ -1,8 +1,8 @@
 # GitHub Repository Intelligence Platform
 
-Evidence-backed analysis of public GitHub repositories. Submit a public repository URL and get a commit-scoped report: technologies, structure, dependencies, code quality, secrets and security rules, tests and (real) coverage, plus an honest capability matrix that says what the platform could not analyze and why. It is deterministic: **no AI and no AI key are needed**, and no code from the analyzed repository is ever executed.
+Evidence-backed analysis of public GitHub repositories. Submit a public repository URL and get a commit-scoped report: technologies, structure, dependencies, code quality, secrets and security rules, tests and (real) coverage, plus an honest capability matrix that says what the platform could not analyze and why. For Java/Spring Boot it also discovers the **architecture**: layers, REST endpoints with request/response types, JPA entities and relationships, dependency injection chains, Maven module dependencies, dependency cycles and design-pattern candidates, with Mermaid diagrams. It is deterministic: **no AI and no AI key are needed**, and no code from the analyzed repository is ever executed.
 
-See [docs/](docs/) for the problem statement, architecture, implementation plan and the [MVP 1 completion report](docs/mvp1-completion-report.md).
+See [docs/](docs/) for the problem statement, architecture, implementation plan and the completion reports for [MVP 1](docs/mvp1-completion-report.md) and [MVP 2](docs/mvp2-completion-report.md).
 
 > Local single-user tool. There is no authentication yet: do not expose it to the public internet.
 
@@ -42,9 +42,10 @@ Host ports can be changed with `POSTGRES_PORT`, `BACKEND_PORT` and `FRONTEND_POR
 
 1. Start the app (with Docker above, or the backend and frontend separately below), open http://localhost:5173 and choose **Add Repository**.
 2. Paste a public GitHub URL (for example `https://github.com/spring-projects/spring-petclinic`, optionally `/tree/<branch>`) and press **Analyze**. Tick *Force full rescan* to re-analyze a commit that was already analyzed.
-3. Watch the progress page, then read the report: Overview (technologies, structure, capability matrix, limitations), Dependencies, Code Quality, Security, Tests & Coverage. Use the snapshot selector to switch between analyzed commits.
+3. Watch the progress page, then read the report: Overview (technologies, structure, capability matrix, limitations), Dependencies, Code Quality, Security, Tests & Coverage and, for Java/Spring Boot, Architecture. Use the snapshot selector to switch between analyzed commits.
+4. The architecture also has its own page: `/repositories/{id}/arch?snapshot={snapshotId}` (link from the Architecture tab). Every statement shows its confidence (*Detected*, *Likely*, *Possible*) and how it was found; relationships to code outside the repository are labelled *unresolved*, never guessed.
 
-API documentation: http://localhost:8080/swagger-ui.html. Flow: `POST /api/v1/repositories/analyze` returns a run id; poll `GET /api/v1/analysis-runs/{runId}`; read `GET /api/v1/repositories/{repositoryId}/reports/{snapshotId}` and the findings, dependencies, tests and coverage endpoints under `/snapshots/{snapshotId}/`.
+API documentation: http://localhost:8080/swagger-ui.html. Flow: `POST /api/v1/repositories/analyze` returns a run id; poll `GET /api/v1/analysis-runs/{runId}`; read `GET /api/v1/repositories/{repositoryId}/reports/{snapshotId}` and the findings, dependencies, tests, coverage and architecture endpoints under `/snapshots/{snapshotId}/`.
 
 ## GitHub token
 
@@ -67,6 +68,7 @@ All keys live in `backend/src/main/resources/application.yml` and can be overrid
 | Results | `analysis.results.max-excerpt-length`, `max-findings-per-analyzer` |
 | GitHub | `github.token`, `api-base-url`, `allowed-hosts`, timeouts, `retry.*` |
 | Analyzer toggles | `analysis.analyzers.<analyzer-id>.enabled` and `.options.*` (for example `java-code-analyzer` option `include-tests`) |
+| Architecture | `analysis.analyzers.spring-architecture-analyzer.options.include-tests` (default false), `max-symbols` (50000), `max-edges` (200000), `max-file-kb` (512); layer, repository and package rules in `backend/src/main/resources/architecture/spring-architecture.yml` |
 | Vulnerability lookup | `analysis.vulnerabilities.osv.*` |
 
 ## Known limitations
@@ -75,7 +77,8 @@ All keys live in `backend/src/main/resources/application.yml` and can be overrid
 - Versions supplied by **remote parents or BOMs** (for example `spring-boot-starter-parent`) are not resolved and are labelled as such.
 - Tests are **never executed**. Coverage appears only when a JaCoCo report is committed in the repository and may be stale; otherwise it says "unavailable", never 0%.
 - "Outdated dependency" detection is not implemented.
-- Deep analysis exists for Java/Maven; other stacks get generic analysis (structure, secrets, test files, npm dependencies) and an honest "unsupported" matrix.
+- Deep analysis exists for Java/Maven; other stacks get generic analysis (structure, secrets, test files, npm dependencies) and an honest "unsupported" matrix, including for architecture.
+- Architecture discovery reads source only, with **no classpath**: types and inherited methods from libraries are not resolved (kept by name, labelled *unresolved*); calls are resolved only when the receiver's declared type is visible; reflection, proxies, conditional beans, `@Bean` methods, XML configuration, interface-declared or functional endpoints and Gradle modules are not analysed; test sources are excluded by default. Layers from package names alone and all pattern candidates except Spring Data repositories are *Likely* or *Possible*, never *Detected*.
 - There is **no authentication**: this is a local single-user tool. Do not expose it to the public internet.
 
 ## Run without Docker
@@ -143,6 +146,8 @@ Backend database tests use embedded PostgreSQL (no H2, no Docker).
 
 `./mvnw verify` also runs a Spotless check (unused imports, trailing whitespace, final newline). Fix violations with `./mvnw spotless:apply`.
 
+Architecture evaluation fixtures live in `backend/src/test/resources/fixtures/spring-boot-architecture` and `spring-multi-module`, each with an `EXPECTED.md` that the tests assert. The Mermaid diagrams generated for them are golden files in `backend/src/test/resources/golden/`: `ArchitectureE2eTests` fails when the output changes, and the frontend test `src/lib/mermaid.test.ts` parses every golden file with the real Mermaid parser. After an intended change, regenerate them with `./mvnw test -Dtest=ArchitectureE2eTests -Dgolden.update=true` and review the diff.
+
 ## Continuous integration
 
 [.github/workflows/ci.yml](.github/workflows/ci.yml) runs on pushes to `main` and on pull requests:
@@ -187,6 +192,7 @@ Tests that need external CLIs (for example Semgrep) are tagged and excluded by d
 | TypeScript | 5.9 |
 | Tailwind CSS | 4.3 |
 | TanStack Query | 5.108 |
+| Mermaid | 11.17.2 (pinned) |
 | Vitest / jsdom / MSW | 5.1 / 29.1 / 3.0 |
 
 jsdom is pinned to 29.x because jsdom 31 requires Node 22.22+.

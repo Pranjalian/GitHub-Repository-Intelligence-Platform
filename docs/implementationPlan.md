@@ -923,7 +923,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 3. JPA entities and repositories
 
 **Tests:**
-- [ ] Integration: tables created; bulk insert of symbols/edges performs acceptably on a medium fixture
+- [x] Integration: tables created; bulk insert of symbols/edges performs acceptably on a medium fixture
 
 ---
 
@@ -940,9 +940,9 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 2. Maven module relationships from the MVP 1 reactor model (`module_dependency`)
 
 **Tests:**
-- [ ] Unit: symbols, annotations and injection edges from sample files
-- [ ] Unit: call to a third-party type → `UNRESOLVED` edge with name
-- [ ] Integration: multi-class fixture produces the expected symbol/edge graph
+- [x] Unit: symbols, annotations and injection edges from sample files
+- [x] Unit: call to a third-party type → `UNRESOLVED` edge with name
+- [x] Integration: multi-class fixture produces the expected symbol/edge graph
 
 ---
 
@@ -961,11 +961,11 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 2. Generic architecture fallback for non-Java stacks: the Architecture section shows "Not supported for <technology>" via the capability matrix while structure analysis remains
 
 **Tests:**
-- [ ] Unit: `@RestController` → CONTROLLER `DETECTED`; package-only heuristic → `LIKELY`
-- [ ] Unit: endpoint extraction combines class and method paths
-- [ ] Unit: entity relationships and repository/entity mapping
-- [ ] Unit: cycle detected in fixture; class named `PaymentFactory` without factory behaviour is **not** flagged
-- [ ] Integration: full architecture analysis of the Spring Boot fixture matches documented expectations
+- [x] Unit: `@RestController` → CONTROLLER `DETECTED`; package-only heuristic → `LIKELY`
+- [x] Unit: endpoint extraction combines class and method paths
+- [x] Unit: entity relationships and repository/entity mapping
+- [x] Unit: cycle detected in fixture; class named `PaymentFactory` without factory behaviour is **not** flagged
+- [x] Integration: full architecture analysis of the Spring Boot fixture matches documented expectations
 
 ---
 
@@ -980,9 +980,9 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 3. Endpoint: `GET /api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/architecture`
 
 **Tests:**
-- [ ] Unit: generated Mermaid parses (validate in a frontend test or with a Mermaid CLI check in CI)
-- [ ] Unit: label escaping prevents Mermaid/HTML injection from symbol names
-- [ ] Integration: architecture report contains all sections and limitations
+- [x] Unit: generated Mermaid parses (validate in a frontend test or with a Mermaid CLI check in CI)
+- [x] Unit: label escaping prevents Mermaid/HTML injection from symbol names
+- [x] Integration: architecture report contains all sections and limitations
 
 ---
 
@@ -996,9 +996,9 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 2. Add the Architecture tab only when an architecture analyzer ran for the snapshot
 
 **Tests:**
-- [ ] Unit: diagrams render; strict mode set
-- [ ] Unit: all sections render; unsupported state renders for non-Java
-- [ ] Integration (mock API): Spring Boot architecture view
+- [x] Unit: diagrams render; strict mode set
+- [x] Unit: all sections render; unsupported state renders for non-Java
+- [x] Integration (mock API): Spring Boot architecture view
 
 ---
 
@@ -1013,16 +1013,16 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 
 ### MVP 2: Exit Criteria Checklist
 
-- [ ] Layer detection assigns classes to layers with confidence and evidence
-- [ ] REST endpoints and request/response DTOs discovered from Spring annotations
-- [ ] JPA entities and relationships extracted
-- [ ] DI relationships traced; unresolved edges labelled, not guessed
-- [ ] Circular dependencies detected
-- [ ] Maven module relationships shown
-- [ ] Architecture diagrams render in Mermaid (strict mode)
-- [ ] Architecture report includes evidence, confidence labels and limitations
-- [ ] Non-Java repos show "unsupported" gracefully
-- [ ] All MVP 1 functionality still works
+- [x] Layer detection assigns classes to layers with confidence and evidence
+- [x] REST endpoints and request/response DTOs discovered from Spring annotations
+- [x] JPA entities and relationships extracted
+- [x] DI relationships traced; unresolved edges labelled, not guessed
+- [x] Circular dependencies detected
+- [x] Maven module relationships shown
+- [ ] Architecture diagrams render in Mermaid (strict mode): generated source parses with Mermaid and strict mode is set; rendering not yet checked in a real browser (see the MVP 2 completion report)
+- [x] Architecture report includes evidence, confidence labels and limitations
+- [x] Non-Java repos show "unsupported" gracefully
+- [x] All MVP 1 functionality still works
 
 ---
 
