@@ -1,0 +1,6 @@
+flowchart LR
+  f1["POST /inventory/#123;sku#125;/reserve"]
+  f2["InventoryController"]
+  f1 --> f2
+  f3["InventoryService"]
+  f2 --> f3

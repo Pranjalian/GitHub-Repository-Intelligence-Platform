@@ -24,7 +24,7 @@ class ArchitectureE2eTests extends E2eTestBase {
 
 	private static final String SHA = "a1".repeat(20);
 
-	private static final Path GOLDEN = Path.of("src/test/resources/golden/spring-boot-architecture");
+	private static final Path GOLDEN = Path.of("src/test/resources/golden");
 
 	@Test
 	void theArchitectureReportContainsEverySectionWithEvidenceAndLimitations() throws Exception {
@@ -89,11 +89,33 @@ class ArchitectureE2eTests extends E2eTestBase {
 		for (String diagram : List.of("layers", "apiFlow", "entities")) {
 			String generated = JsonPath.read(json, "$.diagrams." + diagram);
 			assertThat(generated).as(diagram).isNotBlank();
-			assertGolden(diagram, generated);
+			assertGolden("spring-boot-architecture", diagram, generated);
 		}
 		assertThat((Map<String, Object>) JsonPath.read(json, "$.summary")).containsEntry("endpoints", 7)
 			.containsEntry("entities", 3)
 			.containsEntry("types", 27);
+	}
+
+	/** fixtures/spring-multi-module/EXPECTED.md: Maven module relationships through the pipeline. */
+	@Test
+	void mavenModuleRelationshipsAreShownForAMultiModuleBuild() throws Exception {
+		Analysis analysis = analyze("acme", "shop-modules", "c3".repeat(20), fixture("spring-multi-module").build());
+
+		String json = architecture(analysis);
+
+		assertThat((List<String>) JsonPath.read(json, "$.moduleDependencies[*].source")).containsExactly("web");
+		assertThat((List<String>) JsonPath.read(json, "$.moduleDependencies[*].target")).containsExactly("core");
+		assertThat((List<String>) JsonPath.read(json, "$.moduleDependencies[0].evidence[*].path"))
+			.containsExactly("web/pom.xml");
+		assertThat((List<String>) JsonPath.read(json, "$.endpoints[*].route")).containsExactly("/inventory/{sku}/reserve");
+		List<List<Map<String, Object>>> chains = JsonPath.read(json, "$.diChains");
+		assertThat(chains).singleElement()
+			.satisfies(chain -> assertThat(chain).extracting(step -> step.get("name"))
+				.containsExactly("InventoryController", "InventoryService"));
+		String modules = JsonPath.read(json, "$.diagrams.modules");
+		assertThat(modules).contains("[\"web\"]", "[\"core\"]");
+		assertGolden("spring-multi-module", "modules", modules);
+		assertGolden("spring-multi-module", "apiFlow", JsonPath.read(json, "$.diagrams.apiFlow"));
 	}
 
 	@Test
@@ -139,8 +161,8 @@ class ArchitectureE2eTests extends E2eTestBase {
 				+ "/architecture");
 	}
 
-	private static void assertGolden(String name, String generated) throws Exception {
-		Path file = GOLDEN.resolve(name + ".mmd");
+	private static void assertGolden(String fixture, String name, String generated) throws Exception {
+		Path file = GOLDEN.resolve(fixture).resolve(name + ".mmd");
 		if (Boolean.getBoolean("golden.update") || !Files.exists(file)) {
 			Files.createDirectories(file.getParent());
 			Files.writeString(file, generated, StandardCharsets.UTF_8);
