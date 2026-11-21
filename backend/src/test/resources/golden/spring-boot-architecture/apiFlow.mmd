@@ -1,0 +1,26 @@
+flowchart LR
+  f1["GET /api/orders"]
+  f2["OrderController"]
+  f1 --> f2
+  f3["OrderService"]
+  f2 --> f3
+  f4["CustomerRepository"]
+  f3 --> f4
+  f5["Customer"]
+  f4 --> f5
+  f6["OrderRepository"]
+  f3 --> f6
+  f7["Order"]
+  f6 --> f7
+  f8["POST /api/orders"]
+  f8 --> f2
+  f9["GET /api/orders/search"]
+  f9 --> f2
+  f10["POST /api/orders/search"]
+  f10 --> f2
+  f11["GET /api/orders/#123;ExternalRoutes.LEGACY#125;"]
+  f11 --> f2
+  f12["DELETE /api/orders/#123;id#125;"]
+  f12 --> f2
+  f13["GET /api/orders/#123;id#125;"]
+  f13 --> f2

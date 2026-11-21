@@ -1,0 +1,11 @@
+erDiagram
+  Customer {
+  }
+  Order {
+  }
+  OrderLine {
+  }
+  Customer ||--o{ Order : "orders"
+  Order }o--|| Customer : "customer"
+  Order ||--o{ OrderLine : "lines"
+  OrderLine }o--|| Order : "order"

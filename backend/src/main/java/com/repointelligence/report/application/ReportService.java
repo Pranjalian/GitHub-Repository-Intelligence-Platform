@@ -228,6 +228,19 @@ public class ReportService {
 	private record Resolved(RepositorySnapshot snapshot, AnalysisRun run) {
 	}
 
+	/** A snapshot of the repository and the run whose results describe it. */
+	public record ReportScope(RepositorySnapshot snapshot, AnalysisRun run) {
+	}
+
+	/**
+	 * The same resolution every report endpoint uses: 404 unless the snapshot belongs to the repository;
+	 * the latest completed run unless {@code runId} names another run of that snapshot.
+	 */
+	public ReportScope scope(UUID repositoryId, UUID snapshotId, UUID runId) {
+		Resolved resolved = resolve(repositoryId, snapshotId, runId);
+		return new ReportScope(resolved.snapshot(), resolved.run());
+	}
+
 	private Resolved resolve(UUID repositoryId, UUID snapshotId, UUID runId) {
 		RepositorySnapshot snapshot = snapshots.findByIdAndRepositoryId(snapshotId, repositoryId)
 			.orElseThrow(() -> new ResourceNotFoundException("Snapshot not found for this repository."));

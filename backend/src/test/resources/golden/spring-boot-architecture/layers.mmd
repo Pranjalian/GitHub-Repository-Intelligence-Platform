@@ -1,0 +1,49 @@
+flowchart TB
+  subgraph L1["Controller"]
+    n1["OrderController"]
+  end
+  subgraph L2["Service"]
+    n2["AuditService"]
+    n3["DiscountPolicy"]
+    n4["EmailNotifier"]
+    n5["LegacyPaymentBridge"]
+    n6["LegacyPaymentClient"]
+    n7["LoyaltyDiscount"]
+    n8["Notifier"]
+    n9["NotifierProvider"]
+    n10["OrderService"]
+    n11["PaymentFactory"]
+    n12["PaymentGateway"]
+    n13["PriceCalculator"]
+    n14["ReportService"]
+    n15["SeasonalDiscount"]
+    n16["SmsNotifier"]
+  end
+  subgraph L3["Repository"]
+    n17["CustomerRepository"]
+    n18["OrderRepository"]
+  end
+  subgraph L4["Entity"]
+    n19["Customer"]
+    n20["Order"]
+    n21["OrderLine"]
+  end
+  subgraph L5["DTO"]
+    n22["CreateOrderRequest"]
+    n23["OrderResponse"]
+  end
+  subgraph L6["Configuration"]
+    n24["ShopApplication"]
+    n25["ShopConfig"]
+  end
+  subgraph L7["Infrastructure"]
+    n26["IdGenerator"]
+  end
+  n2 --> n14
+  n10 --> n17
+  n10 --> n18
+  n10 --> n3
+  n14 --> n2
+  n1 --> n10
+  n17 -->|"manages"| n19
+  n18 -->|"manages"| n20
