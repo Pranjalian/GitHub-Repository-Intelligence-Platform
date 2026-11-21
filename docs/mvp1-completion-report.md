@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-20
 **Plan:** [implementationPlan.md](implementationPlan.md), Steps 1.1 to 1.19
-**Result:** All steps implemented. Two items from the plan were **not** done: the manual smoke test on real public repositories and the Semgrep-CLI integration test (see section 8). Step 1.19 (Docker Compose run, added 2026-11-21) is written but its images have not been built or run yet (see section 8).
+**Result:** All steps implemented. Two items from the plan were **not** done: the manual smoke test on real public repositories and the Semgrep-CLI integration test (see section 8). Step 1.19 (Docker Compose run, added 2026-11-21) is implemented and verified on the development machine (see section 5a).
 
 ## 1. Features implemented
 
@@ -54,9 +54,28 @@ Files for the Docker run: `compose.yaml`, `backend/Dockerfile`, `frontend/Docker
 pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm test --run && pnpm build   # frontend
 ```
 
+## 5a. Docker Compose verification (Step 1.19, 2026-11-21)
+
+Run on the development machine (Windows 11, Docker Desktop on WSL2) with `docker compose up --build`, no `.env` and no `GITHUB_TOKEN`. CI also built both images (`Docker images` job green on `17069c4`).
+
+| Check | Result |
+|---|---|
+| Services | `postgres`, `backend`, `frontend` all healthy; ports bound to `127.0.0.1` only |
+| Migrations | Flyway applied V1 to V4 on PostgreSQL 16.16 in the container |
+| Backend health | `/actuator/health` returns `UP` |
+| UI | `http://localhost:5173` returns 200; a deep link returns 200 (SPA fallback) |
+| API via nginx | `/api/v1/repositories` through port 5173 returns 200 |
+| Headers | CSP, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` present |
+| Non-root | backend runs as `app` (uid 999), frontend as `nginx` (uid 101) |
+| Semgrep | 1.186.0 available in the backend image |
+| End to end | `spring-projects/spring-petclinic` (commit `500158f`) analyzed through the UI proxy: run `COMPLETED` in about 19 s; 10 analyzers completed, including PMD (about 11 s) and **Semgrep (about 14 s, first real Semgrep run)**; vulnerability lookup `NOT_CONFIGURED` as expected |
+| Persistence | after `docker compose down` and `up`, both analyzed repositories are still listed |
+
+Not checked: `docker compose down -v` data removal, reachability from another machine on the network, and token redaction in logs/image history with a real `GITHUB_TOKEN` (none was set).
+
 ## 6. External tools
 
-None are required. Optional: Semgrep CLI (security rules), outbound access to OSV.dev (vulnerability lookup), a `GITHUB_TOKEN` (higher API limits).
+None are required. Optional: Semgrep CLI (security rules; included in the Docker backend image), outbound access to OSV.dev (vulnerability lookup), a `GITHUB_TOKEN` (higher API limits).
 
 ## 7. Security considerations
 
@@ -64,9 +83,8 @@ URL parsing is strict and the backend never fetches a user-supplied URL (SSRF te
 
 ## 8. Not implemented or not verified
 
-- **Manual smoke test** on one real Spring Boot and one real React repository with a `GITHUB_TOKEN`: not run (needs network and a token). Recommended before relying on the results.
-- **Semgrep integration test** (`@Tag("semgrep")`): not written; Semgrep was not installed. Parsing, unavailability and process-kill behaviour are tested with fixtures.
-- **Docker Compose run (Step 1.19)**: not built or run yet. Docker Desktop could not start on the development machine (WSL2 needs the Virtual Machine Platform feature and BIOS virtualization). Verified so far: `docker compose config` validates; the backend packages with `-Dmaven.test.skip=true` and the jar the Dockerfile copies exists; the frontend source has no inline scripts or styles, so it fits the nginx CSP. The Step 1.19 manual checks are still open.
+- **Manual smoke test**: partly done. One real Spring Boot repository (`spring-petclinic`) was analyzed end to end in Docker without a token (section 5a); its findings were not reviewed in detail. A real React repository and a run with a `GITHUB_TOKEN` are still open.
+- **Semgrep integration test** (`@Tag("semgrep")`): not written. Semgrep now runs for real in the Docker image (section 5a), but there is still no automated test against the real CLI. Parsing, unavailability and process-kill behaviour are tested with fixtures.
 - **Demo recording** for the slice checkpoint: not recorded.
 - **Duplication (CPD)** is not enabled; stated as a limitation, not shown as a matrix row.
 - **Outdated-dependency detection**, transitive dependencies, lockfile parsing, test execution: out of scope for MVP 1.
@@ -78,4 +96,4 @@ See the README section "Known limitations".
 
 ## 10. Recommended next steps
 
-Run the smoke test with a token; install Semgrep and add the tagged test and a CI job; consider OWASP Dependency-Check as a second vulnerability source; then start MVP 2 (architecture intelligence), reusing the JavaParser setup.
+Finish the smoke test with a token and a React repository; add the tagged Semgrep test and run it in CI inside the backend image (Semgrep is already there); consider OWASP Dependency-Check as a second vulnerability source; then start MVP 2 (architecture intelligence), reusing the JavaParser setup.
