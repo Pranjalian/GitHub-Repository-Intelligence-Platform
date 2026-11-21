@@ -1439,3 +1439,21 @@ After each MVP, verify that **all prior exit criteria still pass**:
 | Ordering | Backend layers first, UI last | Vertical slice first, then analyzers incrementally |
 | Versions | Boot 3.3, React 18, Vite 5, Tailwind 3, Flyway 10 | Current stable lines at implementation time; `flyway-database-postgresql` added |
 | Later MVPs | — | Secret scrub before prompts, schema validation, call budgets, hosted-provider consent, deterministic search, retrieval eval, per-model embeddings, deterministic impact input |
+
+# Appendix C: Recommendations
+
+### C.1 Configure a GitHub token for local runs
+
+**Status:** recommended, not done. As of 2026-11-21 no `GITHUB_TOKEN` is configured (no `.env`, empty in the backend container). Public repositories still work, but GitHub allows only **60 API requests per hour** per network without a token, versus **5,000** with one. Each analysis uses several requests (repository metadata, commit resolution, tarball download), so unauthenticated use quickly hits the limit; the platform then fails fast with a "retry after" time (Step 1.3).
+
+**Steps:**
+1. On GitHub: **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**. Name it (for example `repo-intelligence-local`), set an expiry, choose **Repository access: Public repositories (read-only)**, add **no** permissions, generate and copy the `github_pat_...` value.
+2. In the repository root: `copy .env.example .env`, then set `GITHUB_TOKEN=github_pat_...` in `.env`.
+3. Apply it: `docker compose up -d` (recreates only the backend; data is kept). Without Docker, set `GITHUB_TOKEN` in the shell or IDE run configuration before starting the backend.
+4. Verify without printing the value: `docker compose exec backend sh -c '[ -n "$GITHUB_TOKEN" ] && echo set || echo empty'`.
+
+**Rules:**
+- `.env` is git-ignored. Never put the token in `compose.yaml`, `.env.example`, docs, commits or chat.
+- The token is sent only to `api.github.com` and `codeload.github.com`, and is redacted from logs and reports (Step 0.3, Step 1.3).
+- Rotate it when it expires or if it is ever exposed (revoke it on GitHub, generate a new one, update `.env`, `docker compose up -d`).
+- After it is configured, finish the open MVP 1 smoke test with the token (see the MVP 1 completion report, section 8) and check that the token does not appear in `docker compose logs backend` or `docker history repo-intelligence-backend:local`.
