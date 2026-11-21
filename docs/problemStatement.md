@@ -378,10 +378,12 @@ implementing analysis features.
 -   Application configuration profiles.
 -   Centralized error handling and validation.
 -   Structured logging with sensitive-data redaction.
--   Local development without Docker: the application, database and
-    tests must run as native processes (for example embedded PostgreSQL
-    binaries for tests and zero-install runs, or a native PostgreSQL
-    install), because Docker is not available on all developer machines.
+-   Local development: Docker Compose is the recommended way to run the
+    application (database, backend and frontend). The application must
+    also build, test and run as native processes without Docker (for
+    example embedded PostgreSQL binaries for tests and zero-install
+    runs, or a native PostgreSQL install), because Docker is not
+    available on all developer machines.
 -   API documentation, preferably OpenAPI.
 -   Basic automated backend and frontend tests.
 -   CI workflow for build, test and static checks.
@@ -1601,7 +1603,9 @@ direction. Follow these instructions while implementing.
     license/configuration, document it and provide a graceful
     unavailable state.
 -   Provide reproducible local setup instructions.
--   Do not require Docker to build, test or run the project.
+-   Do not require Docker to build or test the project. Docker Compose
+    may be offered (and recommended) for running it, but a documented
+    way to run without Docker must remain.
 -   Update the README as implementation evolves.
 
 ## 15.4 AI-specific restrictions

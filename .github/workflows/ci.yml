@@ -60,3 +60,12 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test --run
       - run: pnpm build
+
+  # Keeps the Docker Compose run (compose.yaml) building. Tests run in the jobs above, without Docker.
+  docker:
+    name: Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
+      - run: docker compose build

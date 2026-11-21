@@ -1247,13 +1247,31 @@ flowchart LR
 
 ### 13.1 Local Development Stack
 
-No Docker is required anywhere in the stack. Everything runs as a native process.
+The recommended way to **run** the application locally is Docker Compose (`compose.yaml`). Docker is never needed to **build or test**: tests use embedded PostgreSQL, and the native-process run paths below stay supported for machines without Docker.
+
+**Docker Compose (recommended)**
+
+```mermaid
+graph TD
+    subgraph Compose["docker compose up --build (ports bound to 127.0.0.1)"]
+        FEC["frontend: nginx (non-root)\nstatic build, host port 5173"]
+        BEC["backend: Spring Boot on JRE 25 (non-root)\n+ pinned Semgrep CLI, host port 8080"]
+        PGC["postgres: PostgreSQL 16\nvolume pgdata, host port 5432"]
+        WS[("volume workspace\n/workspace")]
+    end
+
+    FEC -->|"proxy /api/*"| BEC
+    BEC --> PGC
+    BEC --> WS
+```
+
+**Native processes (no Docker)**
 
 ```mermaid
 graph TD
     subgraph Database["Database (choose one)"]
         EDB["Embedded PostgreSQL 16\n(mvnw spring-boot:test-run)\nrandom port, ephemeral"]
-        NDB["Native PostgreSQL 16\n(local install)\nPort 5432, persistent"]
+        NDB["Native PostgreSQL 16\n(local install, or docker compose up -d postgres)\nPort 5432, persistent"]
     end
 
     subgraph Local
@@ -1277,12 +1295,14 @@ graph TD
 | `test` | Embedded PostgreSQL binaries (no H2, no Docker), WireMock-served GitHub fixtures (tarballs), no AI |
 | `prod` | Secure defaults, externalized config, structured JSON logging |
 
-### 13.3 Local Services (no Docker)
+### 13.3 Local Services
 
 | Service | How it runs | Notes |
 |---|---|---|
+| **Full app (Docker Compose, recommended)** | `docker compose up --build`: `postgres` (`postgres:16-alpine`), `backend` (`backend/Dockerfile`), `frontend` (`frontend/Dockerfile`, nginx + `nginx.conf`) | Non-root containers, `no-new-privileges`, no Docker socket mount; all ports bound to 127.0.0.1 (no auth). Data in the `pgdata` and `workspace` volumes. Repository code is still never executed |
 | **PostgreSQL (zero-install)** | `mvnw spring-boot:test-run` starts the app with embedded PostgreSQL binaries (`TestRepoIntelligenceApplication` + `EmbeddedPostgresConfig`) | Binaries version pinned via `embedded-postgres-binaries-bom`; data discarded on exit |
-| **PostgreSQL (persistent)** | Native PostgreSQL 16 install (Windows: EDB installer); `scripts/db/create-dev-db.sql` creates the `repointel` role and `repointelligence` database | App uses the `DB_URL`/`DB_USERNAME`/`DB_PASSWORD` defaults with `mvnw spring-boot:run` |
+| **PostgreSQL (persistent)** | Native PostgreSQL 16 install (Windows: EDB installer) with `scripts/db/create-dev-db.sql` creating the `repointel` role and `repointelligence` database, or `docker compose up -d postgres` (same role and database) | App uses the `DB_URL`/`DB_USERNAME`/`DB_PASSWORD` defaults with `mvnw spring-boot:run` |
+| **Semgrep (optional)** | Included in the Docker backend image (pinned); otherwise a native install (`pip install semgrep`, or WSL on Windows) | Analyzer reports `UNAVAILABLE` when the CLI is not found |
 | **pgvector (MVP 4)** | Native install adds the pgvector extension. Tests: open decision, either embedded binaries built with pgvector or a native test database (see the implementation plan) | Stock embedded binaries do not include pgvector |
 | **Ollama (optional, MVP 3+)** | Native Ollama installer, pinned version | Only when local AI is enabled |
 
@@ -1400,7 +1420,7 @@ Fixtures are packaged as tarballs at test-build time and served by WireMock as G
 | ADR-13 | Analyzers receive a read-only `AnalysisContext` and return results; the orchestrator persists | Keeps the SPI free of JPA; guarantees fault isolation |
 | ADR-14 | Generic secret scanning for all repositories; Semgrep with vendored local rules; OSV for vulnerabilities (opt-in) | Security is not Java-only; no runtime rule downloads; no source code leaves the server |
 | ADR-15 | Embedded PostgreSQL binaries (zonky `embedded-postgres`) for all DB tests (no H2). Supersedes the earlier Testcontainers decision | Migrations and `jsonb` behave identically in tests and production, without requiring Docker |
-| ADR-16 | No Docker dependency for build, test or local run | Docker is not available on all developer machines; native processes and embedded PostgreSQL cover every need |
+| ADR-16 | No Docker dependency for build or test. **Revised (v4):** Docker Compose is the recommended local run; native-process runs stay supported | Docker is not available on all developer machines, so builds, tests and CI test jobs stay Docker-free. For running, Compose gives a one-command, persistent setup with Semgrep included |
 
 ---
 
@@ -1452,6 +1472,6 @@ Targets as of this revision. Verify the current stable, mutually compatible vers
 | **Security scanning** | Generic secret scanner (built-in) + Semgrep CLI (optional, local rules) | pinned current |
 | **Dep vulnerability** | OSV.dev API via `VulnerabilitySource` (opt-in); OWASP Dependency-Check optional later | n/a |
 | **Coverage** | JaCoCo report parsing | (not execution) |
-| **Local runtime** | Native processes, no Docker; embedded PostgreSQL for tests and zero-install runs | n/a |
+| **Local runtime** | Docker Compose (PostgreSQL 16, backend, nginx frontend) recommended; native processes and embedded PostgreSQL also supported. Tests use embedded PostgreSQL, no Docker | n/a |
 | **Vector store (MVP 4)** | pgvector | 0.7+ |
 | **Local AI (MVP 3+)** | Ollama | pinned current |

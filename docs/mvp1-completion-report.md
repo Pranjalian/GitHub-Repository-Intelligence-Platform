@@ -1,8 +1,8 @@
 # MVP 1 Completion Report: Deterministic Repository Analysis
 
 **Date:** 2026-11-20
-**Plan:** [implementationPlan.md](implementationPlan.md), Steps 1.1 to 1.18
-**Result:** All steps implemented. Two items from the plan were **not** done: the manual smoke test on real public repositories and the Semgrep-CLI integration test (see section 8).
+**Plan:** [implementationPlan.md](implementationPlan.md), Steps 1.1 to 1.19
+**Result:** All steps implemented. Two items from the plan were **not** done: the manual smoke test on real public repositories and the Semgrep-CLI integration test (see section 8). Step 1.19 (Docker Compose run, added 2026-11-21) is written but its images have not been built or run yet (see section 8).
 
 ## 1. Features implemented
 
@@ -28,7 +28,7 @@
 - **External tools run as processes with a minimal environment**, capped output and process-tree kill on cancel/deadline (Semgrep). PMD and JavaParser run in-process and only parse.
 - **Secrets are never stored, logged or returned.** The scanner redacts every secret on a line before building evidence, and the result writer redacts again. Test secrets are assembled from fragments so no token-shaped literal is committed.
 - **Packs plug in.** A test fails the build if core code imports `analysis.packs.*` or if pack code touches persistence types.
-- **No Docker.** Embedded PostgreSQL for tests, as in MVP 0.
+- **Docker for running only.** `docker compose up --build` runs PostgreSQL, the backend (with a pinned Semgrep CLI) and the nginx-served frontend, non-root and bound to 127.0.0.1 (Step 1.19). Build and tests need no Docker: embedded PostgreSQL for tests, as in MVP 0.
 
 ## 3. Files and modules created
 
@@ -40,9 +40,12 @@
 ## 4. Run commands
 
 ```sh
+# with Docker (repo root)        cp .env.example .env && docker compose up --build
 # backend (from backend/)        ./mvnw spring-boot:test-run      # embedded PostgreSQL, no install
 # frontend (from frontend/)      pnpm install && pnpm dev
 ```
+
+Files for the Docker run: `compose.yaml`, `backend/Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`, `.dockerignore` files, plus a `Docker images` CI job.
 
 ## 5. Test commands
 
@@ -63,6 +66,7 @@ URL parsing is strict and the backend never fetches a user-supplied URL (SSRF te
 
 - **Manual smoke test** on one real Spring Boot and one real React repository with a `GITHUB_TOKEN`: not run (needs network and a token). Recommended before relying on the results.
 - **Semgrep integration test** (`@Tag("semgrep")`): not written; Semgrep was not installed. Parsing, unavailability and process-kill behaviour are tested with fixtures.
+- **Docker Compose run (Step 1.19)**: not built or run yet. Docker Desktop could not start on the development machine (WSL2 needs the Virtual Machine Platform feature and BIOS virtualization). Verified so far: `docker compose config` validates; the backend packages with `-Dmaven.test.skip=true` and the jar the Dockerfile copies exists; the frontend source has no inline scripts or styles, so it fits the nginx CSP. The Step 1.19 manual checks are still open.
 - **Demo recording** for the slice checkpoint: not recorded.
 - **Duplication (CPD)** is not enabled; stated as a limitation, not shown as a matrix row.
 - **Outdated-dependency detection**, transitive dependencies, lockfile parsing, test execution: out of scope for MVP 1.

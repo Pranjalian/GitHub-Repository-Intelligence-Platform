@@ -1,0 +1,13 @@
+target/
+.workspace/
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+.env
+.env.*
+*.log
+Dockerfile
+.dockerignore

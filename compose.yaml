@@ -1,0 +1,69 @@
+# Run the full application locally: docker compose up --build
+# UI: http://localhost:5173   API: http://localhost:8080   Swagger: http://localhost:8080/swagger-ui.html
+#
+# Values come from the shell or from a root .env file (copy .env.example). There is no authentication,
+# so every port is bound to 127.0.0.1 only: do not expose these services to a network.
+# Database only (for `mvnw spring-boot:run` + `pnpm dev`): docker compose up -d postgres
+
+name: repo-intelligence
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: repointelligence
+      POSTGRES_USER: ${DB_USERNAME:-repointel}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-repointel_dev}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d repointelligence"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    image: repo-intelligence-backend:local
+    init: true # reaps child processes (Semgrep) when they are killed on deadline
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # DB_URL is fixed here: the localhost value in .env is only for runs outside Docker.
+      DB_URL: jdbc:postgresql://postgres:5432/repointelligence
+      DB_USERNAME: ${DB_USERNAME:-repointel}
+      DB_PASSWORD: ${DB_PASSWORD:-repointel_dev}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      WORKSPACE_ROOT: /workspace
+      ANALYSIS_VULNERABILITIES_OSV_ENABLED: ${ANALYSIS_VULNERABILITIES_OSV_ENABLED:-false}
+      ANALYSIS_ANALYZERS_JAVA_CODE_ANALYZER_OPTIONS_INCLUDE_TESTS: ${ANALYSIS_ANALYZERS_JAVA_CODE_ANALYZER_OPTIONS_INCLUDE_TESTS:-false}
+      REPOSITORY_INGESTION_MAX_REPOSITORY_SIZE_MB: ${REPOSITORY_INGESTION_MAX_REPOSITORY_SIZE_MB:-200}
+      ANALYSIS_JOBS_MAX_ANALYSIS_DURATION: ${ANALYSIS_JOBS_MAX_ANALYSIS_DURATION:-PT15M}
+    volumes:
+      - workspace:/workspace
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
+    mem_limit: 2g
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    image: repo-intelligence-frontend:local
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-5173}:8080"
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  workspace:

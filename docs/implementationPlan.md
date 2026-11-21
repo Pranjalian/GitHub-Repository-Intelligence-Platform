@@ -4,7 +4,7 @@
 **Derived from:** [problemStatement.md](file:///d:/Pranjali_projects/Github_code_analyser/docs/problemStatement.md) · [architecture.md](file:///d:/Pranjali_projects/Github_code_analyser/docs/architecture.md)  
 **Delivery model:** Phased MVPs. Each phase ends with a working, tested, demonstrable application  
 **Rule:** Do **not** start the next MVP until the current one passes all exit criteria  
-**Revision:** v2. Revised after review: tarball ingestion, snapshot workspace, commit-scoped APIs, `AnalysisContext` SPI, generic security scanning, vertical-slice ordering, Testcontainers instead of H2, current dependency versions. v3: **no Docker dependency**. Tests use embedded PostgreSQL binaries (zonky `embedded-postgres`) instead of Testcontainers; local dev uses embedded PostgreSQL via `spring-boot:test-run` or a native PostgreSQL install instead of Docker Compose
+**Revision:** v2. Revised after review: tarball ingestion, snapshot workspace, commit-scoped APIs, `AnalysisContext` SPI, generic security scanning, vertical-slice ordering, Testcontainers instead of H2, current dependency versions. v3: **no Docker dependency**. Tests use embedded PostgreSQL binaries (zonky `embedded-postgres`) instead of Testcontainers; local dev uses embedded PostgreSQL via `spring-boot:test-run` or a native PostgreSQL install instead of Docker Compose. v4: **Docker Compose is the recommended way to run the app locally** (PostgreSQL + backend + frontend, Step 1.19). Build, tests and CI still need no Docker, and the embedded/native PostgreSQL paths stay supported
 
 ---
 
@@ -24,7 +24,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 | Rule | Detail |
 |---|---|
 | **Versions** | Use the current stable, mutually compatible versions at implementation time and record them in the README. Targets as of this revision: Java 21 LTS (25 LTS acceptable), Spring Boot 4.x (fall back to the latest 3.5.x only if a required library lacks Boot 4 support), Flyway 11+, React 19, Vite 7+, TypeScript 5.x, Tailwind CSS 4, TanStack Query 5. Pin the embedded PostgreSQL binaries version explicitly (via `embedded-postgres-binaries-bom`). |
-| **No Docker** | The project must build, test and run without Docker (it is not available on all developer machines). Do not add Testcontainers, Docker Compose or Docker-based tooling as a requirement. |
+| **Docker for running, not for building or testing** | Docker Compose (`compose.yaml`, Step 1.19) is the recommended way to **run** the full application locally. The project must still **build and test** without Docker: no Testcontainers, and `mvnw clean verify` / `pnpm test` / the main CI jobs must not need a Docker daemon. The Docker-free run paths (`spring-boot:test-run` with embedded PostgreSQL, native PostgreSQL) stay working and documented. |
 | **Database in tests** | Real PostgreSQL started from embedded binaries (**zonky `embedded-postgres`**, shared `EmbeddedPostgresConfig`) for every test that touches the database. **No H2**: it diverges from PostgreSQL on `jsonb`, UUID functions and index syntax. |
 | **Migration numbering** | Number Flyway migrations at the time they are written (`V<next>__description.sql`); later MVP steps below do not hard-code version numbers. |
 | **Analyzers never persist** | Analyzers return results; only the orchestrator writes analysis results to the database. |
@@ -703,7 +703,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
    - Kill the process tree on deadline or cancellation
    - Parse the JSON output into findings: `check_id` → `rule_id`, severity mapping, path relative to workspace, start/end line, redacted excerpt
    - Report **actual coverage**: languages and rule files that were run, and files scanned vs. skipped (from Semgrep output). Shown in the security section and capability matrix (Problem §6.6)
-   - Windows note: install Semgrep natively (`pip install semgrep`) or run it through WSL if native support is insufficient on the developer machine. No Docker image. Document the configuration (`analysis.analyzers.semgrep.command`)
+   - Windows note: install Semgrep natively (`pip install semgrep`) or run it through WSL if native support is insufficient on the developer machine. Document the configuration (`analysis.analyzers.semgrep.command`). When the app runs through Docker Compose (Step 1.19), the backend image ships a pinned Semgrep CLI, so the analyzer is available there with no host install. The separate Semgrep Docker image is not used
 3. `JavaSecurityAnalyzer` is **not** a separate scanner; the Java pack contributes its Semgrep rule folder and a Java-specific capability row
 4. Dedupe: when the secret scanner and Semgrep flag the same location, the orchestrator keeps both rows but the report groups them by `fingerprint`
 5. Dependency vulnerabilities from Step 1.12 appear in the security section alongside code findings, labelled by source
@@ -829,6 +829,56 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 
 ---
 
+### Step 1.19: Run the Application with Docker Compose
+
+**What to build:** A one-command local run (`docker compose up --build`) that starts PostgreSQL, the backend and the frontend, with persistent data. This is for **running** the app only: build, tests and the main CI jobs stay Docker-free (see ground rules).
+
+**Sub-tasks:**
+1. `backend/Dockerfile` (multi-stage):
+   - **Build stage:** `eclipse-temurin:25-jdk`. Copy `mvnw`, `.mvn/` and `pom.xml` first and run `./mvnw -B dependency:go-offline` so dependencies are cached in their own layer. Then copy `src/` and run `./mvnw -B package -DskipTests` (tests run in CI and locally with `verify`, not during image builds). Normalise `mvnw` line endings (`sed -i 's/\r$//' mvnw`) so a Windows checkout with CRLF still builds.
+   - **Runtime stage:** `eclipse-temurin:25-jre`. Install Python and a **pinned** Semgrep version (`pip install --no-cache-dir semgrep==<version>`) so the Semgrep analyzer is available without a host install. Copy only the application jar.
+   - Run as a **non-root** user. Create `/workspace` owned by that user and set `WORKSPACE_ROOT=/workspace`.
+   - `EXPOSE 8080`. `HEALTHCHECK` against `/actuator/health`. JVM flags via `JAVA_TOOL_OPTIONS` (for example `-XX:MaxRAMPercentage=75`).
+2. `frontend/Dockerfile` (multi-stage):
+   - **Build stage:** `node:22-alpine`. Enable corepack with the pnpm version from `package.json` (`packageManager`), or install that exact pnpm version. Run `pnpm install --frozen-lockfile` then `pnpm build`.
+   - **Runtime stage:** `nginxinc/nginx-unprivileged` (non-root, listens on 8080) serving `dist/`.
+   - `frontend/nginx.conf`: proxy `/api/` (and `/swagger-ui`, `/v3/api-docs` if the docs should be reachable through the UI port) to `http://backend:8080`. SPA fallback with `try_files $uri /index.html`. Security headers (`X-Content-Type-Options: nosniff`, `Referrer-Policy`, a CSP matching the app). Set `client_max_body_size` in line with the backend request-size limit.
+   - The frontend keeps calling relative `/api/...` URLs, so the same build works under `pnpm dev` (Vite proxy) and under nginx.
+3. `.dockerignore` in `backend/` (`target/`, `.workspace/`, IDE folders) and `frontend/` (`node_modules/`, `dist/`, coverage), so builds are fast and no local secrets or build output leak into images.
+4. `compose.yaml` at the repository root:
+   - `postgres`: `postgres:16-alpine` (match the major version used by the embedded tests). `POSTGRES_DB=repointelligence`, `POSTGRES_USER=${DB_USERNAME:-repointel}`, `POSTGRES_PASSWORD=${DB_PASSWORD:-repointel_dev}`. Named volume `pgdata`. `healthcheck` with `pg_isready`. Published only on `127.0.0.1:5432` (so a native `mvnw spring-boot:run` can use it too).
+   - `backend`: built from `backend/`. `depends_on: postgres: condition: service_healthy`. Environment `DB_URL=jdbc:postgresql://postgres:5432/repointelligence`, `DB_USERNAME`, `DB_PASSWORD`, `GITHUB_TOKEN`, `WORKSPACE_ROOT=/workspace`, plus optional pass-through analysis variables from `.env.example`. Named volume `workspace` for `/workspace`. Published on `127.0.0.1:8080`. Memory limit (for example `mem_limit: 2g`).
+   - `frontend`: built from `frontend/`. `depends_on: backend: condition: service_healthy`. Published on `127.0.0.1:5173:8080`, so the UI keeps the same URL as `pnpm dev`.
+   - Every port is bound to **127.0.0.1 only**, because the app has no authentication (ground rules).
+   - No Docker socket mount, no privileged mode. Analyzed repository code is still never executed: containers do not relax that rule.
+5. Configuration: Compose reads the root `.env` automatically. Update `.env.example` with a "Docker Compose" note: copy it to `.env`, set `GITHUB_TOKEN`, and `DB_URL` is overridden inside Compose (the `localhost` value is only for the native run). `.env` stays git-ignored.
+6. Hybrid dev mode (documented): `docker compose up -d postgres` gives a persistent database for `mvnw spring-boot:run` + `pnpm dev` with hot reload, with no native PostgreSQL install.
+7. CI: add a separate, non-blocking-for-tests job `docker-build` that runs `docker compose config` and `docker compose build`, so the Dockerfiles do not rot. The existing backend and frontend jobs stay Docker-free.
+8. README: add **"Run with Docker (recommended)"** as the first run section:
+   ```sh
+   cp .env.example .env          # then set GITHUB_TOKEN
+   docker compose up --build     # UI: http://localhost:5173, API: http://localhost:8080
+   docker compose down           # stop, keep data
+   docker compose down -v        # stop and delete database + workspace volumes
+   docker compose logs -f backend
+   ```
+   Keep the embedded and native PostgreSQL sections as "Run without Docker". Add troubleshooting: Docker Desktop not running, ports 5432/8080/5173 already in use (a native PostgreSQL or an earlier `pnpm dev`), CRLF `mvnw` errors, rebuilding after code changes (`docker compose up --build`).
+
+**Tests:**
+- [ ] `docker compose config` validates
+- [ ] Manual: `docker compose up --build` from a clean clone. All three services become healthy; `http://localhost:8080/actuator/health` returns `UP`; `http://localhost:5173` loads the dashboard; Flyway migrations apply on the containerised PostgreSQL
+- [ ] Manual: analyze `https://github.com/spring-projects/spring-petclinic` end to end through the UI. The Semgrep analyzer shows as available in the capability matrix
+- [ ] Manual: `docker compose down` then `up` keeps the analyzed repositories; `down -v` removes them
+- [ ] Manual: deep-link refresh (for example on a report page) works through nginx (SPA fallback)
+- [ ] Manual: containers run as non-root (`docker compose exec backend id`); ports are not reachable from another machine on the network
+- [ ] `GITHUB_TOKEN` does not appear in `docker compose logs` or in image layers (`docker history`)
+- [ ] `mvnw clean verify` and `pnpm test` still pass on a machine with no Docker daemon
+- [ ] CI `docker-build` job green
+
+**Exit gate:** `docker compose up --build` runs the full application with persistent data and Semgrep available; the Docker-free build, test and run paths still work; README documents both.
+
+---
+
 ### MVP 1: Exit Criteria Checklist
 
 - [ ] User submits a public Java + Spring Boot + Maven GitHub URL
@@ -849,6 +899,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 - [ ] Repository size/file/time limits enforced; no repository code executed
 - [ ] Automated tests cover the happy path and key failure paths; CI green
 - [ ] README and completion report done
+- [ ] Full application runs locally with `docker compose up --build` (Step 1.19); build and tests still need no Docker
 
 ---
 
@@ -1335,6 +1386,7 @@ After each MVP, verify that **all prior exit criteria still pass**:
 | App starts without AI | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Health check works | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Migrations apply cleanly (embedded PostgreSQL) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| App runs via `docker compose up --build` | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Java repo analyzed | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Non-Java repo generic analysis | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Capability matrix accurate | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -1357,13 +1409,13 @@ After each MVP, verify that **all prior exit criteria still pass**:
 | MVP | Steps | Focus |
 |---|---|---|
 | **MVP 0** | 7 steps (0.0–0.6) | Project foundation, no business logic |
-| **MVP 1** | 18 steps (1.1–1.18) | Vertical slice (1.1–1.10), then Java pack & scanners (1.11–1.16), hardening (1.17–1.18) |
+| **MVP 1** | 19 steps (1.1–1.19) | Vertical slice (1.1–1.10), then Java pack & scanners (1.11–1.16), hardening (1.17–1.18), Docker Compose run (1.19) |
 | **MVP 2** | 6 steps (2.1–2.6) | Architecture discovery with JavaParser |
 | **MVP 3** | 5 steps (3.1–3.5) | AI provider abstraction, guardrails, insights |
 | **MVP 4** | 4 steps (4.1–4.4) | Deterministic search, RAG indexing, Q&A |
 | **MVP 5** | 3 steps (5.1–5.3) | Dependency graph + impact analysis |
 | **MVP 6** | 3 steps (6.1–6.3) | Agentic workflows |
-| **Total** | **46 steps** | |
+| **Total** | **47 steps** | |
 
 # Appendix B: Revision Notes (v1 → v2)
 
@@ -1383,7 +1435,7 @@ After each MVP, verify that **all prior exit criteria still pass**:
 | Async | `@Async` only | After-commit event listener, separate pools, deadlines, cancellation, restart recovery |
 | Rate limits | Wait and retry | Fail fast with reset time; bounded backoff only for transient errors |
 | Test DB | H2 + optional Testcontainers | Embedded PostgreSQL binaries only (v3; Testcontainers in v2) |
-| Docker | Docker Compose for dev DB | Not required anywhere (v3) |
+| Docker | Docker Compose for dev DB | Not required anywhere (v3). v4: Docker Compose is the recommended local run (PostgreSQL + backend + frontend, Step 1.19); build, tests and main CI stay Docker-free |
 | Ordering | Backend layers first, UI last | Vertical slice first, then analyzers incrementally |
 | Versions | Boot 3.3, React 18, Vite 5, Tailwind 3, Flyway 10 | Current stable lines at implementation time; `flyway-database-postgresql` added |
 | Later MVPs | — | Secret scrub before prompts, schema validation, call budgets, hosted-provider consent, deterministic search, retrieval eval, per-model embeddings, deterministic impact input |

@@ -8,15 +8,39 @@ See [docs/](docs/) for the problem statement, architecture, implementation plan 
 
 ## Prerequisites
 
-- JDK 25 (`JAVA_HOME` must point to it; Maven uses `JAVA_HOME`, not `PATH`)
-- Optional: native PostgreSQL 16+ if you want data to persist between runs
-- **No Docker required** for building, testing or running
+- **To run with Docker (recommended):** Docker Desktop (or Docker Engine) with Docker Compose v2. Nothing else.
+- **To build, test or run without Docker:** JDK 25 (`JAVA_HOME` must point to it; Maven uses `JAVA_HOME`, not `PATH`), Node.js 22+ and pnpm. Optional: native PostgreSQL 16+ if you want data to persist between runs.
+- Docker is **not** required for building or testing; CI runs the tests without it.
 
 Maven itself is not needed; use the wrapper (`mvnw` / `mvnw.cmd`) in `backend/`.
 
+## Run with Docker (recommended)
+
+From the repository root:
+
+```sh
+cp .env.example .env          # then set GITHUB_TOKEN in .env (optional, strongly recommended)
+docker compose up --build     # first build takes a few minutes
+```
+
+Open http://localhost:5173 when all three services are healthy (`docker compose ps`). The API is on http://localhost:8080 (Swagger UI at http://localhost:8080/swagger-ui.html).
+
+| Command | What it does |
+|---|---|
+| `docker compose up --build -d` | Start in the background (rebuild after code changes) |
+| `docker compose ps` | Service status and health |
+| `docker compose logs -f backend` | Follow backend logs |
+| `docker compose down` | Stop; **keeps** the database and workspace volumes |
+| `docker compose down -v` | Stop and **delete** all analysis data |
+| `docker compose up -d postgres` | Database only, for `mvnw spring-boot:run` + `pnpm dev` with hot reload (no native PostgreSQL needed) |
+
+What runs: `postgres` (PostgreSQL 16, data in the `pgdata` volume), `backend` (Spring Boot on JRE 25, with a pinned Semgrep CLI so the Semgrep analyzer is available) and `frontend` (the built UI on nginx, which proxies `/api` to the backend). Containers run as non-root users, and every port is bound to `127.0.0.1` only, because there is no authentication. Analyzed repository code is still never executed.
+
+Host ports can be changed with `POSTGRES_PORT`, `BACKEND_PORT` and `FRONTEND_PORT` in `.env`.
+
 ## How to analyze a repository
 
-1. Start the backend and the frontend (below), open http://localhost:5173 and choose **Add Repository**.
+1. Start the app (with Docker above, or the backend and frontend separately below), open http://localhost:5173 and choose **Add Repository**.
 2. Paste a public GitHub URL (for example `https://github.com/spring-projects/spring-petclinic`, optionally `/tree/<branch>`) and press **Analyze**. Tick *Force full rescan* to re-analyze a commit that was already analyzed.
 3. Watch the progress page, then read the report: Overview (technologies, structure, capability matrix, limitations), Dependencies, Code Quality, Security, Tests & Coverage. Use the snapshot selector to switch between analyzed commits.
 
@@ -28,7 +52,7 @@ Set `GITHUB_TOKEN` to a **fine-grained token with read-only access to public rep
 
 ## Optional tools and features
 
-- **Semgrep** (security rules for Java). Not required. If the `semgrep` CLI is not found the analyzer is reported as *Unavailable* with the reason, and everything else still runs. Install natively (`pip install semgrep`; on Windows run it through WSL if native support is insufficient) or point to it with `analysis.analyzers.semgrep-security-analyzer.options.command`. Rules are vendored in `backend/src/main/resources/semgrep-rules/`; nothing is downloaded at runtime and metrics are off.
+- **Semgrep** (security rules for Java). Already included in the Docker backend image. Otherwise not required: if the `semgrep` CLI is not found the analyzer is reported as *Unavailable* with the reason, and everything else still runs. Install natively (`pip install semgrep`; on Windows run it through WSL if native support is insufficient) or point to it with `analysis.analyzers.semgrep-security-analyzer.options.command`. Rules are vendored in `backend/src/main/resources/semgrep-rules/`; nothing is downloaded at runtime and metrics are off.
 - **OSV.dev vulnerability lookup** for dependencies. Off by default (`analysis.vulnerabilities.osv.enabled=false`) because it needs outbound network access. When off, every dependency shows *Not checked*, which never means "no known vulnerabilities". When on, only package names and versions are sent, and only for dependencies with a concrete resolved version.
 
 ## Configuration reference
@@ -54,11 +78,13 @@ All keys live in `backend/src/main/resources/application.yml` and can be overrid
 - Deep analysis exists for Java/Maven; other stacks get generic analysis (structure, secrets, test files, npm dependencies) and an honest "unsupported" matrix.
 - There is **no authentication**: this is a local single-user tool. Do not expose it to the public internet.
 
-## Running the backend
+## Run without Docker
+
+### Running the backend
 
 All commands run from `backend/`.
 
-### Option A: zero-install (embedded PostgreSQL)
+#### Option A: zero-install (embedded PostgreSQL)
 
 ```sh
 ./mvnw spring-boot:test-run
@@ -66,9 +92,9 @@ All commands run from `backend/`.
 
 Starts the app on a real PostgreSQL started from embedded binaries. No database install is needed. Data is discarded when the process stops.
 
-### Option B: native PostgreSQL (persistent)
+#### Option B: native PostgreSQL (persistent)
 
-1. Install PostgreSQL 16+ (Windows: the EDB installer).
+1. Install PostgreSQL 16+ (Windows: the EDB installer). Or skip steps 1–2 and run `docker compose up -d postgres`, which creates the same role and database.
 2. Create the role and database once (idempotent):
 
    ```sh
@@ -90,7 +116,7 @@ Flyway applies the migrations in `backend/src/main/resources/db/migration/` on s
 
 Check it is running: `http://localhost:8080/actuator/health` should return `{"status":"UP"}`.
 
-## Running the frontend
+### Running the frontend
 
 Requires Node.js 22+ and pnpm (`npm i -g pnpm`). All commands run from `frontend/`.
 
@@ -123,11 +149,16 @@ Backend database tests use embedded PostgreSQL (no H2, no Docker).
 
 - **Backend:** JDK 25, `./mvnw -B clean verify` (tests on embedded PostgreSQL, no Docker, plus the Spotless check). Test reports are uploaded as an artifact.
 - **Frontend:** Node 22, `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test --run`, `pnpm build`.
+- **Docker images:** `docker compose config` and `docker compose build`, so the Docker run keeps working. No tests run in containers.
 
 Tests that need external CLIs (for example Semgrep) are tagged and excluded by default; the Semgrep parser, unavailability and process-kill behaviour are covered without the CLI.
 
 ## Troubleshooting
 
+- **`docker compose` cannot connect to the Docker API:** start Docker Desktop and wait until it reports that the engine is running.
+- **Docker: "port is already allocated":** a native PostgreSQL, an earlier `mvnw spring-boot:run` or `pnpm dev` is using 5432, 8080 or 5173. Stop it or change `POSTGRES_PORT`/`BACKEND_PORT`/`FRONTEND_PORT` in `.env`.
+- **Docker: backend fails with "password authentication failed":** `DB_USERNAME`/`DB_PASSWORD` changed after the database volume was created. Restore the old values or run `docker compose down -v` (deletes the data).
+- **Docker: code changes do not show up:** rebuild with `docker compose up --build`.
 - **Maven fails with "release version 25 not supported":** `JAVA_HOME` points to an older JDK. Set it to JDK 25 and open a new terminal.
 - **Port 8080 or 5173 already in use:** stop the previous run of the backend or `pnpm dev`.
 - **Frontend tests crash on startup with an undici error:** your Node is older than a dependency requires; jsdom is pinned to a release that supports Node 22.12+.
@@ -145,6 +176,8 @@ Tests that need external CLIs (for example Semgrep) are tagged and excluded by d
 | maven-model (POM reading only) | 3.9.16 |
 | springdoc-openapi | 3.2.0 |
 | PostgreSQL (embedded, tests) | 16.16 |
+| PostgreSQL (Docker Compose) | `postgres:16-alpine` |
+| Semgrep (Docker backend image) | 1.186.0 |
 | zonky embedded-postgres | 2.2.2 |
 | Node.js (tested) | 22.14 |
 | pnpm | 12 |
