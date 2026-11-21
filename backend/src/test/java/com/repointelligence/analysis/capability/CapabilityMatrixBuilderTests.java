@@ -95,7 +95,7 @@ class CapabilityMatrixBuilderTests {
 		assertThat(maven.executionStatus()).isEqualTo(ExecutionStatus.NOT_ANALYZED);
 		// TypeScript: generic coverage only, honest UNSUPPORTED for everything language-specific
 		for (AnalysisCategory category : List.of(AnalysisCategory.DEPENDENCIES, AnalysisCategory.CODE_QUALITY,
-				AnalysisCategory.TESTS)) {
+				AnalysisCategory.TESTS, AnalysisCategory.ARCHITECTURE)) {
 			CapabilityRow unsupported = row(rows, "TypeScript", category, null).orElseThrow();
 			assertThat(unsupported.capabilityLevel()).isEqualTo(CapabilityLevel.UNSUPPORTED);
 			assertThat(unsupported.executionStatus()).isEqualTo(ExecutionStatus.NOT_SUPPORTED);
@@ -105,10 +105,11 @@ class CapabilityMatrixBuilderTests {
 		assertThat(row(rows, "TypeScript", AnalysisCategory.SECURITY, "generic-secrets")).isPresent();
 		// Maven (a build tool) gets no "unsupported" noise for categories it has no analyzer for
 		assertThat(rows).noneMatch(r -> r.technology().equals("Maven") && r.analyzerId() == null);
-		// the TypeScript row set is complete: all five categories are present
+		// the TypeScript row set is complete: all six categories are present
 		assertThat(rows.stream().filter(r -> r.technology().equals("TypeScript")).map(CapabilityRow::category))
 			.containsExactlyInAnyOrder(AnalysisCategory.STRUCTURE, AnalysisCategory.DEPENDENCIES,
-					AnalysisCategory.CODE_QUALITY, AnalysisCategory.SECURITY, AnalysisCategory.TESTS);
+					AnalysisCategory.CODE_QUALITY, AnalysisCategory.SECURITY, AnalysisCategory.TESTS,
+					AnalysisCategory.ARCHITECTURE);
 	}
 
 	@Test

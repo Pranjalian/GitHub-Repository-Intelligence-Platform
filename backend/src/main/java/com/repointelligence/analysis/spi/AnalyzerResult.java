@@ -14,7 +14,7 @@ import java.util.Objects;
 public record AnalyzerResult(ExecutionStatus status, List<FindingResult> findings,
 		List<DependencyResult> dependencies, List<ModuleResult> modules, List<TestResult> testRecords,
 		List<CoverageResult> coverageRecords, List<String> warnings, List<String> limitations,
-		Map<String, Object> configSummary) {
+		Map<String, Object> configSummary, ArchitectureResult architecture) {
 
 	public AnalyzerResult {
 		Objects.requireNonNull(status, "status");
@@ -29,6 +29,7 @@ public record AnalyzerResult(ExecutionStatus status, List<FindingResult> finding
 		warnings = copy(warnings);
 		limitations = copy(limitations);
 		configSummary = configSummary == null ? Map.of() : Map.copyOf(configSummary);
+		architecture = architecture == null ? ArchitectureResult.EMPTY : architecture;
 	}
 
 	private static <T> List<T> copy(List<T> values) {
@@ -62,6 +63,8 @@ public record AnalyzerResult(ExecutionStatus status, List<FindingResult> finding
 		private final List<String> limitations = new ArrayList<>();
 
 		private Map<String, Object> configSummary = Map.of();
+
+		private ArchitectureResult architecture = ArchitectureResult.EMPTY;
 
 		public Builder finding(FindingResult finding) {
 			findings.add(finding);
@@ -103,11 +106,16 @@ public record AnalyzerResult(ExecutionStatus status, List<FindingResult> finding
 			return this;
 		}
 
+		public Builder architecture(ArchitectureResult value) {
+			this.architecture = value;
+			return this;
+		}
+
 		public AnalyzerResult build() {
 			ExecutionStatus status = warnings.isEmpty() ? ExecutionStatus.COMPLETED
 					: ExecutionStatus.COMPLETED_WITH_WARNINGS;
 			return new AnalyzerResult(status, findings, dependencies, modules, testRecords, coverageRecords, warnings,
-					limitations, configSummary);
+					limitations, configSummary, architecture);
 		}
 
 	}

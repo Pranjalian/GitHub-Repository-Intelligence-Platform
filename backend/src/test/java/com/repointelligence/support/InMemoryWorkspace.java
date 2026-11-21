@@ -31,6 +31,24 @@ public class InMemoryWorkspace implements WorkspaceView {
 		return files;
 	}
 
+	/** Every file of {@code src/test/resources/fixtures/<name>}, with {@code _target/} stored as {@code target/}. */
+	public static InMemoryWorkspace fromFixture(String name) {
+		try {
+			Path root = Path.of(InMemoryWorkspace.class.getResource("/fixtures/" + name).toURI());
+			InMemoryWorkspace workspace = new InMemoryWorkspace();
+			try (java.util.stream.Stream<Path> paths = java.nio.file.Files.walk(root)) {
+				for (Path path : paths.filter(java.nio.file.Files::isRegularFile).sorted().toList()) {
+					String relative = root.relativize(path).toString().replace(java.io.File.separatorChar, '/').replace("_target/", "target/");
+					workspace.add(relative, java.nio.file.Files.readString(path));
+				}
+			}
+			return workspace;
+		}
+		catch (java.net.URISyntaxException | IOException ex) {
+			throw new IllegalStateException("Cannot load fixture " + name, ex);
+		}
+	}
+
 	@Override
 	public List<String> list(String glob) {
 		return new ArrayList<>(files.keySet());

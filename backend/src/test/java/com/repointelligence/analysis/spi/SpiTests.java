@@ -90,7 +90,7 @@ class SpiTests {
 	@Test
 	void anAnalyzerResultCannotClaimAFailureStatus() {
 		assertThatThrownBy(
-				() -> new AnalyzerResult(ExecutionStatus.FAILED, null, null, null, null, null, null, null, null))
+				() -> new AnalyzerResult(ExecutionStatus.FAILED, null, null, null, null, null, null, null, null, null))
 			.isInstanceOf(IllegalArgumentException.class);
 	}
 

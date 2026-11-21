@@ -48,7 +48,7 @@ public class CapabilityMatrixBuilder {
 
 	private static final List<AnalysisCategory> MATRIX_CATEGORIES = List.of(AnalysisCategory.STRUCTURE,
 			AnalysisCategory.DEPENDENCIES, AnalysisCategory.CODE_QUALITY, AnalysisCategory.SECURITY,
-			AnalysisCategory.TESTS);
+			AnalysisCategory.TESTS, AnalysisCategory.ARCHITECTURE);
 
 	private final AnalyzerRegistry registry;
 

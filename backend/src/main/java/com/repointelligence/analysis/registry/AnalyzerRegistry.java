@@ -7,6 +7,7 @@ import com.repointelligence.analysis.spi.Analyzer;
 import com.repointelligence.analysis.spi.AnalyzerDescriptor;
 import com.repointelligence.analysis.spi.AnalyzerSettings;
 import com.repointelligence.analysis.spi.Applicability;
+import com.repointelligence.analysis.spi.ArchitectureAnalyzer;
 import com.repointelligence.analysis.spi.CodeAnalyzer;
 import com.repointelligence.analysis.spi.DependencyAnalyzer;
 import com.repointelligence.analysis.spi.RepositoryAnalyzer;
@@ -175,6 +176,9 @@ public class AnalyzerRegistry implements AnalyzerSetHashProvider {
 		}
 		if (analyzer instanceof TestAnalyzer) {
 			return AnalysisCategory.TESTS;
+		}
+		if (analyzer instanceof ArchitectureAnalyzer) {
+			return AnalysisCategory.ARCHITECTURE;
 		}
 		return null;
 	}

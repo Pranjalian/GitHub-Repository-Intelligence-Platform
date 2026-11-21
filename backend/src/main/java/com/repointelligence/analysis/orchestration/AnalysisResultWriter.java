@@ -164,6 +164,9 @@ public class AnalysisResultWriter {
 			record.setBranchMissed(coverage.branchMissed());
 			entityManager.persist(record);
 		});
+		// Large graphs: flushes and clears the session in batches, so it comes last.
+		limitations.addAll(new ArchitectureResultWriter(entityManager, this::redactMap, snapshotId, runId)
+			.write(result.architecture()));
 
 		AnalyzerExecution execution = executions.findByRunIdAndAnalyzerId(runId, analyzerId)
 			.orElseGet(() -> newExecution(snapshotId, runId, descriptor, result.status()));

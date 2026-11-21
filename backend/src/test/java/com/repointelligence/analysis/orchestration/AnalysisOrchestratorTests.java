@@ -317,9 +317,10 @@ class AnalysisOrchestratorTests {
 		assertThat(matrix).filteredOn(c -> "pmd-java".equals(c.getAnalyzerId()))
 			.singleElement()
 			.satisfies(c -> assertThat(c.getExecutionStatus()).isEqualTo(ExecutionStatus.COMPLETED));
+		// the stub analyzers have no test or architecture analyzer for Java
 		assertThat(matrix).filteredOn(c -> c.getCapabilityLevel() == CapabilityLevel.UNSUPPORTED)
 			.extracting(AnalyzerCapability::getCategory)
-			.containsExactly(AnalysisCategory.TESTS);
+			.containsExactlyInAnyOrder(AnalysisCategory.TESTS, AnalysisCategory.ARCHITECTURE);
 		assertThat(matrix).noneMatch(c -> c.getExecutionStatus() == ExecutionStatus.NOT_ANALYZED);
 
 		assertThat(workspaces.exists(snapshotId)).as("workspace released").isFalse();
