@@ -92,6 +92,73 @@ class SpringArchitectureAnalyzerTests {
 		assertThat(result.limitations()).anyMatch(l -> l.contains("UNRESOLVED"));
 	}
 
+	/** Matches fixtures/spring-boot-architecture/EXPECTED.md exactly. */
+	@Test
+	void fullArchitectureOfTheSpringBootFixtureMatchesTheDocumentedExpectations() {
+		AnalyzerResult result = analyzer.analyze(InMemoryWorkspace.fromFixture("spring-boot-architecture").context());
+		ArchitectureResult architecture = result.architecture();
+		Map<String, String> fqnByKey = architecture.symbols()
+			.stream()
+			.collect(Collectors.toMap(Symbol::key, Symbol::fullyQualifiedName));
+
+		Map<String, String> layers = architecture.layers()
+			.stream()
+			.collect(Collectors.toMap(l -> fqnByKey.get(l.symbolKey()).substring(SHOP.length()),
+					l -> l.layer() + " " + l.confidence() + " " + l.method()));
+		Map<String, String> expected = new java.util.TreeMap<>();
+		expected.put("ShopApplication", "CONFIGURATION DETECTED ANNOTATION");
+		expected.put("config.ShopConfig", "CONFIGURATION DETECTED ANNOTATION");
+		expected.put("web.OrderController", "CONTROLLER DETECTED ANNOTATION");
+		expected.put("web.CreateOrderRequest", "DTO LIKELY API_SIGNATURE");
+		expected.put("web.OrderResponse", "DTO LIKELY API_SIGNATURE");
+		for (String service : List.of("OrderService", "AuditService", "ReportService")) {
+			expected.put("service." + service, "SERVICE DETECTED ANNOTATION");
+		}
+		for (String service : List.of("PriceCalculator", "DiscountPolicy", "SeasonalDiscount", "LoyaltyDiscount",
+				"PaymentFactory", "Notifier", "EmailNotifier", "SmsNotifier", "NotifierProvider", "PaymentGateway",
+				"LegacyPaymentClient", "LegacyPaymentBridge")) {
+			expected.put("service." + service, "SERVICE LIKELY PACKAGE_HEURISTIC");
+		}
+		expected.put("repository.OrderRepository", "REPOSITORY DETECTED TYPE_HIERARCHY");
+		expected.put("repository.CustomerRepository", "REPOSITORY DETECTED TYPE_HIERARCHY");
+		for (String entity : List.of("Order", "OrderLine", "Customer")) {
+			expected.put("domain." + entity, "ENTITY DETECTED ANNOTATION");
+		}
+		expected.put("support.IdGenerator", "INFRASTRUCTURE POSSIBLE ANNOTATION");
+		assertThat(new java.util.TreeMap<>(layers)).isEqualTo(expected);
+
+		assertThat(architecture.endpoints()).extracting(e -> e.httpMethod() + " " + e.route() + " | "
+				+ shortName(e.requestType()) + " | " + shortName(e.responseType()) + (e.routeResolved() ? "" : " (unresolved)"))
+			.containsExactlyInAnyOrder("GET /api/orders |  | OrderResponse", "GET /api/orders/{id} |  | OrderResponse",
+					"POST /api/orders | CreateOrderRequest | OrderResponse", "DELETE /api/orders/{id} |  | ",
+					"GET /api/orders/search | CreateOrderRequest | OrderResponse",
+					"POST /api/orders/search | CreateOrderRequest | OrderResponse",
+					"GET /api/orders/{ExternalRoutes.LEGACY} |  | String (unresolved)");
+
+		assertThat(architecture.entityRelations()).extracting(r -> fqnByKey.get(r.sourceKey()).substring(SHOP.length()) + "."
+				+ (r.fieldName() == null ? "" : r.fieldName()) + " " + r.type() + " " + r.targetName().substring(SHOP.length()))
+			.containsExactlyInAnyOrder("domain.Order.customer MANY_TO_ONE domain.Customer",
+					"domain.Order.lines ONE_TO_MANY domain.OrderLine", "domain.OrderLine.order MANY_TO_ONE domain.Order",
+					"domain.Customer.orders ONE_TO_MANY domain.Order",
+					"repository.OrderRepository. REPOSITORY_FOR domain.Order",
+					"repository.CustomerRepository. REPOSITORY_FOR domain.Customer");
+
+		assertThat(result.findings()).extracting(f -> f.ruleId() + " " + f.evidence().get("members"))
+			.containsExactly("injection-cycle [com.example.shop.service.AuditService, com.example.shop.service.ReportService]");
+
+		assertThat(architecture.patterns()).extracting(p -> p.pattern() + " " + p.confidence())
+			.containsExactlyInAnyOrder("STRATEGY LIKELY", "FACTORY POSSIBLE", "ADAPTER POSSIBLE", "REPOSITORY DETECTED",
+					"REPOSITORY DETECTED");
+		assertThat(result.configSummary()).containsEntry("endpoints", 7).containsEntry("layers", 26);
+	}
+
+	private static String shortName(String type) {
+		if (type == null) {
+			return "";
+		}
+		return type.startsWith(SHOP) ? type.substring(type.lastIndexOf('.') + 1) : type;
+	}
+
 	@Test
 	void mavenModuleRelationshipsAreReturned() {
 		InMemoryWorkspace workspace = InMemoryWorkspace.fromFixture("maven-multi-module")

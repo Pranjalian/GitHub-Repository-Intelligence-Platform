@@ -1,0 +1,53 @@
+# Rules for Spring architecture discovery (SpringArchitectureAnalyzer). Data, not code: adding an
+# annotation or package name here needs no Java change. Matching uses simple names as written.
+
+# Stereotype annotations: an annotation-based assignment is DETECTED unless a confidence is given.
+# Plain @Component says nothing about the layer, so it is only a POSSIBLE infrastructure assignment.
+layerAnnotations:
+  - layer: CONTROLLER
+    annotations: [RestController, Controller, RestControllerAdvice, ControllerAdvice]
+  - layer: SERVICE
+    annotations: [Service]
+  - layer: REPOSITORY
+    annotations: [Repository]
+  - layer: ENTITY
+    annotations: [Entity, Embeddable, MappedSuperclass]
+  - layer: CONFIGURATION
+    annotations: [Configuration, SpringBootApplication, AutoConfiguration]
+  - layer: INFRASTRUCTURE
+    annotations: [Component]
+    confidence: POSSIBLE
+
+# Spring Data base interfaces. A project interface extending one of these (imported from
+# org.springframework.data) is a REPOSITORY (DETECTED); its first type argument is the entity.
+repositoryBaseTypes:
+  - Repository
+  - CrudRepository
+  - ListCrudRepository
+  - PagingAndSortingRepository
+  - ListPagingAndSortingRepository
+  - JpaRepository
+  - JpaSpecificationExecutor
+  - QueryByExampleExecutor
+  - MongoRepository
+  - ReactiveCrudRepository
+  - ReactiveSortingRepository
+  - R2dbcRepository
+  - ElasticsearchRepository
+  - CassandraRepository
+  - Neo4jRepository
+  - KeyValueRepository
+
+# Package-name heuristic, used only when nothing else assigned a layer: LIKELY, never DETECTED.
+# A package matches when any of its segments equals one of the names.
+packageSegments:
+  CONTROLLER: [controller, controllers, web, rest]
+  SERVICE: [service, services]
+  REPOSITORY: [repository, repositories, dao, daos]
+  ENTITY: [entity, entities]
+  DTO: [dto, dtos]
+  CONFIGURATION: [config, configuration]
+
+# Wrapper types unwrapped to find the DTO a handler really returns or receives.
+responseWrappers: [ResponseEntity, HttpEntity, Optional, List, Set, Collection, Iterable, Page, Slice, Mono, Flux,
+  CompletableFuture, CompletionStage, Callable, DeferredResult]
