@@ -38,6 +38,9 @@ class ProviderAdapterTests {
 
 	static final WireMockServer API = new WireMockServer(options().dynamicPort());
 
+	/** Generous, so a slow CI machine never turns a status test into a timeout; the timeout test uses its own. */
+	static final int TIMEOUT = 10;
+
 	static final Clock CLOCK = new MutableClock(Instant.parse("2026-11-22T10:00:00Z"));
 
 	static final Map<String, Object> SCHEMA = Map.of("type", "object", "required", List.of("summary"), "properties",
@@ -79,7 +82,7 @@ class ProviderAdapterTests {
 	@Nested
 	class Ollama {
 
-		final OllamaAIModelService service = new OllamaAIModelService(properties("ollama", "llama3.2", null, 2, 1), CLOCK);
+		final OllamaAIModelService service = new OllamaAIModelService(properties("ollama", "llama3.2", null, TIMEOUT, 1), CLOCK);
 
 		@Test
 		void sendsANonStreamingChatWithSystemAndUserMessagesAndTheSchemaAsFormat() {
@@ -122,7 +125,7 @@ class ProviderAdapterTests {
 			API.stubFor(get("/api/tags").willReturn(json(200, "{\"models\":[{\"name\":\"llama3.2:latest\"}]}")));
 			assertThat(service.health().status()).isEqualTo(ProviderHealth.Status.UP);
 
-			OllamaAIModelService other = new OllamaAIModelService(properties("ollama", "qwen2.5", null, 2, 1), CLOCK);
+			OllamaAIModelService other = new OllamaAIModelService(properties("ollama", "qwen2.5", null, TIMEOUT, 1), CLOCK);
 			ProviderHealth health = other.health();
 			assertThat(health.status()).isEqualTo(ProviderHealth.Status.DOWN);
 			assertThat(health.detail()).contains("ollama pull qwen2.5");
@@ -130,7 +133,7 @@ class ProviderAdapterTests {
 
 		@Test
 		void aMissingModelNameIsNotConfiguredAndNothingIsSent() {
-			OllamaAIModelService unconfigured = new OllamaAIModelService(properties("ollama", "", null, 2, 1), CLOCK);
+			OllamaAIModelService unconfigured = new OllamaAIModelService(properties("ollama", "", null, TIMEOUT, 1), CLOCK);
 
 			assertThat(unconfigured.health().status()).isEqualTo(ProviderHealth.Status.NOT_CONFIGURED);
 			assertThat(unconfigured.generate(request(null)).status()).isEqualTo(AIStatus.UNAVAILABLE);
@@ -156,7 +159,7 @@ class ProviderAdapterTests {
 	class Gemini {
 
 		final GeminiAIModelService service = new GeminiAIModelService(
-				properties("gemini", "gemini-test", "gm-test-key", 2, 1), CLOCK);
+				properties("gemini", "gemini-test", "gm-test-key", TIMEOUT, 1), CLOCK);
 
 		@Test
 		void sendsSystemInstructionAndContentsWithTheKeyInAHeaderAndMapsReportedUsage() {
@@ -229,7 +232,7 @@ class ProviderAdapterTests {
 
 		@Test
 		void withoutAKeyNothingIsSent() {
-			GeminiAIModelService unkeyed = new GeminiAIModelService(properties("gemini", "gemini-test", "", 2, 1), CLOCK);
+			GeminiAIModelService unkeyed = new GeminiAIModelService(properties("gemini", "gemini-test", "", TIMEOUT, 1), CLOCK);
 
 			assertThat(unkeyed.health().status()).isEqualTo(ProviderHealth.Status.NOT_CONFIGURED);
 			assertThat(unkeyed.generate(request(null)).status()).isEqualTo(AIStatus.UNAVAILABLE);
@@ -241,7 +244,7 @@ class ProviderAdapterTests {
 			AIProperties.ProviderSettings plain = new AIProperties.ProviderSettings(true, "http://localhost:" + API.port(),
 					"k", "gemini-test", true, List.of("localhost"), null, null, null, null, null, null);
 			AIProperties props = new AIProperties(true, "gemini", List.of(), Map.of(), Map.of("gemini", plain),
-					new AIProperties.Limits(12000, 1500, 10, 2, 1), new AIProperties.Cache(true, Duration.ofDays(7)),
+					new AIProperties.Limits(12000, 1500, 10, TIMEOUT, 1), new AIProperties.Cache(true, Duration.ofDays(7)),
 					new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null);
 
 			ProviderHealth health = new GeminiAIModelService(props, CLOCK).health();
@@ -255,7 +258,7 @@ class ProviderAdapterTests {
 			AIProperties.ProviderSettings elsewhere = new AIProperties.ProviderSettings(true, "https://evil.example", "k",
 					"gemini-test", true, List.of(), null, null, null, null, null, null);
 			AIProperties props = new AIProperties(true, "gemini", List.of(), Map.of(), Map.of("gemini", elsewhere),
-					new AIProperties.Limits(12000, 1500, 10, 2, 1), new AIProperties.Cache(true, Duration.ofDays(7)),
+					new AIProperties.Limits(12000, 1500, 10, TIMEOUT, 1), new AIProperties.Cache(true, Duration.ofDays(7)),
 					new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null);
 
 			assertThat(new GeminiAIModelService(props, CLOCK).health().detail()).contains("not in ai.providers.gemini.allowed-hosts");
@@ -267,7 +270,7 @@ class ProviderAdapterTests {
 	class OpenRouter {
 
 		final OpenRouterAIModelService service = new OpenRouterAIModelService(
-				properties("openrouter", "vendor/model-x", "or-test-key", 2, 1), CLOCK);
+				properties("openrouter", "vendor/model-x", "or-test-key", TIMEOUT, 1), CLOCK);
 
 		@Test
 		void sendsAnOpenAiStyleChatWithBearerAuthAndMapsReportedUsage() {
@@ -344,7 +347,7 @@ class ProviderAdapterTests {
 		@Test
 		void aServerErrorIsRetriedExactlyMaxRetriesTimes() {
 			API.stubFor(post("/api/chat").willReturn(json(503, "{}")));
-			OllamaAIModelService service = new OllamaAIModelService(properties("ollama", "m", null, 2, 1), CLOCK);
+			OllamaAIModelService service = new OllamaAIModelService(properties("ollama", "m", null, TIMEOUT, 1), CLOCK);
 
 			AIResponse response = service.generate(request(null));
 
@@ -358,7 +361,7 @@ class ProviderAdapterTests {
 				.willReturn(json(502, "{}")).willSetStateTo("recovered"));
 			API.stubFor(post("/api/chat").inScenario("flaky").whenScenarioStateIs("recovered")
 				.willReturn(json(200, "{\"message\":{\"content\":\"fine\"}}")));
-			OllamaAIModelService service = new OllamaAIModelService(properties("ollama", "m", null, 2, 1), CLOCK);
+			OllamaAIModelService service = new OllamaAIModelService(properties("ollama", "m", null, TIMEOUT, 1), CLOCK);
 
 			assertThat(service.generate(request(null)).content()).isEqualTo("fine");
 			API.verify(2, postRequestedFor(urlEqualTo("/api/chat")));
@@ -367,7 +370,7 @@ class ProviderAdapterTests {
 		@Test
 		void zeroRetriesMeansOneAttempt() {
 			API.stubFor(post("/api/chat").willReturn(json(500, "{}")));
-			OllamaAIModelService service = new OllamaAIModelService(properties("ollama", "m", null, 2, 0), CLOCK);
+			OllamaAIModelService service = new OllamaAIModelService(properties("ollama", "m", null, TIMEOUT, 0), CLOCK);
 
 			service.generate(request(null));
 
@@ -376,7 +379,7 @@ class ProviderAdapterTests {
 
 		@Test
 		void aTimeoutIsReportedAndNeverRetried() {
-			API.stubFor(post("/api/chat").willReturn(json(200, "{\"message\":{\"content\":\"late\"}}").withFixedDelay(2500)));
+			API.stubFor(post("/api/chat").willReturn(json(200, "{\"message\":{\"content\":\"late\"}}").withFixedDelay(6000)));
 			OllamaAIModelService service = new OllamaAIModelService(properties("ollama", "m", null, 1, 1), CLOCK);
 
 			long started = System.nanoTime();
@@ -384,14 +387,14 @@ class ProviderAdapterTests {
 			long elapsedMs = (System.nanoTime() - started) / 1_000_000;
 
 			assertThat(response.status()).isEqualTo(AIStatus.TIMEOUT);
-			assertThat(elapsedMs).isLessThan(2400);
+			assertThat(elapsedMs).as("the 1 s timeout applied, not the 6 s delay").isLessThan(5000);
 			API.verify(1, postRequestedFor(urlEqualTo("/api/chat")));
 		}
 
 		@Test
 		void aRateLimitIsNeverRetriedAndMakesTheProviderTemporarilyUnavailable() {
 			API.stubFor(post("/api/chat").willReturn(json(429, "{}").withHeader("Retry-After", "120")));
-			OllamaAIModelService service = new OllamaAIModelService(properties("ollama", "m", null, 2, 1), CLOCK);
+			OllamaAIModelService service = new OllamaAIModelService(properties("ollama", "m", null, TIMEOUT, 1), CLOCK);
 			ProviderAvailability availability = new ProviderAvailability(CLOCK, Duration.ofSeconds(30), Duration.ofSeconds(60));
 
 			AIResponse response = service.generate(request(null));
