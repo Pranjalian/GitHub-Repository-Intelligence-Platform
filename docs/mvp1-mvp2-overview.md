@@ -4,7 +4,7 @@ A short guide to what was built in MVP 1 (repository analysis) and MVP 2 (archit
 
 **In one sentence:** you give the platform a public GitHub URL; it downloads that exact commit, reads the code without ever running it, and produces an evidence-backed report of technologies, structure, dependencies, code quality, security, tests and (from MVP 2) architecture with diagrams.
 
-**No AI is used in MVP 1 or MVP 2.** Every result comes from parsers and fixed, data-driven rules, so the same commit always gives the same report, and every statement points to its evidence (file, line, annotation). AI arrives in MVP 3 as an optional add-on that only explains what MVP 1 and 2 discovered.
+**No AI is used in MVP 1 or MVP 2.** MVP 3 (section 4a) adds optional AI explanations on top; everything below still works with AI disabled. Every result comes from parsers and fixed, data-driven rules, so the same commit always gives the same report, and every statement points to its evidence (file, line, annotation). AI arrives in MVP 3 as an optional add-on that only explains what MVP 1 and 2 discovered.
 
 ---
 
@@ -128,6 +128,38 @@ flowchart TD
 
 **Not analyzed (shown as limitations):** library code (no classpath), reflection and runtime proxies, `@Bean` factory methods and XML wiring, Gradle modules, functional (router) endpoints, request mappings on interfaces, and calls on chained expressions.
 
+## 4a. MVP 3 steps: AI-Powered Code Insights (optional)
+
+| Step | Title | One-liner |
+|---|---|---|
+| 3.1 | Provider abstraction | `AIModelService` with request, response, capability and health types, and a router that picks the preferred, feature-routed or default provider and only permitted fallbacks (a hosted provider needs an acknowledged data handling). |
+| 3.2 | Provider implementations | Ollama, Gemini and OpenRouter adapters behind one bounded HTTP helper (allowlist, no redirects, timeout, at most one retry on connection errors and 5xx, never on 429); all off by default. |
+| 3.3 | Guardrails, usage and cache | `AIGateway`: enabled check, routing, secret scrub, token budget, cache, per-run call budget, schema validation, usage record for every call; `ai_usage_record` and `ai_cache` tables; providers and usage endpoints. |
+| 3.4 | Templates and insight features | Six versioned prompt templates, bounded evidence from the MVP 1/2 analysis plus source excerpts, and `POST .../insights` for classes, methods, findings, refactorings, modules and technical debt. |
+| 3.5 | AI insights frontend | Explain buttons on findings, classes and methods, debt and module summaries, Markdown without raw HTML, evidence links, and an AI settings page with providers, limits, preferred provider and usage. |
+
+```mermaid
+flowchart TD
+    UI["Explain button"] -->|"POST .../insights {type, targetId}"| IS["InsightService"]
+    IS -->|"AI off or no permitted provider"| UN["200 UNAVAILABLE + reason<br/>(nothing collected or sent)"]
+    IS --> EB["Evidence from the stored analysis<br/>symbols, edges, layers, findings, modules"]
+    IS --> SRC["Source excerpt<br/>(workspace rebuilt from the commit tarball if needed)"]
+    EB & SRC --> GW["AIGateway"]
+    GW --> SC["Secret scrub<br/>findings, scanner rules, PEM blocks, redactor"]
+    SC --> BU["Token budget"] --> CA{"Cache hit?"}
+    CA -->|yes| OK["Answer, marked AI-generated, with the evidence sent"]
+    CA -->|no| BG{"Call budget left?"}
+    BG -->|no| SK["SKIPPED"]
+    BG -->|yes| PR["Provider (Ollama / Gemini / OpenRouter)"]
+    PR --> VA{"Valid against the schema?"}
+    VA -->|no| IN["INVALID_OUTPUT (not shown)"]
+    VA -->|yes| OK
+    PR -.-> US[("ai_usage_record")]
+    OK -.-> AC[("ai_cache")]
+```
+
+AI only explains what the deterministic analysis found: it never changes a finding, a count or a status. Every answer says which provider and model wrote it, which prompt version was used and exactly which evidence was sent.
+
 ---
 
 ## 5. Tools
@@ -152,6 +184,9 @@ flowchart TD
 | Testing | JUnit 5, embedded PostgreSQL (zonky), WireMock | Backend tests on real PostgreSQL without Docker; fake GitHub | MVP 1 |
 | Testing | Vitest, Testing Library, MSW | Frontend tests with a mocked API | MVP 1 |
 | Quality | Spotless, ESLint, TypeScript | Formatting, lint and type checks | MVP 1 |
+| AI (optional) | Ollama, Gemini, OpenRouter | Explanations behind `AIModelService`; all off by default | MVP 3 |
+| AI (optional) | networknt json-schema-validator 3.0.8 | Validates every structured AI answer | MVP 3 |
+| Frontend | react-markdown 10.1.0 | AI text as Markdown, without raw HTML, images or links | MVP 3 |
 | CI | GitHub Actions | Backend, frontend and Docker image jobs on every push to `main` | MVP 1 |
 
 ## 6. Quick start

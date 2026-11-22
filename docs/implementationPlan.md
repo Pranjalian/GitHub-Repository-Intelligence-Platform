@@ -1053,9 +1053,9 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
    - Quota/rate-limit → provider marked temporarily unavailable until the reset; no retry storm
 
 **Tests:**
-- [ ] Unit: router selects the configured default provider; per-feature model routing
-- [ ] Unit: fallback only to permitted providers; local → hosted fallback blocked without acknowledgement
-- [ ] Unit: no provider configured → "AI unavailable" result, not an exception
+- [x] Unit: router selects the configured default provider; per-feature model routing
+- [x] Unit: fallback only to permitted providers; local → hosted fallback blocked without acknowledgement
+- [x] Unit: no provider configured → "AI unavailable" result, not an exception
 
 ---
 
@@ -1097,10 +1097,10 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 7. Provider setup guide in docs asks users to verify current official terms and quotas; no claims that any model is free
 
 **Tests:**
-- [ ] Integration (WireMock): each adapter's request format, auth, usage mapping, error mapping
-- [ ] Unit: timeout and retry limits enforced (max 1 retry, never indefinite)
-- [ ] Unit: rate-limit → provider temporarily unavailable
-- [ ] Integration: app starts and MVP 1–2 work with all providers disabled
+- [x] Integration (WireMock): each adapter's request format, auth, usage mapping, error mapping
+- [x] Unit: timeout and retry limits enforced (max 1 retry, never indefinite)
+- [x] Unit: rate-limit → provider temporarily unavailable
+- [x] Integration: app starts and MVP 1–2 work with all providers disabled
 
 ---
 
@@ -1117,12 +1117,12 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 8. Endpoints: `GET /api/v1/ai/providers` (configured providers, health, capabilities, data-handling mode, limits) and `GET /api/v1/ai/usage` (filterable)
 
 **Tests:**
-- [ ] Unit: cache hit/miss behaviour; usage record for every call including cache hits and failures
-- [ ] Unit: budget exhausted → skipped with "AI call budget reached"
-- [ ] Unit: prompts never contain fixture secret values
-- [ ] Unit: schema-invalid output rejected
-- [ ] Unit: token counts null when the provider does not report them
-- [ ] Integration: usage API returns records after (mocked) AI calls
+- [x] Unit: cache hit/miss behaviour; usage record for every call including cache hits and failures
+- [x] Unit: budget exhausted → skipped with "AI call budget reached"
+- [x] Unit: prompts never contain fixture secret values
+- [x] Unit: schema-invalid output rejected
+- [x] Unit: token counts null when the provider does not report them
+- [x] Integration: usage API returns records after (mocked) AI calls
 
 ---
 
@@ -1141,11 +1141,11 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 6. AI disabled → `200` with `status: UNAVAILABLE` and a reason (not an error)
 
 **Tests:**
-- [ ] Unit: prompts stay within token limits; only relevant evidence included
-- [ ] Unit: prompt-injection fixture text stays inside the data block; the system prompt is unchanged
-- [ ] Unit: responses marked AI-generated with evidence references
-- [ ] Unit: AI disabled → "AI insights unavailable"
-- [ ] Integration (WireMock provider): full insight request → response with evidence
+- [x] Unit: prompts stay within token limits; only relevant evidence included
+- [x] Unit: prompt-injection fixture text stays inside the data block; the system prompt is unchanged
+- [x] Unit: responses marked AI-generated with evidence references
+- [x] Unit: AI disabled → "AI insights unavailable"
+- [x] Integration (WireMock provider): full insight request → response with evidence
 
 ---
 
@@ -1157,25 +1157,25 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 3. AI-unavailable state: buttons disabled with explanation and a setup-guide link
 
 **Tests:**
-- [ ] Unit: Explain triggers the request; AI badge and evidence links render
-- [ ] Unit: AI-unavailable state renders
-- [ ] Unit: Markdown with raw HTML is not rendered as HTML
-- [ ] Integration (mock API): insight flow from click to display
+- [x] Unit: Explain triggers the request; AI badge and evidence links render
+- [x] Unit: AI-unavailable state renders
+- [x] Unit: Markdown with raw HTML is not rendered as HTML
+- [x] Integration (mock API): insight flow from click to display
 
 ---
 
 ### MVP 3: Exit Criteria Checklist
 
-- [ ] Provider abstraction supports Ollama, Gemini and OpenRouter; nothing outside `ai.provider` imports a provider client
-- [ ] Provider selection and permitted fallback work; no silent local→hosted switch
-- [ ] AI explanations available for classes, methods and findings, with evidence
-- [ ] Every AI response marked AI-generated
-- [ ] Usage tracked (reported vs estimated tokens, cost only when configured, cache hits)
-- [ ] Secrets never sent to a provider (tested)
-- [ ] Structured outputs validated
-- [ ] Prompt-injection defence: repository content treated as data (tested)
-- [ ] Application fully functional with AI disabled
-- [ ] All MVP 1 and 2 features still work
+- [x] Provider abstraction supports Ollama, Gemini and OpenRouter; nothing outside `ai.provider` imports a provider client
+- [x] Provider selection and permitted fallback work; no silent local→hosted switch
+- [x] AI explanations available for classes, methods and findings, with evidence (verified with WireMock in tests and with a stand-in Ollama in Docker; not yet with a real model, see the MVP 3 completion report)
+- [x] Every AI response marked AI-generated
+- [x] Usage tracked (reported vs estimated tokens, cost only when configured, cache hits)
+- [x] Secrets never sent to a provider (tested)
+- [x] Structured outputs validated
+- [x] Prompt-injection defence: repository content treated as data (tested)
+- [x] Application fully functional with AI disabled
+- [x] All MVP 1 and 2 features still work
 
 ---
 
@@ -1481,3 +1481,19 @@ After each MVP, verify that **all prior exit criteria still pass**:
 - Packs stay isolated: no core imports of `analysis.packs.*` (the boundary test must stay green).
 
 **Suggested order** (value per effort): 1) Python pack (dependencies + OSV, Semgrep rules, tests/coverage), 2) JavaScript/TypeScript lockfiles, Semgrep rules and `lcov`, 3) SQL schema extraction from migrations, 4) XML (Spring XML wiring, MyBatis, JUnit XML results), 5) HTML security/accessibility checks, 6) CSS lint. Schedule each as its own MVP-style phase with steps, tests and exit criteria before implementation.
+
+### C.3 Try AI insights with a real model, and add a browser check
+
+**Status:** recommended, not done (MVP 3). The insight flow was verified with WireMock (backend tests) and with a stand-in for the Ollama API in the Docker stack, never with a real model, because no model was available on the development machine. Before relying on it:
+1. Install Ollama, pull a small instruction model and enable it (README, "AI insights (optional)"). Explain a few classes, methods and findings of spring-petclinic and check that answers validate against the schemas (watch `/settings/ai` for `INVALID_OUTPUT`), that evidence references make sense, and how long calls take on the hardware.
+2. If hosted providers are wanted, check their current terms first, then try Gemini and OpenRouter once each; OpenRouter's strict `json_schema` mode may reject schema keywords (`pattern`, `maxLength`) for some models; set `ai.providers.openrouter.structured-output=false` then.
+3. Add a Playwright check against `docker compose` that opens the architecture page, the AI settings page and an insight panel (it would also have caught the MVP 2 CSP issue).
+
+### C.4 AI insight follow-ups
+
+**Status:** recommended, not scheduled.
+- Include the Javadoc above a class or method in its source excerpt (the parser's range starts at the declaration).
+- Budget per user or per time window in addition to per analysis run, once there are users; the in-flight reservation is in memory and assumes one backend instance.
+- A persistent, server-side preferred provider per repository (today it is per browser) and a per-repository hosted-processing policy (today: public repositories only).
+- Prompt evaluation fixtures (expected key points per fixture class) to compare models and template versions, in the spirit of Problem §13.4.
+

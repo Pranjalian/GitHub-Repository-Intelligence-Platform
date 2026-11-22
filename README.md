@@ -1,8 +1,8 @@
 # GitHub Repository Intelligence Platform
 
-Evidence-backed analysis of public GitHub repositories. Submit a public repository URL and get a commit-scoped report: technologies, structure, dependencies, code quality, secrets and security rules, tests and (real) coverage, plus an honest capability matrix that says what the platform could not analyze and why. For Java/Spring Boot it also discovers the **architecture**: layers, REST endpoints with request/response types, JPA entities and relationships, dependency injection chains, Maven module dependencies, dependency cycles and design-pattern candidates, with Mermaid diagrams. It is deterministic: **no AI and no AI key are needed**, and no code from the analyzed repository is ever executed.
+Evidence-backed analysis of public GitHub repositories. Submit a public repository URL and get a commit-scoped report: technologies, structure, dependencies, code quality, secrets and security rules, tests and (real) coverage, plus an honest capability matrix that says what the platform could not analyze and why. For Java/Spring Boot it also discovers the **architecture**: layers, REST endpoints with request/response types, JPA entities and relationships, dependency injection chains, Maven module dependencies, dependency cycles and design-pattern candidates, with Mermaid diagrams. It is deterministic: **no AI and no AI key are needed**, and no code from the analyzed repository is ever executed. Optionally (MVP 3), an AI provider you configure (local Ollama, or hosted Gemini/OpenRouter after you acknowledge their data handling) can **explain** classes, methods and findings, suggest refactorings and summarise modules and technical debt; every answer is marked AI-generated and lists the evidence it was given.
 
-See [docs/](docs/) for the problem statement, architecture, implementation plan and the completion reports for [MVP 1](docs/mvp1-completion-report.md) and [MVP 2](docs/mvp2-completion-report.md).
+See [docs/](docs/) for the problem statement, architecture, implementation plan and the completion reports for [MVP 1](docs/mvp1-completion-report.md), [MVP 2](docs/mvp2-completion-report.md) and [MVP 3](docs/mvp3-completion-report.md).
 
 > Local single-user tool. There is no authentication yet: do not expose it to the public internet.
 
@@ -45,7 +45,9 @@ Host ports can be changed with `POSTGRES_PORT`, `BACKEND_PORT` and `FRONTEND_POR
 3. Watch the progress page, then read the report: Overview (technologies, structure, capability matrix, limitations), Dependencies, Code Quality, Security, Tests & Coverage and, for Java/Spring Boot, Architecture. Use the snapshot selector to switch between analyzed commits.
 4. The architecture also has its own page: `/repositories/{id}/arch?snapshot={snapshotId}` (link from the Architecture tab). Every statement shows its confidence (*Detected*, *Likely*, *Possible*) and how it was found; relationships to code outside the repository are labelled *unresolved*, never guessed.
 
-API documentation: http://localhost:8080/swagger-ui.html. Flow: `POST /api/v1/repositories/analyze` returns a run id; poll `GET /api/v1/analysis-runs/{runId}`; read `GET /api/v1/repositories/{repositoryId}/reports/{snapshotId}` and the findings, dependencies, tests, coverage and architecture endpoints under `/snapshots/{snapshotId}/`.
+5. Optional AI insights: with AI configured (below), use **AI** next to a class on the architecture page (explain the class, suggest refactorings, explain a method), **Explain this finding** in a finding's detail panel, **Summarize technical debt** on the Code Quality tab and **Summarize module** on the Overview tab. **AI Settings** (`/settings/ai`) shows providers, health, data handling, limits and usage.
+
+API documentation: http://localhost:8080/swagger-ui.html. Flow: `POST /api/v1/repositories/analyze` returns a run id; poll `GET /api/v1/analysis-runs/{runId}`; read `GET /api/v1/repositories/{repositoryId}/reports/{snapshotId}` and the findings, dependencies, tests, coverage and architecture endpoints under `/snapshots/{snapshotId}/`. MVP 3 adds `GET .../snapshots/{snapshotId}/symbols/{symbolId}` (a type with its members), `POST .../snapshots/{snapshotId}/insights` (`{type, targetId, provider?}`; types `EXPLAIN_CLASS`, `EXPLAIN_METHOD`, `EXPLAIN_FINDING`, `SUGGEST_REFACTORING`, `SUMMARIZE_MODULE`, `TECH_DEBT_SUMMARY`), `GET /api/v1/ai/providers` and `GET /api/v1/ai/usage`. With AI disabled the insight endpoint answers `200` with `status: UNAVAILABLE` and a reason.
 
 ## GitHub token
 
@@ -55,6 +57,42 @@ Set `GITHUB_TOKEN` to a **fine-grained token with read-only access to public rep
 
 - **Semgrep** (security rules for Java). Already included in the Docker backend image. Otherwise not required: if the `semgrep` CLI is not found the analyzer is reported as *Unavailable* with the reason, and everything else still runs. Install natively (`pip install semgrep`; on Windows run it through WSL if native support is insufficient) or point to it with `analysis.analyzers.semgrep-security-analyzer.options.command`. Rules are vendored in `backend/src/main/resources/semgrep-rules/`; nothing is downloaded at runtime and metrics are off.
 - **OSV.dev vulnerability lookup** for dependencies. Off by default (`analysis.vulnerabilities.osv.enabled=false`) because it needs outbound network access. When off, every dependency shows *Not checked*, which never means "no known vulnerabilities". When on, only package names and versions are sent, and only for dependencies with a concrete resolved version.
+
+## AI insights (optional)
+
+AI is **off by default** and nothing in the platform needs it. With `AI_ENABLED=false` no provider client is created, nothing is sent anywhere, and every AI button says why it is unavailable.
+
+**What is sent.** Only bounded evidence for one request: the target's declaration (from the parser), its source excerpt (at most `ai.source.max-lines` lines), directly related types (declarations only), findings in range, or deduplicated findings for the debt summary. Never the whole repository. Before anything is hashed, cached or sent, lines with a possible secret are withheld (stored secret findings, the secret scanner's rules on every line, whole PEM private-key blocks) and `SecretRedactor` masks the rest. Repository text is placed in delimited data blocks after a fixed system prompt that tells the model it is untrusted data. Answers must match the template's JSON schema; anything else is shown as *invalid output*, never displayed.
+
+**Local (recommended for private code): Ollama.** Install Ollama, `ollama pull <model>`, then in `.env`:
+
+```sh
+AI_ENABLED=true
+AI_PROVIDERS_OLLAMA_ENABLED=true
+OLLAMA_CHAT_MODEL=<model>        # e.g. the model you pulled; nothing is assumed
+# outside Docker only: OLLAMA_BASE_URL=http://localhost:11434 (Docker uses http://host.docker.internal:11434)
+```
+
+**Hosted: Gemini or OpenRouter.** First read the provider's **current** terms, quotas, pricing and data-use policy: free tiers and model lists change, and nothing here assumes a model is free. Excerpts (secrets scrubbed) are sent to the provider, so a hosted provider is only used after you acknowledge that:
+
+```sh
+AI_ENABLED=true
+AI_DEFAULT_PROVIDER=gemini                     # or openrouter, or keep ollama and list a fallback
+AI_PROVIDERS_GEMINI_ENABLED=true
+GEMINI_API_KEY=...                             # .env only; never commit it
+GEMINI_CHAT_MODEL=<model id>
+AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED=true
+# OpenRouter: AI_PROVIDERS_OPENROUTER_ENABLED, OPENROUTER_API_KEY, OPENROUTER_CHAT_MODEL,
+#             AI_PROVIDERS_OPENROUTER_DATA_HANDLING_ACKNOWLEDGED
+```
+
+Then `docker compose up -d` (recreates the backend). Check `/settings/ai`: the provider should be *active* and *up*.
+
+**Rules the router enforces.** The order is the user's preferred provider (stored per browser on the AI settings page), else `ai.features.<feature>.provider`, else `ai.default-provider`, then `ai.fallback-providers`. A hosted provider is never used without its acknowledgement and only for public repositories (`ai.allow-hosted-for-private-repositories=false`), so a local provider is never silently replaced by a hosted one. Rate-limited providers are skipped until their reset time (no retry storm); timeouts and 4xx are never retried, connection errors and 5xx at most `ai.limits.max-retries` times.
+
+**Limits and accounting.** `ai.limits.max-input-tokens` (12000, estimated at `ai.token-estimate.chars-per-token`), `max-output-tokens` (1500), `max-calls-per-analysis` (10 provider calls per analysis run; cached answers are free and still served), `timeout-seconds` (45), `max-retries` (1). Answers are cached for `ai.cache.ttl` (7 days) per provider, model, prompt version, commit and prompt. Every call and cache hit is recorded (`/api/v1/ai/usage`): provider-reported tokens are kept apart from estimates, and cost is shown only when you set `input-price-per-million-tokens` and `output-price-per-million-tokens` for the provider.
+
+**Source for insights.** The extracted source is normally deleted after an analysis. An insight that needs code rebuilds the workspace once from the commit's tarball (one GitHub request), and the regular sweep removes it again (within `repository.workspace.sweep-interval`). Set `ai.source.allow-download=false` to use parser facts only.
 
 ## Configuration reference
 
@@ -70,6 +108,7 @@ All keys live in `backend/src/main/resources/application.yml` and can be overrid
 | Analyzer toggles | `analysis.analyzers.<analyzer-id>.enabled` and `.options.*` (for example `java-code-analyzer` option `include-tests`) |
 | Architecture | `analysis.analyzers.spring-architecture-analyzer.options.include-tests` (default false), `max-symbols` (50000), `max-edges` (200000), `max-file-kb` (512); layer, repository and package rules in `backend/src/main/resources/architecture/spring-architecture.yml` |
 | Vulnerability lookup | `analysis.vulnerabilities.osv.*` |
+| AI (optional) | `ai.enabled` (`AI_ENABLED`), `default-provider`, `fallback-providers`, `features.<feature>.{provider,model}`, `providers.<id>.{enabled, base-url, api-key, chat-model, data-handling-acknowledged, allowed-hosts, max-context-tokens, structured-output, input-price-per-million-tokens, output-price-per-million-tokens, currency}`, `limits.*`, `cache.{enabled,ttl}`, `token-estimate.chars-per-token`, `source.{allow-download,max-lines}`, `health-cache-ttl`, `rate-limit-cooldown`, `allow-hosted-for-private-repositories`, `setup-guide-url`; prompt templates in `backend/src/main/resources/ai/prompt/` |
 
 ## Known limitations
 
@@ -79,6 +118,7 @@ All keys live in `backend/src/main/resources/application.yml` and can be overrid
 - "Outdated dependency" detection is not implemented.
 - Deep analysis exists for Java/Maven; other stacks get generic analysis (structure, secrets, test files, npm dependencies) and an honest "unsupported" matrix, including for architecture.
 - Architecture discovery reads source only, with **no classpath**: types and inherited methods from libraries are not resolved (kept by name, labelled *unresolved*); calls are resolved only when the receiver's declared type is visible; reflection, proxies, conditional beans, `@Bean` methods, XML configuration, interface-declared or functional endpoints and Gradle modules are not analysed; test sources are excluded by default. Layers from package names alone and all pattern candidates except Spring Data repositories are *Likely* or *Possible*, never *Detected*.
+- AI insights (optional) are explanations, not analysis results: they can be wrong, are marked AI-generated and list their evidence. They see at most a bounded excerpt plus parser facts (no classpath, no runtime behaviour); class source excerpts start at the declaration, so Javadoc above a class is not included. The per-analysis call budget is counted per analysis run, and an in-progress budget reservation is held in memory (one backend instance). Insights for non-Java repositories are limited to findings, modules and technical debt (no symbols).
 - There is **no authentication**: this is a local single-user tool. Do not expose it to the public internet.
 
 ## Run without Docker
@@ -193,6 +233,8 @@ Tests that need external CLIs (for example Semgrep) are tagged and excluded by d
 | Tailwind CSS | 4.3 |
 | TanStack Query | 5.108 |
 | Mermaid | 11.17.2 (pinned) |
+| react-markdown (AI text, no raw HTML) | 10.1.0 (pinned) |
+| networknt json-schema-validator (AI output) | 3.0.8 |
 | Vitest / jsdom / MSW | 5.1 / 29.1 / 3.0 |
 
 jsdom is pinned to 29.x because jsdom 31 requires Node 22.22+.

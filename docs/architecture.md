@@ -1030,6 +1030,13 @@ classDiagram
 └─────────────────────────────────────────────────────────────┘
 ```
 
+> **MVP 3 implementation notes (deviations and additions):**
+> - `AIModelService` has `ProviderHealth health()` and `DataHandling dataHandling()` instead of `boolean isAvailable()` (as the implementation plan specifies). `AIResponse` token counts are nullable with a `usageSource`, and its status adds `SKIPPED` (call budget) to the plan's statuses.
+> - Packages: `ai.provider` (interface, router, `ProviderAvailability`, `ProviderHttp`, adapters in `ollama/`, `gemini/`, `openrouter/`), `ai.application` (`AIGateway`, `PromptScrubber`, `StructuredOutputValidator`, `TokenEstimator`, `AIResponseCache`, `AIUsageService`, `InsightService`, `InsightEvidenceBuilder`, `AIStatusService`), `ai.prompt` (templates, assembler, registry), `ai.domain` and `ai.infrastructure.persistence` (`ai_usage_record`, `ai_cache`, Flyway `V6`), `ai.api`. The planned separate `ai.usage` and `ai.cache` packages were folded into `ai.application`. Boundary tests: nothing outside `ai.provider` imports an adapter or `ProviderHttp`, and no core package imports `ai.*`.
+> - Guardrail order (§7.2) as implemented: enabled → route to a permitted, healthy provider → **secret scrub** → bounded prompt → **cache lookup** → **call budget** → call (timeout, retry limit) → schema validation → usage record → cache store → AI-generated result. The cache lookup moved before the budget check so that a cached answer, which costs no call, is still served after the budget is used up; the scrub comes before the cache key, so keys never depend on a secret.
+> - Every hosted provider (not only a fallback) needs `ai.providers.<id>.data-handling-acknowledged=true`, and hosted processing is permitted only for public repositories unless `ai.allow-hosted-for-private-repositories=true`.
+> - Source for insights: the workspace is rebuilt on demand from the commit's tarball (`IngestionService.restoreWorkspace`, `SnapshotSourceService`) when it was already deleted, and removed again by the regular sweep.
+
 ---
 
 ## 8. Security Architecture
@@ -1074,7 +1081,7 @@ flowchart LR
 | **Untrusted XML** | `pom.xml`, `jacoco.xml` and other XML parsed with external entities and external DTD loading disabled (XXE) |
 | **External tools** | Semgrep runs as a subprocess with local rules, `--metrics=off`, timeouts, output caps, minimal environment, and is killed on deadline or cancel |
 | **Code execution** | Disabled by default; if enabled, runs in an isolated worker/sandbox with no network, resource caps, read-only access. Must not make Docker a requirement for the rest of the platform |
-| **AI prompts** | System prompt separated from repository data; repo content marked as untrusted data; model told not to follow instructions from data |
+| **AI prompts** | System prompt separated from repository data; repo content marked as untrusted data; model told not to follow instructions from data. MVP 3: fixed guard + template text only in the system prompt; repository text in delimited data blocks whose delimiter-like sequences are neutralised; secrets withheld before the prompt is built (stored secret findings, secret rules per line, whole PEM private-key blocks, then `SecretRedactor`); answers validated against a JSON schema; AI text rendered as Markdown without raw HTML, images or links |
 | **Secret handling** | A single `SecretRedactor` is applied to every evidence excerpt (from any analyzer), to logs (Logback converter), and to AI prompts; `GITHUB_TOKEN`/`Authorization` never logged; API keys via env vars only |
 | **API security** | CORS configured; request size limits; rate limit on `POST /analyze`; queued-job cap (429); input validation on all endpoints. **No authentication in MVP 0–1: local single-user only, not for public exposure** |
 | **Data isolation** | All queries scoped by snapshot_id; no cross-repository data leakage |
@@ -1433,6 +1440,7 @@ Fixtures are packaged as tarballs at test-build time and served by WireMock as G
 | ADR-16 | No Docker dependency for build or test. **Revised (v4):** Docker Compose is the recommended local run; native-process runs stay supported | Docker is not available on all developer machines, so builds, tests and CI test jobs stay Docker-free. For running, Compose gives a one-command, persistent setup with Semgrep included |
 | ADR-17 | MVP 2 resolves Java names with its own source-level resolver (imports, package, nested and inherited nested types, a project index) instead of JavaParser's `JavaSymbolSolver` | Without a classpath the symbol solver cannot resolve third-party types either and throws on them; the own resolver is deterministic, fast, needs no extra dependencies (Guava, Javassist) and never guesses: outside the snapshot means `UNRESOLVED` with the imported name, several matches mean `AMBIGUOUS`. JDK types are recognised by name and left out of the graph |
 | ADR-18 | `entity_relationship` table for JPA associations and repository-to-entity mappings (not in the original schema); dependency cycles are stored as `ARCHITECTURE` findings (`injection-cycle`, `type-cycle`) | The planned tables had no place for either; findings reuse severity, evidence, fingerprint and the findings UI |
+| ADR-19 | MVP 3: one `AIGateway` applies every AI guardrail; providers sit behind `AIModelService` and a shared `ProviderHttp` (allowlist, no redirects, timeout, at most `max-retries` retries on connection errors and 5xx only); hosted providers need an explicit data-handling acknowledgement | Features cannot bypass scrubbing, budgets or validation; a quota error never becomes a retry storm; source never goes to a hosted provider by accident |
 
 ---
 
