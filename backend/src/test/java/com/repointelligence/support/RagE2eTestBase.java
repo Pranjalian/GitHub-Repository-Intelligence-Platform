@@ -34,7 +34,7 @@ public abstract class RagE2eTestBase extends E2eTestBase {
 
 		@Bean
 		HashingEmbedder hashingEmbedder() {
-			return new HashingEmbedder(64);
+			return new HashingEmbedder(256);
 		}
 
 	}

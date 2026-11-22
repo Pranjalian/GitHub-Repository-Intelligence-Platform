@@ -63,7 +63,7 @@ class RagIndexE2eTests extends RagE2eTestBase {
 		assertThat((String) JsonPath.read(index, "$.embeddingProvider")).isEqualTo("hashing");
 		assertThat((String) JsonPath.read(index, "$.embeddingModel")).isEqualTo("hash-embed");
 		assertThat((String) JsonPath.read(index, "$.embeddingModelVersion")).isEqualTo("v1");
-		assertThat((Integer) JsonPath.read(index, "$.embeddingDimensions")).isEqualTo(64);
+		assertThat((Integer) JsonPath.read(index, "$.embeddingDimensions")).isEqualTo(256);
 		assertThat((String) JsonPath.read(index, "$.vectorStore")).isEqualTo("in-process");
 		int chunkCount = JsonPath.read(index, "$.chunkCount");
 		// the workspace was rebuilt from the tarball for indexing and removed again afterwards
