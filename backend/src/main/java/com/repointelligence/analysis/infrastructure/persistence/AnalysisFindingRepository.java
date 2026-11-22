@@ -16,6 +16,9 @@ public interface AnalysisFindingRepository extends JpaRepository<AnalysisFinding
 
 	List<AnalysisFinding> findBySnapshotIdAndRunId(UUID snapshotId, UUID runId);
 
+	/** All findings of one category in one run (not paged). */
+	List<AnalysisFinding> findAllBySnapshotIdAndRunIdAndCategory(UUID snapshotId, UUID runId, AnalysisCategory category);
+
 	Page<AnalysisFinding> findBySnapshotIdAndRunIdAndCategory(UUID snapshotId, UUID runId, AnalysisCategory category,
 			Pageable pageable);
 

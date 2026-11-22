@@ -80,6 +80,11 @@ public class ProviderAvailability {
 		return fresh;
 	}
 
+	/** Lifts a rate limit early (tests, or an operator who knows the quota was reset). */
+	public void clearRateLimit(String providerId) {
+		rateLimitedUntil.remove(providerId);
+	}
+
 	/** Forgets a cached health result, e.g. after a call failed with a connection error. */
 	public void invalidate(String providerId) {
 		healthCache.remove(providerId);

@@ -24,6 +24,7 @@
 		<javaparser.version>3.28.2</javaparser.version>
 		<maven-model.version>3.9.16</maven-model.version>
 		<pmd.version>7.29.0</pmd.version>
+		<json-schema-validator.version>3.0.8</json-schema-validator.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -78,6 +79,12 @@
 			<groupId>net.sourceforge.pmd</groupId>
 			<artifactId>pmd-java</artifactId>
 			<version>${pmd.version}</version>
+		</dependency>
+		<!-- Validates structured AI output against the prompt's JSON schema (Jackson 3 line) -->
+		<dependency>
+			<groupId>com.networknt</groupId>
+			<artifactId>json-schema-validator</artifactId>
+			<version>${json-schema-validator.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>

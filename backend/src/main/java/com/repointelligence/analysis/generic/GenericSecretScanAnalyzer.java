@@ -181,6 +181,26 @@ public class GenericSecretScanAnalyzer implements SecurityAnalyzer {
 		return best == null ? null : best.isEmpty() ? "." : best;
 	}
 
+	/**
+	 * 1-based numbers of the lines of {@code content} on which a secret rule matches, using the same
+	 * rules, placeholder allowlist and path globs as the analysis. Used to keep secrets out of AI prompts
+	 * even where no finding was stored (for example past the per-file finding cap).
+	 */
+	public java.util.Set<Integer> secretLines(String path, String content) {
+		java.util.Set<Integer> lines = new java.util.TreeSet<>();
+		if (content == null || content.isEmpty()) {
+			return lines;
+		}
+		String[] split = content.split("\r?\n", -1);
+		for (int i = 0; i < split.length; i++) {
+			// line by line, so the per-file finding cap of the analysis never hides a line here
+			if (!scan(path == null ? "" : path, split[i], null).isEmpty()) {
+				lines.add(i + 1);
+			}
+		}
+		return lines;
+	}
+
 	/** Scans one file's text. Package-private for tests. */
 	List<FindingResult> scan(String path, String content, String modulePath) {
 		List<FindingResult> findings = new ArrayList<>();
