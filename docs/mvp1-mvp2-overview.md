@@ -160,6 +160,80 @@ flowchart TD
 
 AI only explains what the deterministic analysis found: it never changes a finding, a count or a status. Every answer says which provider and model wrote it, which prompt version was used and exactly which evidence was sent.
 
+### 4a.1 MVP 3 for developers: workflow, tools, data, decisions and calculations
+
+Full detail: [mvp3-completion-report.md](mvp3-completion-report.md). Everything here is switched off by default (`AI_ENABLED=false`); the app, tests and CI run without any AI.
+
+**Workflow of one AI call** (`POST /api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/insights`)
+
+1. **Scope.** `InsightEvidenceBuilder.scope` resolves the snapshot like the report endpoints do (404 unless it belongs to the repository; latest completed run) and validates the target (a symbol, finding or module of that run).
+2. **Evidence plan.** A TARGET block, source ranges, DECLARATION blocks of directly related types (at most 6, in the order EXTENDS, IMPLEMENTS, INJECTS, FIELD_TYPE, CALLS, PARAM_TYPE, RETURN_TYPE), FINDINGS blocks and limitations. Everything is sorted, so the same commit gives the same prompt and the same cache key.
+3. **Routing.** The router picks a permitted, healthy provider. If none exists the answer is `200 UNAVAILABLE` with the reason, and nothing else happens (no download, no usage row).
+4. **Source.** Line ranges come from the workspace; if it was deleted after the analysis (the default), it is rebuilt once from the commit tarball with the ingestion limits.
+5. **Gateway guardrails, in this order:** enabled check, route, secret scrub, trim to the token budget, cache lookup, per-run call budget, provider call, schema validation, drop evidence references that name no block, redact the answer's strings, write a usage row, store in the cache.
+6. **Answer.** The DTO carries the answer, `aiGenerated`, provider, model, prompt version, cache and fallback flags and every evidence block as sent (with GitHub permalinks). Failures are statuses, never errors: `UNAVAILABLE`, `SKIPPED`, `RATE_LIMITED`, `TIMEOUT`, `INVALID_OUTPUT`.
+
+**Tools and technology added in MVP 3**
+
+| Area | Choice | Why |
+|---|---|---|
+| Providers | Ollama (local), Gemini and OpenRouter (hosted), behind one `AIModelService` interface | Local-first with optional hosted models; adding a provider is one class plus settings |
+| HTTP | JDK HTTP client wrapped in `ProviderHttp`: base-URL allowlist, https for hosted, `Redirect.NEVER`, 4 MB body cap, timeout per attempt, retries only for connection errors and 5xx | A model server is an outbound call to an untrusted party |
+| Output control | networknt json-schema-validator 3.0.8 (draft 2020-12) | Every answer must match the template's schema before it is shown |
+| Prompts | Six versioned YAML templates (`ai/prompt/<feature>.v1.yml`) | The version is part of the cache key and the usage rows |
+| Storage | Flyway `V6__ai_usage_and_cache.sql`: `ai_usage_record`, `ai_cache` | Accounting and answer reuse, in the same PostgreSQL |
+| Frontend | react-markdown with raw HTML, images and links disabled | Model text is untrusted |
+| Gemini auth | Key in the `x-goog-api-key` header, never in the URL | Keys stay out of logs and URLs |
+
+**Considerations taken**
+
+- **Privacy and consent:** every hosted provider needs an explicit data-handling acknowledgement (also as a default, not only as a fallback), and hosted processing is for public repositories only unless configured otherwise. Keys come only from the environment, are never returned by the API (`apiKeyConfigured` is a boolean) and never printed.
+- **Secrets before prompts:** four layers withhold secrets before anything is hashed or sent: stored secret-finding regions, the secret scanner's rules, whole PEM private-key blocks and the redactor. A security review found a private-key leak; it was fixed in `833f33c` with 9 tests, five of which failed against the old scrubber.
+- **Untrusted text everywhere:** repository text goes into delimited data blocks (`<<<`/`>>>` neutralised), never into instructions; answers are schema-validated and redacted; the UI renders them without HTML.
+- **Honest numbers:** provider-reported token counts stay null when the provider does not report them; the local estimate is stored separately and labelled `ESTIMATED`; cost is only calculated when both prices are configured.
+- **Isolation:** the orchestrator, analyzers and reports must not import `ai.*` (package-boundary test); a failing provider never breaks the rest of the app.
+- **Single instance:** the in-flight call reservation is in memory, so the call budget assumes one backend instance.
+
+**Decisions taken** (short form of the ADRs in the completion report)
+
+| Decision | Reason |
+|---|---|
+| Cache lookup before the call budget | A cache hit costs no provider call, so refusing it after the budget is used up helps nobody |
+| Retry only connection errors and 5xx, never timeouts or 4xx | A slow model stays slow, and two full timeouts would approach nginx's 120 s proxy timeout |
+| Gemini JSON mode plus our own validation, not `responseSchema` | Gemini's schema dialect is a subset; our schemas are JSON Schema 2020-12 and are validated anyway |
+| Rebuild the source workspace from the immutable tarball | Per-file GitHub API calls were ruled out earlier; one request per snapshot per sweep interval |
+| Preferred provider stored per browser | The server still applies every permission rule; a server-side per-repository setting is a recommendation |
+| Gemini `thinkingLevel` (default `low`) plus a 2,048-token allowance | Thinking tokens count against `maxOutputTokens`; with a 1,400-token template limit the JSON was cut off (see data below) |
+| Timeout 45 s to 60 s, limits settable from the environment | Hosted models were slow on a free key; the worst case stays inside nginx's 120 s |
+| Local model: `gemini-3.5-flash-lite`, `AI_MAX_CALLS_PER_ANALYSIS=5` | Free-tier daily quota (see below) |
+
+**AI usage data gathered** (real Gemini free tier, 2026-11-21 and 2026-11-22, spring-petclinic unless noted)
+
+| Observation | Value |
+|---|---|
+| `gemini-3.8-flash` | No answer within 45 s, even for a one-word prompt (overloaded); `3.7-flash` answered 503, `2.5-flash` 404 |
+| `gemini-3.5-flash` | Answered as `gemini-3.6-flash` (Google routes it); the usage row and the UI show the answering model |
+| Failure before the fix | Tech-debt summary returned `INVALID_OUTPUT` with 54 visible tokens; a direct call showed 925 to 981 thinking tokens against the 1,400-token limit |
+| After thinking level `low` | The same prompt took about 6 s instead of 10 to 33 s; tech-debt summary through the app: 3.1 s provider latency, 1,104 input and 437 output tokens; the repeat came from the cache in under a second |
+| Class refactoring suggestion (`3.6-flash`) | 4,233 input and 398 output tokens, 10.7 s |
+| `gemini-3.5-flash-lite` (another analysed repository, tech-debt summary) | 1,163 input and 350 output tokens, 2.3 s provider latency, about 4 s end to end |
+| Stand-in Ollama (no real model) | First class explanation 17.6 s including a workspace rebuild, repeat 0.6 s from the cache; the 11th distinct call was `SKIPPED` at a budget of 10 |
+| Free-tier limits (AI Studio, per project) | `3.6 Flash`: 5 requests per minute, 250K tokens per minute, 20 per day. `3.8 Flash`: 5 / 250K / 20. `3.5 Flash Lite`: 15 / 250K / 500. The daily count resets at midnight Pacific time (1:30 pm IST) |
+| Test results | Backend 704 tests locally (about 17.5 min on a loaded machine), 708 in CI (about 77 s for `verify` on Linux), 0 failures; frontend 134 tests |
+
+**Calculations**
+
+| Calculation | Result |
+|---|---|
+| Token estimate (`ai.token-estimate.chars-per-token = 4`) | A class prompt of about 12.4 k characters is about 3.1 k estimated tokens |
+| Prompt bound | `min(max-input-tokens = 12,000, model context - max output)`, applied after scrubbing |
+| Output limit sent to Gemini | `min(template limit, AI_MAX_OUTPUT_TOKENS = 1500)` plus 2,048 for thinking (for example a 300-token answer limit is sent as 2,348) |
+| Output tokens recorded for Gemini | `candidatesTokenCount + thoughtsTokenCount` (thinking is billed as output) |
+| Worst-case wait | One attempt 60 s, a 0.5 s backoff and a fast 5xx stay inside nginx's 120 s; two full 60 s attempts happen only if the first ends in a 5xx after nearly 60 s |
+| Cache key | SHA-256 of provider, model, prompt version, commit SHA and the scrubbed prompt; TTL 7 days; only validated answers are stored |
+| Analyses per day | Daily quota divided by calls per analysis. `3.6 Flash`: 20 / 10 = 2 fully used (about 5 typical at 4 calls). `3.5 Flash Lite`: 500 / 10 = 50 fully used, 500 / 5 = 100 with the cap of 5, about 125 typical at 4 calls. Cached answers cost nothing |
+| Cost | Not calculated: no prices are configured, so the cost columns are null |
+
 ## 4b. MVP 4 steps: Repository search and Q&A (search needs no AI)
 
 | Step | Title | One-liner |
