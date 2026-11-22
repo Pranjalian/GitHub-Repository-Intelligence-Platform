@@ -1019,7 +1019,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 - [x] DI relationships traced; unresolved edges labelled, not guessed
 - [x] Circular dependencies detected
 - [x] Maven module relationships shown
-- [ ] Architecture diagrams render in Mermaid (strict mode): generated source parses with Mermaid and strict mode is set; rendering not yet checked in a real browser (see the MVP 2 completion report)
+- [x] Architecture diagrams render in Mermaid (strict mode): generated source parses with Mermaid, strict mode is set, and rendering was confirmed in a real browser behind nginx (needs `style-src 'unsafe-inline'`, see the MVP 2 completion report)
 - [x] Architecture report includes evidence, confidence labels and limitations
 - [x] Non-Java repos show "unsupported" gracefully
 - [x] All MVP 1 functionality still works

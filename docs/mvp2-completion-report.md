@@ -3,7 +3,7 @@
 **Date:** 2026-11-21
 **Plan:** [implementationPlan.md](implementationPlan.md), Steps 2.1 to 2.6
 **Branch:** `mvp2` (not merged)
-**Result:** All six steps implemented and tested: backend `mvnw clean verify` 619 tests, 0 failures (2 skipped: the existing Semgrep-tagged tests); frontend 124 tests, lint, typecheck and build green. Nine of the ten MVP 2 exit criteria are verified on the evaluation fixtures and on spring-petclinic in Docker (section 5a). The tenth, diagrams rendering in Mermaid, is verified up to parsing with the real Mermaid parser and strict mode; the rendered SVG was not looked at in a browser (section 8).
+**Result:** All six steps implemented and tested: backend `mvnw clean verify` 619 tests, 0 failures (2 skipped: the existing Semgrep-tagged tests); frontend 124 tests, lint, typecheck and build green. All ten MVP 2 exit criteria are verified on the evaluation fixtures and on spring-petclinic in Docker (section 5a). Diagram rendering was confirmed in a real browser on 2026-11-22, after fixing the nginx CSP that turned every diagram black (section 8).
 
 ## 1. Features implemented
 
@@ -86,7 +86,7 @@ Repository code is still only parsed, never compiled or run; JDK types are looke
 
 ## 8. Not implemented or not verified
 
-- **Diagrams in a real browser**: not checked. The Mermaid source of the fixtures and of petclinic parses with the real parser, strict mode is asserted, and the React component is tested with Mermaid mocked (jsdom cannot lay out SVG), but nobody looked at the rendered SVG in a browser. Recommended before relying on the visuals.
+- **Diagrams in a real browser**: checked on 2026-11-22 with spring-petclinic through Docker (nginx). The first look showed every shape filled solid black: Mermaid puts each diagram's styling in a `<style>` element inside the SVG, and the nginx CSP (`style-src 'self'`) blocked it. Fixed by allowing inline styles (`style-src 'self' 'unsafe-inline'`); scripts stay `'self'` only and labels are still escaped in strict mode. The diagrams now render correctly. No automated test covers this: jsdom cannot lay out SVG and the unit tests do not run behind nginx. A browser-based check (for example Playwright against `docker compose`) is recommended.
 - **Real-repository smoke test**: only spring-petclinic (single module, no service layer, no REST DTOs beyond one). A multi-module Spring Boot repository and one with Lombok-heavy code were not tried; both are covered only by fixtures.
 - **Performance on large repositories**: bulk insert was measured (3,300 symbols / 12,000 edges in about 3 s on embedded PostgreSQL) and caps exist, but no repository with tens of thousands of types was analysed. The report loads all symbols of a run into memory.
 - **Gradle modules, functional (router) endpoints, request mappings on interfaces, `@Bean` wiring, XML configuration**: not implemented (stated as limitations).
@@ -100,4 +100,4 @@ See the README section "Known limitations" (architecture bullet): no classpath, 
 
 ## 10. Recommended next steps
 
-Look at the architecture page in a browser with petclinic and the fixtures, then try one multi-module and one Lombok-based Spring Boot repository with a `GITHUB_TOKEN`. If performance matters for large repositories, page the layer lists and load symbols by type only. Consider layer-violation findings (controller → repository without a service) as a cheap, evidence-based addition. Then start MVP 3, whose AI explanations can use this report as their only input.
+Add a browser-based check of the architecture page behind nginx (it would have caught the CSP issue), then try one multi-module and one Lombok-based Spring Boot repository with a `GITHUB_TOKEN`. If performance matters for large repositories, page the layer lists and load symbols by type only. Consider layer-violation findings (controller → repository without a service) as a cheap, evidence-based addition. Then start MVP 3, whose AI explanations can use this report as their only input.
