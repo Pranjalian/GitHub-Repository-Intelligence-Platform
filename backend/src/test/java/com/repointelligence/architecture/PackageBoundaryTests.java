@@ -39,6 +39,38 @@ class PackageBoundaryTests {
 		}
 	}
 
+	@Test
+	void nothingOutsideAiProviderUsesAProviderClient() throws IOException {
+		try (Stream<Path> files = Files.walk(MAIN)) {
+			List<String> violations = files.filter(p -> p.toString().endsWith(".java"))
+				.filter(p -> !p.toString().replace('\\', '/').contains("/ai/provider/"))
+				.filter(p -> {
+					String source = read(p);
+					return source.contains("import com.repointelligence.ai.provider.ollama")
+							|| source.contains("import com.repointelligence.ai.provider.gemini")
+							|| source.contains("import com.repointelligence.ai.provider.openrouter")
+							|| source.contains("ai.provider.ProviderHttp") || source.contains("ai.provider.ProviderSupport");
+				})
+				.map(Path::toString)
+				.toList();
+
+			assertThat(violations).as("features use the AI gateway and AIModelService, never a provider adapter").isEmpty();
+		}
+	}
+
+	@Test
+	void onlyTheAiModuleTalksToAiProviders() throws IOException {
+		try (Stream<Path> files = Files.walk(MAIN)) {
+			List<String> violations = files.filter(p -> p.toString().endsWith(".java"))
+				.filter(p -> !p.toString().replace('\\', '/').contains("/ai/"))
+				.filter(p -> read(p).contains("import com.repointelligence.ai."))
+				.map(Path::toString)
+				.toList();
+
+			assertThat(violations).as("analysis, reports and repositories never depend on AI").isEmpty();
+		}
+	}
+
 	private static boolean importsAPack(Path file) {
 		return read(file).contains("import com.repointelligence.analysis.packs.");
 	}
