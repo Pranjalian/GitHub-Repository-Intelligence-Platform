@@ -141,12 +141,13 @@ public class SnapshotIndexer {
 			return;
 		}
 		boolean existed = workspaces.exists(job.snapshotId());
+		Outcome outcome;
 		try (WorkspaceLeases.Lease lease = leases.acquire(job.snapshotId())) {
-			index(job);
+			outcome = index(job);
 		}
 		catch (RuntimeException ex) {
 			log.warn("Index job of snapshot {} failed: {}", job.snapshotId(), ex.getClass().getSimpleName());
-			finish(indexId, IndexStatus.FAILED,
+			outcome = new Outcome(IndexStatus.FAILED,
 					"Indexing failed (" + ex.getClass().getSimpleName() + ": " + SecretRedactor.redact(String.valueOf(ex.getMessage())) + ").",
 					List.of());
 		}
@@ -155,6 +156,12 @@ public class SnapshotIndexer {
 				removeRestoredWorkspace(job.snapshotId());
 			}
 		}
+		// the final state is written last, so a finished job has also tidied up its workspace
+		finish(indexId, outcome.status(), outcome.detail(), outcome.warnings());
+	}
+
+	/** How a job ended. */
+	private record Outcome(IndexStatus status, String detail, List<String> warnings) {
 	}
 
 	/**
@@ -194,11 +201,10 @@ public class SnapshotIndexer {
 				gateway.secretRegions(index.getSnapshotId(), runId));
 	}
 
-	private void index(Job job) {
+	private Outcome index(Job job) {
 		String problem = sources.ensureWorkspace(job.snapshotId(), settings.allowDownload());
 		if (problem != null) {
-			finish(job.indexId(), IndexStatus.FAILED, "The source is not available: " + problem + ".", List.of());
-			return;
+			return new Outcome(IndexStatus.FAILED, "The source is not available: " + problem + ".", List.of());
 		}
 		WorkspaceView view = workspaces.view(job.snapshotId());
 		List<PathMatcher> excluded = settings.excludedFiles()
@@ -307,9 +313,9 @@ public class SnapshotIndexer {
 				|| outcome.status() == EmbeddingStatus.FAILED || outcome.status() == EmbeddingStatus.UNAVAILABLE;
 		String detail = "Indexed " + chunkCount + " chunk(s) from " + indexedFiles + " file(s); " + skippedFiles
 				+ " file(s) skipped (binary, resources, too large or excluded).";
-		finish(job.indexId(), degraded ? IndexStatus.COMPLETED_WITH_WARNINGS : IndexStatus.COMPLETED, detail, warnings);
 		log.info("Indexed snapshot {}: {} chunks from {} files; embeddings {}", job.snapshotId(), chunkCount, indexedFiles,
 				outcome.status());
+		return new Outcome(degraded ? IndexStatus.COMPLETED_WITH_WARNINGS : IndexStatus.COMPLETED, detail, warnings);
 	}
 
 	private void finish(UUID indexId, IndexStatus status, String detail, List<String> warnings) {
