@@ -196,3 +196,21 @@ Tests that need external CLIs (for example Semgrep) are tagged and excluded by d
 | Vitest / jsdom / MSW | 5.1 / 29.1 / 3.0 |
 
 jsdom is pinned to 29.x because jsdom 31 requires Node 22.22+.
+
+## Implementing the next MVP with Claude Code
+
+The project includes a Claude Code agent, [`.claude/agents/mvp-executor.md`](.claude/agents/mvp-executor.md), that implements one MVP of [docs/implementationPlan.md](docs/implementationPlan.md) end to end. It:
+
+- creates a branch `mvp<N>` and commits each step on it;
+- runs the full backend and frontend checks after every step and fixes problems at the cause;
+- verifies the result in the Docker stack with one real analysis;
+- writes `docs/mvp<N>-completion-report.md` and updates the README, plan and overview;
+- returns a developer-oriented report (design walkthrough, issues and fixes, decisions, considerations, recommendations).
+
+It never pushes or merges. In Claude Code, opened in this repository, ask for example:
+
+```text
+Use the mvp-executor agent to execute MVP 3
+```
+
+Then review the branch and merge it yourself (`git merge --ff-only mvp<N>` on `main`, then `git push`). The agent works without Docker if the daemon is not running, and without `GITHUB_TOKEN` (it keeps live GitHub calls to one analysis).
