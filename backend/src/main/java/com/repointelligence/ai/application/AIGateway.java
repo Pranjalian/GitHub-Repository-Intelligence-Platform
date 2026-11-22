@@ -64,6 +64,9 @@ public class AIGateway {
 
 	private static final Pattern SECRET_RULE = Pattern.compile("(?i).*(secret|credential|password|private-key|token|api-key).*");
 
+	/** Lines after a reported private-key marker that are treated as the key body. */
+	static final int PRIVATE_KEY_REGION_LINES = 120;
+
 	/** Below this many tokens a truncated excerpt is not worth sending. */
 	private static final int MIN_TRUNCATED_TOKENS = 120;
 
@@ -250,6 +253,10 @@ public class AIGateway {
 					|| SECRET_RULE.matcher(finding.getRuleId()).matches();
 			if (secret && finding.getFilePath() != null && finding.getStartLine() != null) {
 				int end = finding.getEndLine() == null ? finding.getStartLine() : finding.getEndLine();
+				if ("private-key".equals(finding.getRuleId())) {
+					// the scanner reports the BEGIN line; the body follows (an 8192-bit PEM is about 100 lines)
+					end = Math.max(end, finding.getStartLine() + PRIVATE_KEY_REGION_LINES);
+				}
 				regions.add(new SecretRegion(finding.getFilePath(), finding.getStartLine(), end));
 			}
 		}

@@ -37,7 +37,8 @@ class PromptScrubberTests {
 		PromptScrubber.Scrubbed result = scrubber.scrub(List.of(source(1, text)), List.of());
 
 		assertThat(result.blocks().get(0).text()).doesNotContain("AKIA4HVZ7QK2M9TXR3WB").doesNotContain("BEGIN RSA PRIVATE KEY");
-		assertThat(result.withheldLines()).isEqualTo(2);
+		// the BEGIN marker has no END in the excerpt, so everything after it is withheld as a possible key body
+		assertThat(result.withheldLines()).isEqualTo(3);
 	}
 
 	@Test
