@@ -63,11 +63,27 @@ class PackageBoundaryTests {
 		try (Stream<Path> files = Files.walk(MAIN)) {
 			List<String> violations = files.filter(p -> p.toString().endsWith(".java"))
 				.filter(p -> !p.toString().replace('\\', '/').contains("/ai/"))
+				// RAG (MVP 4) is an AI feature by design (architecture §2.2: rag -> ai). It still reaches models only
+				// through the gateway and the provider interfaces (see the provider-client test above).
+				.filter(p -> !p.toString().replace('\\', '/').contains("/rag/"))
 				.filter(p -> read(p).contains("import com.repointelligence.ai."))
 				.map(Path::toString)
 				.toList();
 
 			assertThat(violations).as("analysis, reports and repositories never depend on AI").isEmpty();
+		}
+	}
+
+	@Test
+	void analysisReportsRepositoriesAndAiNeverDependOnRag() throws IOException {
+		try (Stream<Path> files = Files.walk(MAIN)) {
+			List<String> violations = files.filter(p -> p.toString().endsWith(".java"))
+				.filter(p -> !p.toString().replace('\\', '/').contains("/rag/"))
+				.filter(p -> read(p).contains("import com.repointelligence.rag."))
+				.map(Path::toString)
+				.toList();
+
+			assertThat(violations).as("RAG is layered on top; nothing below it imports it").isEmpty();
 		}
 	}
 

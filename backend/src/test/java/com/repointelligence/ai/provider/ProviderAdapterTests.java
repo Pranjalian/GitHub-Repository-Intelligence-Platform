@@ -67,12 +67,18 @@ class ProviderAdapterTests {
 
 	static AIProperties properties(String id, String model, String key, int timeoutSeconds, int maxRetries,
 			String thinkingLevel) {
+		return properties(id, model, key, timeoutSeconds, maxRetries, thinkingLevel, null);
+	}
+
+	static AIProperties properties(String id, String model, String key, int timeoutSeconds, int maxRetries,
+			String thinkingLevel, String embeddingModel) {
 		AIProperties.ProviderSettings settings = new AIProperties.ProviderSettings(true, "http://localhost:" + API.port(),
-				key, model, true, List.of("localhost"), null, null, null, null, null, false, thinkingLevel);
+				key, model, true, List.of("localhost"), null, null, null, null, null, false, thinkingLevel, embeddingModel);
 		return new AIProperties(true, id, List.of(), Map.of(), Map.of(id, settings),
 				new AIProperties.Limits(12000, 1500, 10, timeoutSeconds, maxRetries),
 				new AIProperties.Cache(true, Duration.ofDays(7)), new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30),
-				Duration.ofSeconds(60), false, null);
+				Duration.ofSeconds(60), false, null,
+					new AIProperties.Embedding("ollama", 16, 6000, 250));
 	}
 
 	static AIRequest request(Map<String, Object> schema) {
@@ -303,10 +309,11 @@ class ProviderAdapterTests {
 		@Test
 		void hostedProvidersRequireHttpsByDefault() {
 			AIProperties.ProviderSettings plain = new AIProperties.ProviderSettings(true, "http://localhost:" + API.port(),
-					"k", "gemini-test", true, List.of("localhost"), null, null, null, null, null, null, null);
+					"k", "gemini-test", true, List.of("localhost"), null, null, null, null, null, null, null, null);
 			AIProperties props = new AIProperties(true, "gemini", List.of(), Map.of(), Map.of("gemini", plain),
 					new AIProperties.Limits(12000, 1500, 10, TIMEOUT, 1), new AIProperties.Cache(true, Duration.ofDays(7)),
-					new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null);
+					new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null,
+					new AIProperties.Embedding("ollama", 16, 6000, 250));
 
 			ProviderHealth health = new GeminiAIModelService(props, CLOCK).health();
 
@@ -317,10 +324,11 @@ class ProviderAdapterTests {
 		@Test
 		void aHostOutsideTheAllowlistIsRefused() {
 			AIProperties.ProviderSettings elsewhere = new AIProperties.ProviderSettings(true, "https://evil.example", "k",
-					"gemini-test", true, List.of(), null, null, null, null, null, null, null);
+					"gemini-test", true, List.of(), null, null, null, null, null, null, null, null);
 			AIProperties props = new AIProperties(true, "gemini", List.of(), Map.of(), Map.of("gemini", elsewhere),
 					new AIProperties.Limits(12000, 1500, 10, TIMEOUT, 1), new AIProperties.Cache(true, Duration.ofDays(7)),
-					new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null);
+					new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null,
+					new AIProperties.Embedding("ollama", 16, 6000, 250));
 
 			assertThat(new GeminiAIModelService(props, CLOCK).health().detail()).contains("not in ai.providers.gemini.allowed-hosts");
 		}

@@ -29,6 +29,8 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param allowHostedForPrivateRepositories whether hosted providers may process non-public repositories
  * (only public repositories can be analysed today, so this only matters later)
  * @param setupGuideUrl link shown in the UI when AI is unavailable
+ * @param embedding embeddings for semantic search (MVP 4); the model is set per provider
+ * ({@code ai.providers.<id>.embedding-model})
  */
 @ConfigurationProperties("ai")
 public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue("ollama") String defaultProvider,
@@ -37,7 +39,8 @@ public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue
 		@DefaultValue TokenEstimate tokenEstimate, @DefaultValue Source source,
 		@DefaultValue("PT30S") Duration healthCacheTtl,
 		@DefaultValue("PT60S") Duration rateLimitCooldown,
-		@DefaultValue("false") boolean allowHostedForPrivateRepositories, String setupGuideUrl) {
+		@DefaultValue("false") boolean allowHostedForPrivateRepositories, String setupGuideUrl,
+		@DefaultValue Embedding embedding) {
 
 	public AIProperties {
 		features = features == null ? Map.of() : Map.copyOf(features);
@@ -78,15 +81,18 @@ public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue
 	 * @param thinkingLevel Gemini only: {@code generationConfig.thinkingConfig.thinkingLevel} (e.g. {@code low}).
 	 * Thinking tokens count against the output limit and add latency, so a low level keeps answers fast and
 	 * complete. Blank: not sent (needed for models that do not accept a thinking level)
+	 * @param embeddingModel model used for embeddings (MVP 4), separate from {@code chatModel}: a chat model is
+	 * not assumed to be suitable for embeddings. Blank: this provider makes no embeddings
 	 */
 	public record ProviderSettings(boolean enabled, String baseUrl, String apiKey, String chatModel,
 			boolean dataHandlingAcknowledged, List<String> allowedHosts, Integer maxContextTokens,
 			Boolean structuredOutput, BigDecimal inputPricePerMillionTokens, BigDecimal outputPricePerMillionTokens,
-			String currency, Boolean requireHttps, String thinkingLevel) {
+			String currency, Boolean requireHttps, String thinkingLevel, String embeddingModel) {
 
 		public ProviderSettings {
 			allowedHosts = allowedHosts == null ? List.of() : List.copyOf(allowedHosts);
 			thinkingLevel = thinkingLevel == null || thinkingLevel.isBlank() ? null : thinkingLevel.trim();
+			embeddingModel = embeddingModel == null || embeddingModel.isBlank() ? null : embeddingModel.trim();
 		}
 
 		public boolean pricingConfigured() {
@@ -97,7 +103,7 @@ public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue
 		public String toString() {
 			// never print the key
 			return "ProviderSettings[enabled=" + enabled + ", baseUrl=" + baseUrl + ", chatModel=" + chatModel
-					+ ", apiKey=" + (apiKey == null || apiKey.isBlank() ? "unset" : "set") + "]";
+					+ ", embeddingModel=" + embeddingModel + ", apiKey=" + (apiKey == null || apiKey.isBlank() ? "unset" : "set") + "]";
 		}
 
 	}
@@ -145,6 +151,34 @@ public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue
 		public TokenEstimate {
 			if (charsPerToken <= 0) {
 				throw new IllegalArgumentException("ai.token-estimate.chars-per-token must be positive");
+			}
+		}
+
+	}
+
+	/**
+	 * Embeddings for semantic search (MVP 4). Off unless AI is enabled and the selected provider has an
+	 * embedding model; without embeddings, indexing still builds the keyword index.
+	 *
+	 * @param provider the one provider used for embeddings (no fallback: vectors of different models are not
+	 * comparable)
+	 * @param batchSize inputs per provider request
+	 * @param maxInputChars longest text sent for one chunk; longer chunks are cut (and the cut is reported)
+	 * @param maxBatchesPerIndex provider requests allowed for one index job; the rest stays keyword-only
+	 * (embedding status PARTIAL)
+	 */
+	public record Embedding(@DefaultValue("ollama") String provider, @DefaultValue("16") int batchSize,
+			@DefaultValue("6000") int maxInputChars, @DefaultValue("250") int maxBatchesPerIndex) {
+
+		public Embedding {
+			if (batchSize < 1 || batchSize > 256) {
+				throw new IllegalArgumentException("ai.embedding.batch-size must be between 1 and 256");
+			}
+			if (maxInputChars < 100) {
+				throw new IllegalArgumentException("ai.embedding.max-input-chars must be at least 100");
+			}
+			if (maxBatchesPerIndex < 0) {
+				throw new IllegalArgumentException("ai.embedding.max-batches-per-index must not be negative");
 			}
 		}
 

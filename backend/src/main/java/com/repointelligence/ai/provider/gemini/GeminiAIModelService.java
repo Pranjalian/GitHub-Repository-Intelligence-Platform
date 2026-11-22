@@ -6,6 +6,10 @@ import com.repointelligence.ai.provider.AIRequest;
 import com.repointelligence.ai.provider.AIResponse;
 import com.repointelligence.ai.provider.AIStatus;
 import com.repointelligence.ai.provider.DataHandling;
+import com.repointelligence.ai.provider.EmbeddingHealth;
+import com.repointelligence.ai.provider.EmbeddingModelService;
+import com.repointelligence.ai.provider.EmbeddingPurpose;
+import com.repointelligence.ai.provider.EmbeddingResponse;
 import com.repointelligence.ai.provider.ProviderHealth;
 import com.repointelligence.ai.provider.ProviderHttp;
 import com.repointelligence.ai.provider.ProviderSupport;
@@ -13,6 +17,7 @@ import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,11 +31,13 @@ import tools.jackson.databind.node.ObjectNode;
  * Hosted: only used after the operator acknowledges its data handling. The API key is sent in the
  * {@code x-goog-api-key} header, never in a URL. Reported token usage ({@code usageMetadata}) is mapped
  * to REPORTED; quota errors (429) mark the provider rate-limited until the reset the API states.
- * Health and context size come from {@code GET models/{model}} at runtime.
+ * Health and context size come from {@code GET models/{model}} at runtime. Embeddings (MVP 4) use
+ * {@code models/{embedding-model}:batchEmbedContents} with the retrieval task types; the model version is
+ * the {@code version} of {@code GET models/{embedding-model}}.
  */
 @Component
 @ConditionalOnExpression("${ai.enabled:false} and ${ai.providers.gemini.enabled:false}")
-public class GeminiAIModelService extends ProviderSupport {
+public class GeminiAIModelService extends ProviderSupport implements EmbeddingModelService {
 
 	public static final String ID = "gemini";
 
@@ -206,6 +213,99 @@ public class GeminiAIModelService extends ProviderSupport {
 			case 429 -> "Gemini quota or rate limit reached (HTTP 429).";
 			default -> "Gemini answered HTTP " + status + ".";
 		};
+	}
+
+	// ── embeddings ───────────────────────────────────────────────────────────────────────────────
+
+	@Override
+	public EmbeddingHealth embeddingHealth() {
+		String model = settings.embeddingModel();
+		String missing = missingEmbeddingConfiguration(true);
+		if (missing != null) {
+			return new EmbeddingHealth(ProviderHealth.notConfigured(missing, clock.instant()), model, null);
+		}
+		try {
+			ProviderHttp.Result result = http()
+				.send(authorized(HttpRequest.newBuilder(http().resolve("/v1beta/models/" + model)).GET()));
+			if (!result.success()) {
+				return new EmbeddingHealth(ProviderHealth.down(describe(result.status(), model), clock.instant()), model, null);
+			}
+			JsonNode json = parse(result.body());
+			JsonNode methods = json == null ? null : json.get("supportedGenerationMethods");
+			if (methods != null && methods.isArray()) {
+				boolean embeds = false;
+				for (JsonNode method : methods) {
+					embeds |= "embedContent".equals(text(method)) || "batchEmbedContents".equals(text(method));
+				}
+				if (!embeds) {
+					return new EmbeddingHealth(
+							ProviderHealth.down("Gemini model " + model + " does not support embeddings.", clock.instant()), model,
+							null);
+				}
+			}
+			String version = json == null ? null : text(json.get("version"));
+			return new EmbeddingHealth(ProviderHealth.up("Embedding model " + model + " is available.", clock.instant()),
+					model, version == null || version.isBlank() ? "unversioned" : version);
+		}
+		catch (ProviderHttp.CallFailure failure) {
+			return new EmbeddingHealth(ProviderHealth.down(failure.getMessage() + ".", clock.instant()), model, null);
+		}
+	}
+
+	@Override
+	public EmbeddingResponse embed(List<String> inputs, EmbeddingPurpose purpose) {
+		String model = settings.embeddingModel();
+		String missing = missingEmbeddingConfiguration(true);
+		if (missing != null) {
+			return EmbeddingResponse.failure(AIStatus.UNAVAILABLE, model, "Gemini embeddings are not configured: " + missing + ".");
+		}
+		if (inputs.isEmpty()) {
+			return EmbeddingResponse.ok(model, List.of(), null);
+		}
+		ObjectNode body = JSON.createObjectNode();
+		var requests = body.putArray("requests");
+		String taskType = purpose == EmbeddingPurpose.QUERY ? "RETRIEVAL_QUERY" : "RETRIEVAL_DOCUMENT";
+		for (String input : inputs) {
+			ObjectNode request = requests.addObject();
+			request.put("model", "models/" + model);
+			request.putObject("content").putArray("parts").addObject().put("text", input);
+			request.put("taskType", taskType);
+		}
+		ProviderHttp.Result result;
+		try {
+			result = http().send(authorized(HttpRequest
+				.newBuilder(http().resolve("/v1beta/models/" + model + ":batchEmbedContents"))
+				.header("Content-Type", "application/json")
+				.POST(HttpRequest.BodyPublishers.ofString(JSON.writeValueAsString(body), StandardCharsets.UTF_8))));
+		}
+		catch (ProviderHttp.CallFailure failure) {
+			AIResponse mapped = fromFailure(failure, model);
+			return EmbeddingResponse.failure(mapped.status(), model, mapped.detail());
+		}
+		if (result.status() == 429) {
+			return EmbeddingResponse.rateLimited(model, "Gemini quota or rate limit reached (HTTP 429).", retryAfter(result));
+		}
+		if (!result.success()) {
+			return EmbeddingResponse.failure(result.status() == 404 ? AIStatus.UNAVAILABLE : AIStatus.ERROR, model,
+					describe(result.status(), model));
+		}
+		JsonNode json = parse(result.body());
+		JsonNode embeddings = json == null ? null : json.get("embeddings");
+		if (embeddings == null || !embeddings.isArray() || embeddings.size() != inputs.size()) {
+			return EmbeddingResponse.failure(AIStatus.INVALID_OUTPUT, model, "Gemini returned "
+					+ (embeddings == null || !embeddings.isArray() ? "no" : embeddings.size()) + " embeddings for "
+					+ inputs.size() + " inputs.");
+		}
+		List<float[]> vectors = new ArrayList<>();
+		for (JsonNode embedding : embeddings) {
+			float[] vector = vector(embedding.get("values"));
+			if (vector == null || (!vectors.isEmpty() && vector.length != vectors.get(0).length)) {
+				return EmbeddingResponse.failure(AIStatus.INVALID_OUTPUT, model,
+						"Gemini returned an empty, non-numeric or inconsistent embedding.");
+			}
+			vectors.add(vector);
+		}
+		return EmbeddingResponse.ok(model, vectors, null);
 	}
 
 }

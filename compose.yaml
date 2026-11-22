@@ -9,7 +9,9 @@ name: repo-intelligence
 
 services:
   postgres:
-    image: postgres:16-alpine
+    # postgres:16-alpine plus the pgvector extension (semantic search, MVP 4); see db/Dockerfile.
+    build: ./db
+    image: repo-intelligence-postgres:local
     environment:
       POSTGRES_DB: repointelligence
       POSTGRES_USER: ${DB_USERNAME:-repointel}
@@ -53,9 +55,13 @@ services:
       # Ollama running on the host machine, reached from the container
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-}
+      # Embedding model for semantic search (MVP 4), e.g. nomic-embed-text; separate from the chat model.
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-}
+      AI_EMBEDDING_PROVIDER: ${AI_EMBEDDING_PROVIDER:-ollama}
       AI_PROVIDERS_GEMINI_ENABLED: ${AI_PROVIDERS_GEMINI_ENABLED:-false}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_CHAT_MODEL: ${GEMINI_CHAT_MODEL:-}
+      GEMINI_EMBEDDING_MODEL: ${GEMINI_EMBEDDING_MODEL:-}
       # "-" not ":-": an explicitly empty GEMINI_THINKING_LEVEL stays empty and turns the setting off
       GEMINI_THINKING_LEVEL: ${GEMINI_THINKING_LEVEL-low}
       AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED: ${AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED:-false}
@@ -63,6 +69,9 @@ services:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       OPENROUTER_CHAT_MODEL: ${OPENROUTER_CHAT_MODEL:-}
       AI_PROVIDERS_OPENROUTER_DATA_HANDLING_ACKNOWLEDGED: ${AI_PROVIDERS_OPENROUTER_DATA_HANDLING_ACKNOWLEDGED:-false}
+      # Search index and Q&A (MVP 4); keyword and symbol search need no AI.
+      RAG_VECTOR_STORE: ${RAG_VECTOR_STORE:-auto}
+      RAG_MAX_QUESTIONS_PER_SNAPSHOT: ${RAG_MAX_QUESTIONS_PER_SNAPSHOT:-50}
     extra_hosts:
       # lets the backend reach an Ollama on the host on Linux too (Docker Desktop has this built in)
       - "host.docker.internal:host-gateway"

@@ -36,7 +36,8 @@ public abstract class ProviderSupport implements AIModelService {
 		this.clock = clock;
 		AIProperties.ProviderSettings configured = properties.provider(id);
 		this.settings = configured != null ? configured
-				: new AIProperties.ProviderSettings(false, null, null, null, false, null, null, null, null, null, null, null, null);
+				: new AIProperties.ProviderSettings(false, null, null, null, false, null, null, null, null, null, null, null, null,
+						null);
 		String baseUrl = settings.baseUrl() == null || settings.baseUrl().isBlank() ? defaultBaseUrl : settings.baseUrl();
 		java.util.List<String> hosts = settings.allowedHosts().isEmpty() ? defaultHosts : settings.allowedHosts();
 		ProviderHttp built = null;
@@ -73,6 +74,51 @@ public abstract class ProviderSupport implements AIModelService {
 			return "the API key for " + id + " is not set";
 		}
 		return null;
+	}
+
+	/** Like {@link #missingConfiguration} for the embedding model. */
+	protected String missingEmbeddingConfiguration(boolean needsKey) {
+		if (configurationError != null) {
+			return configurationError;
+		}
+		if (settings.embeddingModel() == null) {
+			return "ai.providers." + id + ".embedding-model is not set";
+		}
+		if (!safeModel(settings.embeddingModel())) {
+			return "ai.providers." + id + ".embedding-model contains unsupported characters";
+		}
+		if (needsKey && (settings.apiKey() == null || settings.apiKey().isBlank())) {
+			return "the API key for " + id + " is not set";
+		}
+		return null;
+	}
+
+	/** The configured embedding model, if any. */
+	public String embeddingModel() {
+		return settings.embeddingModel();
+	}
+
+	/**
+	 * Reads one embedding vector; null when the node is not a non-empty array of finite numbers. Non-finite
+	 * values would make every similarity meaningless, so the whole vector is rejected.
+	 */
+	protected static float[] vector(JsonNode node) {
+		if (node == null || !node.isArray() || node.isEmpty()) {
+			return null;
+		}
+		float[] values = new float[node.size()];
+		for (int i = 0; i < values.length; i++) {
+			JsonNode value = node.get(i);
+			if (value == null || !value.isNumber()) {
+				return null;
+			}
+			float f = (float) value.asDouble();
+			if (!Float.isFinite(f)) {
+				return null;
+			}
+			values[i] = f;
+		}
+		return values;
 	}
 
 	protected ProviderHttp http() {

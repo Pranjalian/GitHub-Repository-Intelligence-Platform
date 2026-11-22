@@ -56,4 +56,19 @@ class AIDisabledE2eTests extends E2eTestBase {
 		assertThat((Integer) JsonPath.read(getJson("/api/v1/ai/usage"), "$.totalElements")).isZero();
 	}
 
+	@Test
+	void indexingWorksWithoutAiAndBuildsAKeywordIndexWithoutEmbeddings() throws Exception {
+		Analysis analysis = analyze("acme", "shop", "d5".repeat(20), fixture("spring-boot-architecture").build());
+
+		String index = indexAndWait(analysis);
+
+		assertThat((String) JsonPath.read(index, "$.status")).isEqualTo("COMPLETED");
+		assertThat((String) JsonPath.read(index, "$.embeddingStatus")).isEqualTo("NOT_CONFIGURED");
+		assertThat((String) JsonPath.read(index, "$.embeddingDetail")).contains("AI is disabled");
+		assertThat((Integer) JsonPath.read(index, "$.chunkCount")).isPositive();
+		assertThat((Integer) JsonPath.read(index, "$.embeddedChunks")).isZero();
+		assertThat(jdbc.queryForObject("SELECT count(*) FROM chunk_embedding", Integer.class)).isZero();
+		assertThat(jdbc.queryForObject("SELECT count(*) FROM ai_usage_record", Integer.class)).isZero();
+	}
+
 }

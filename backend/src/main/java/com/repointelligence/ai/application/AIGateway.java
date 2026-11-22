@@ -242,7 +242,7 @@ public class AIGateway {
 	}
 
 	/** Lines of files where the secret scanner (or any secret-like security rule) reported something. */
-	List<SecretRegion> secretRegions(UUID snapshotId, UUID runId) {
+	public List<SecretRegion> secretRegions(UUID snapshotId, UUID runId) {
 		if (snapshotId == null || runId == null) {
 			return List.of();
 		}

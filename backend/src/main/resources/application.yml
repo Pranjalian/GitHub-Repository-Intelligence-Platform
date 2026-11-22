@@ -137,6 +137,8 @@ ai:
       enabled: ${AI_PROVIDERS_OLLAMA_ENABLED:false}
       base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
       chat-model: ${OLLAMA_CHAT_MODEL:}
+      # Embedding model for semantic search (MVP 4), e.g. nomic-embed-text; separate from the chat model.
+      embedding-model: ${OLLAMA_EMBEDDING_MODEL:}
       allowed-hosts: [localhost, 127.0.0.1, host.docker.internal, ollama]
       # context window of the model, if you want the prompt budget capped by it
       max-context-tokens:
@@ -146,6 +148,8 @@ ai:
       base-url: https://generativelanguage.googleapis.com
       api-key: ${GEMINI_API_KEY:}
       chat-model: ${GEMINI_CHAT_MODEL:}
+      # Embedding model for semantic search (MVP 4); chunks are sent only with data-handling-acknowledged.
+      embedding-model: ${GEMINI_EMBEDDING_MODEL:}
       # Must be true before any repository excerpt is sent to this provider.
       data-handling-acknowledged: ${AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED:false}
       allowed-hosts: [generativelanguage.googleapis.com]
@@ -197,3 +201,44 @@ ai:
   allow-hosted-for-private-repositories: false
   # Optional link to your setup guide, shown in the UI when AI is unavailable (the README section "AI insights").
   setup-guide-url:
+  embedding:
+    # Embeddings for semantic search (MVP 4). Made only when AI is enabled and this provider has an
+    # embedding-model. No fallback to another provider: vectors of different models are not comparable.
+    provider: ${AI_EMBEDDING_PROVIDER:ollama}
+    batch-size: 16
+    # Longest text embedded per chunk; longer chunks are embedded from their beginning (reported).
+    max-input-chars: 6000
+    # Provider requests per index job; the rest stays keyword-only (embedding status PARTIAL).
+    max-batches-per-index: 250
+
+rag:
+  # Search index and repository Q&A (MVP 4). Indexing and keyword/symbol search need no AI.
+  indexing:
+    # Rebuild a deleted workspace from the commit's tarball (one GitHub download) to index it.
+    allow-download: true
+    max-file-kb: 256
+    max-files: 5000
+    max-chunks: 20000
+    # Longer classes, methods and sections are split into parts.
+    max-chunk-lines: 150
+    # Line windows for languages without a structural chunker.
+    window-lines: 60
+    window-overlap: 10
+    excluded-files: [package-lock.json, pnpm-lock.yaml, yarn.lock, "*.min.js", "*.min.css", "*.map", "*.lock"]
+    queue-capacity: 20
+  retrieval:
+    # Chunks handed to an answer, and candidates per source (keyword, symbol, semantic) before fusion.
+    top-k: 8
+    candidates: 30
+    rrf-k: 60
+    # auto: pgvector when the extension is installed (Docker Compose), else exact cosine in the application.
+    vector-store: ${RAG_VECTOR_STORE:auto}
+    max-in-process-vectors: 50000
+    max-search-results: 50
+  qa:
+    max-question-chars: 2000
+    # Follow-ups get a bounded summary of this many prior turns, never the whole conversation.
+    history-turns: 3
+    history-answer-chars: 400
+    # Provider calls for Q&A per snapshot (cache hits are free); separate from the insight budget.
+    max-questions-per-snapshot: ${RAG_MAX_QUESTIONS_PER_SNAPSHOT:50}

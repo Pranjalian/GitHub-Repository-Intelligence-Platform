@@ -25,4 +25,10 @@ public class AIProviderConfig {
 		return new AIProviderRouter(properties, services.orderedStream().toList(), availability);
 	}
 
+	@Bean
+	EmbeddingRouter embeddingRouter(AIProperties properties, ObjectProvider<EmbeddingModelService> services,
+			ProviderAvailability availability, Clock clock) {
+		return new EmbeddingRouter(properties, services.orderedStream().toList(), availability, clock);
+	}
+
 }

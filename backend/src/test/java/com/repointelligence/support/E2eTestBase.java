@@ -153,6 +153,25 @@ public abstract class E2eTestBase {
 				+ "/findings?size=100" + query);
 	}
 
+	protected String base(Analysis analysis) {
+		return "/api/v1/repositories/" + analysis.repositoryId() + "/snapshots/" + analysis.snapshotId();
+	}
+
+	/** Requests an index job and waits until it has finished; returns the final index state. */
+	protected String indexAndWait(Analysis analysis) throws Exception {
+		mockMvc.perform(post(base(analysis) + "/index")).andReturn();
+		long deadline = System.currentTimeMillis() + 60_000;
+		while (System.currentTimeMillis() < deadline) {
+			String json = getJson(base(analysis) + "/index");
+			String status = JsonPath.read(json, "$.status");
+			if (!List.of("QUEUED", "INDEXING").contains(status)) {
+				return json;
+			}
+			Thread.sleep(50);
+		}
+		throw new AssertionError("index of " + analysis.snapshotId() + " did not finish in time");
+	}
+
 	private static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder json(String body) {
 		return aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(body);
 	}

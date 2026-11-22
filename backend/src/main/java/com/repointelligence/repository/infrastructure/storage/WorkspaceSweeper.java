@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Removes orphaned workspaces: directories left behind by a crash, or kept past their retention.
- * A workspace that belongs to a queued or running analysis is never touched. Only directories named
+ * A workspace that belongs to a queued or running analysis, or is leased (being indexed), is never touched. Only directories named
  * like a snapshot id (and stale download files) are considered, so unrelated files are safe.
  */
 @Component
@@ -39,10 +39,19 @@ public class WorkspaceSweeper {
 
 	private final Clock clock;
 
+	private final WorkspaceLeases leases;
+
 	public WorkspaceSweeper(WorkspaceProperties properties, AnalysisRunRepository runs, Clock clock) {
+		this(properties, runs, clock, new WorkspaceLeases());
+	}
+
+	@org.springframework.beans.factory.annotation.Autowired
+	public WorkspaceSweeper(WorkspaceProperties properties, AnalysisRunRepository runs, Clock clock,
+			WorkspaceLeases leases) {
 		this.properties = properties;
 		this.runs = runs;
 		this.clock = clock;
+		this.leases = leases;
 	}
 
 	@EventListener(ApplicationReadyEvent.class)
@@ -73,7 +82,8 @@ public class WorkspaceSweeper {
 					continue;
 				}
 				UUID snapshotId = parseUuid(name);
-				if (snapshotId == null || !Files.isDirectory(child) || active.contains(snapshotId)) {
+				if (snapshotId == null || !Files.isDirectory(child) || active.contains(snapshotId)
+						|| leases.isLeased(snapshotId)) {
 					continue;
 				}
 				if (isWithinRetention(child, now)) {
