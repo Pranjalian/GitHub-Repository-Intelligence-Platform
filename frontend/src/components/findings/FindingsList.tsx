@@ -167,7 +167,14 @@ export default function FindingsList({
           </div>
         </>
       )}
-      {selected && <FindingDetailPanel finding={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <FindingDetailPanel
+          finding={selected}
+          onClose={() => setSelected(null)}
+          repositoryId={repositoryId}
+          snapshotId={snapshotId}
+        />
+      )}
     </div>
   )
 }

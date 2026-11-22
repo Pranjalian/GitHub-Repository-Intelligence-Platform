@@ -3,6 +3,7 @@ import { NavLink } from 'react-router'
 const items = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/repositories/new', label: 'Add Repository', end: false },
+  { to: '/settings/ai', label: 'AI Settings', end: false },
 ]
 
 export default function Sidebar() {

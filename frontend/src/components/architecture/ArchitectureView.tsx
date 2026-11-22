@@ -12,6 +12,8 @@ import type {
   LayerMethod,
   PatternCandidate,
 } from '../../types/api'
+import AIAvailabilityNote from '../ai/AIAvailabilityNote'
+import SymbolInsights from '../ai/SymbolInsights'
 import Badge from '../ui/Badge'
 import ConfidenceBadge from '../ui/ConfidenceBadge'
 import SeverityBadge from '../ui/SeverityBadge'
@@ -101,7 +103,7 @@ export default function ArchitectureView({ report }: { report: ArchitectureRepor
           </ul>
         )}
       </Section>
-      <LayerOverview layers={report.layers} />
+      <LayerOverview layers={report.layers} repositoryId={report.repositoryId} snapshotId={report.snapshotId} />
       <EndpointTable endpoints={report.endpoints} />
       <EntityView entities={report.entities} />
       <DiChains chains={report.diChains} />
@@ -211,10 +213,19 @@ function CycleWarnings({ cycles }: { cycles: ArchitectureCycle[] }) {
   )
 }
 
-function LayerOverview({ layers }: { layers: ArchitectureLayerGroup[] }) {
+function LayerOverview({
+  layers,
+  repositoryId,
+  snapshotId,
+}: {
+  layers: ArchitectureLayerGroup[]
+  repositoryId: string
+  snapshotId: string
+}) {
   return (
     <Section title="Layers">
       {layers.length === 0 && <p className="text-sm text-slate-600">No class could be assigned to a layer.</p>}
+      {layers.length > 0 && <AIAvailabilityNote />}
       <div className="grid gap-4 lg:grid-cols-2">
         {layers.map((group) => (
           <div key={group.layer} className="rounded border border-slate-200 bg-white p-3" aria-label={`Layer ${group.layer}`}>
@@ -234,6 +245,9 @@ function LayerOverview({ layers }: { layers: ArchitectureLayerGroup[] }) {
                     {METHOD_LABELS[cls.method]}
                     {cls.evidence[0]?.signal && `: ${cls.evidence[0].signal}`}
                   </span>
+                  {cls.symbolId && (
+                    <SymbolInsights repositoryId={repositoryId} snapshotId={snapshotId} symbolId={cls.symbolId} name={cls.name} />
+                  )}
                 </li>
               ))}
             </ul>

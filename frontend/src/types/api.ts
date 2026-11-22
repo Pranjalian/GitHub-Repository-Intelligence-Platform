@@ -298,6 +298,8 @@ export interface LayerClass {
   method: LayerMethod
   evidence: Evidence[]
   sourceUrl: string | null
+  /** Id of the type's code symbol (MVP 3): for the symbol endpoint and AI insights. */
+  symbolId?: string | null
 }
 
 export interface ArchitectureLayerGroup {
@@ -412,4 +414,144 @@ export interface ArchitectureReport {
   patterns: PatternCandidate[]
   diagrams: ArchitectureDiagrams
   limitations: string[]
+}
+
+// ── code symbols and AI insights (MVP 3) ─────────────────────────────────────────────────────
+
+export type SymbolType = 'CLASS' | 'INTERFACE' | 'ENUM' | 'RECORD' | 'ANNOTATION' | 'METHOD' | 'CONSTRUCTOR' | 'FIELD'
+
+export interface CodeSymbol {
+  id: string
+  type: SymbolType
+  name: string
+  fullyQualifiedName: string
+  signature: string | null
+  filePath: string
+  startLine: number | null
+  endLine: number | null
+  sourceUrl: string | null
+  annotations: string[]
+  members: CodeSymbol[]
+}
+
+export type InsightType =
+  | 'EXPLAIN_CLASS'
+  | 'EXPLAIN_METHOD'
+  | 'EXPLAIN_FINDING'
+  | 'SUGGEST_REFACTORING'
+  | 'SUMMARIZE_MODULE'
+  | 'TECH_DEBT_SUMMARY'
+
+export type AIStatus = 'OK' | 'UNAVAILABLE' | 'SKIPPED' | 'RATE_LIMITED' | 'TIMEOUT' | 'INVALID_OUTPUT' | 'ERROR'
+
+export interface InsightRequest {
+  type: InsightType
+  targetId?: string | null
+  provider?: string | null
+}
+
+export interface InsightEvidence {
+  id: string
+  kind: string
+  filePath: string | null
+  startLine: number | null
+  endLine: number | null
+  sourceUrl: string | null
+  truncated: boolean
+  text: string
+}
+
+export interface Insight {
+  type: InsightType
+  targetId: string | null
+  targetLabel: string | null
+  status: AIStatus
+  aiGenerated: boolean
+  explanation: string | null
+  structured: Record<string, unknown> | null
+  provider: string | null
+  model: string | null
+  promptVersion: string | null
+  fromCache: boolean
+  fallback: boolean
+  reason: string | null
+  evidence: InsightEvidence[]
+  withheldLines: number
+  warnings: string[]
+  limitations: string[]
+  commitSha: string | null
+  generatedAt: string | null
+  setupGuideUrl: string | null
+}
+
+export type DataHandling = 'LOCAL' | 'HOSTED'
+export type ProviderHealthStatus = 'UP' | 'DOWN' | 'NOT_CONFIGURED' | 'RATE_LIMITED' | 'UNKNOWN'
+
+export interface AIProvider {
+  id: string
+  enabled: boolean
+  active: boolean
+  dataHandling: DataHandling | null
+  dataHandlingAcknowledged: boolean
+  permitted: boolean
+  chatModel: string | null
+  apiKeyConfigured: boolean
+  health: { status: ProviderHealthStatus; detail: string | null; checkedAt: string | null; unavailableUntil: string | null }
+  capabilities: {
+    supportsChat: boolean
+    supportsStructuredOutput: boolean
+    supportsEmbeddings: boolean
+    supportsStreaming: boolean
+    maxContextTokens: number | null
+    modelName: string | null
+    source: string
+  } | null
+  pricingConfigured: boolean
+  currency: string | null
+}
+
+export interface AIProviders {
+  enabled: boolean
+  available: boolean
+  unavailableReason: string | null
+  defaultProvider: string | null
+  fallbackProviders: string[]
+  setupGuideUrl: string | null
+  limits: {
+    maxInputTokens: number
+    maxOutputTokens: number
+    maxCallsPerAnalysis: number
+    timeoutSeconds: number
+    maxRetries: number
+    charsPerToken: number
+  }
+  cache: { enabled: boolean; ttl: string }
+  features: { feature: string; provider: string | null; model: string | null }[]
+  providers: AIProvider[]
+}
+
+export type UsageSource = 'REPORTED' | 'ESTIMATED' | 'UNKNOWN'
+
+export interface AIUsageRecord {
+  id: string
+  createdAt: string
+  provider: string
+  model: string | null
+  feature: string
+  promptVersion: string
+  repositoryId: string | null
+  snapshotId: string | null
+  runId: string | null
+  status: AIStatus
+  cacheHit: boolean
+  inputTokens: number | null
+  outputTokens: number | null
+  estimatedInputTokens: number | null
+  estimatedOutputTokens: number | null
+  usageSource: UsageSource
+  estimatedCost: number | null
+  costSource: 'REPORTED_TOKENS' | 'ESTIMATED_TOKENS' | null
+  currency: string | null
+  latencyMs: number | null
+  detail: string | null
 }

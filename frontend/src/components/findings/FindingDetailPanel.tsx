@@ -1,4 +1,5 @@
 import type { AnalysisMethod, Finding } from '../../types/api'
+import InsightPanel from '../ai/InsightPanel'
 import ConfidenceBadge from '../ui/ConfidenceBadge'
 import SeverityBadge from '../ui/SeverityBadge'
 
@@ -11,7 +12,17 @@ const methodLabels: Record<AnalysisMethod, string> = {
 }
 
 /** Evidence is untrusted repository text: it is always rendered as plain text, never as HTML. */
-export default function FindingDetailPanel({ finding, onClose }: { finding: Finding; onClose: () => void }) {
+export default function FindingDetailPanel({
+  finding,
+  onClose,
+  repositoryId,
+  snapshotId,
+}: {
+  finding: Finding
+  onClose: () => void
+  repositoryId?: string
+  snapshotId?: string
+}) {
   const excerpt = finding.evidence?.excerpt
   const lines =
     finding.startLine == null
@@ -63,6 +74,17 @@ export default function FindingDetailPanel({ finding, onClose }: { finding: Find
           <span className="font-medium">Suggested next step: </span>
           {finding.suggestedNextStep}
         </p>
+      )}
+      {repositoryId && snapshotId && (
+        <div className="mt-3 border-t border-slate-200 pt-3">
+          <InsightPanel
+            repositoryId={repositoryId}
+            snapshotId={snapshotId}
+            type="EXPLAIN_FINDING"
+            targetId={finding.id}
+            actionLabel="Explain this finding"
+          />
+        </div>
       )}
     </aside>
   )

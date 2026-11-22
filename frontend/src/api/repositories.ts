@@ -1,5 +1,10 @@
 import type {
+  AIProviders,
+  AIUsageRecord,
   AnalysisRun,
+  CodeSymbol,
+  Insight,
+  InsightRequest,
   ArchitectureReport,
   AnalyzeRepositoryResponse,
   ConsolidatedReport,
@@ -68,3 +73,20 @@ export const getTests = (repositoryId: string, snapshotId: string) =>
 
 export const getCoverage = (repositoryId: string, snapshotId: string) =>
   apiFetch<CoverageReport>(`${snapshotBase(repositoryId, snapshotId)}/coverage`)
+
+// ── MVP 3: symbols and AI insights ──────────────────────────────────────────────────────────
+
+export const getSymbol = (repositoryId: string, snapshotId: string, symbolId: string) =>
+  apiFetch<CodeSymbol>(`${snapshotBase(repositoryId, snapshotId)}/symbols/${symbolId}`)
+
+export const requestInsight = (repositoryId: string, snapshotId: string, request: InsightRequest) =>
+  apiFetch<Insight>(`${snapshotBase(repositoryId, snapshotId)}/insights`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  })
+
+export const getAIProviders = () => apiFetch<AIProviders>('/api/v1/ai/providers')
+
+export const getAIUsage = (filters: { provider?: string; feature?: string; page?: number; size?: number }) =>
+  apiFetch<PageResponse<AIUsageRecord>>(`/api/v1/ai/usage${query({ ...filters })}`)

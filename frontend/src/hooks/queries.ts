@@ -1,5 +1,9 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  getAIProviders,
+  getAIUsage,
+  getSymbol,
+  requestInsight,
   cancelAnalysisRun,
   getArchitecture,
   getCoverage,
@@ -12,7 +16,7 @@ import {
   listRepositories,
   listSnapshots,
 } from '../api/repositories'
-import { isTerminal, type FindingFilters } from '../types/api'
+import { isTerminal, type FindingFilters, type InsightRequest } from '../types/api'
 
 export const useRepositories = (page: number, size = 20) =>
   useQuery({
@@ -83,3 +87,28 @@ export const useArchitecture = (repositoryId: string, snapshotId: string | undef
     queryFn: () => getArchitecture(repositoryId, snapshotId as string),
     enabled: !!snapshotId,
   })
+
+// ── MVP 3 ────────────────────────────────────────────────────────────────────────────────────
+
+/** AI configuration; cheap to refetch, shared by every insight button. */
+export const useAIProviders = () =>
+  useQuery({ queryKey: ['ai-providers'], queryFn: getAIProviders, staleTime: 30_000 })
+
+export const useAIUsage = (filters: { provider?: string; feature?: string; page?: number; size?: number }) =>
+  useQuery({ queryKey: ['ai-usage', filters], queryFn: () => getAIUsage(filters), placeholderData: keepPreviousData })
+
+export const useSymbol = (repositoryId: string, snapshotId: string, symbolId: string | null) =>
+  useQuery({
+    queryKey: ['symbol', repositoryId, snapshotId, symbolId],
+    queryFn: () => getSymbol(repositoryId, snapshotId, symbolId as string),
+    enabled: !!symbolId,
+  })
+
+/** One insight request; the result stays in the mutation until the panel is closed. */
+export function useInsight(repositoryId: string, snapshotId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (request: InsightRequest) => requestInsight(repositoryId, snapshotId, request),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['ai-usage'] }),
+  })
+}

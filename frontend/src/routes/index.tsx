@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router'
 import MainLayout from '../components/layout/MainLayout'
 import AddRepositoryPage from '../pages/AddRepositoryPage'
+import AISettingsPage from '../pages/AISettingsPage'
 import ArchitecturePage from '../pages/ArchitecturePage'
 import DashboardPage from '../pages/DashboardPage'
 import RepositoryOverviewPage from '../pages/RepositoryOverviewPage'
@@ -14,6 +15,7 @@ export const routes = [
       { path: 'repositories/new', element: <AddRepositoryPage /> },
       { path: 'repositories/:repositoryId', element: <RepositoryOverviewPage /> },
       { path: 'repositories/:repositoryId/arch', element: <ArchitecturePage /> },
+      { path: 'settings/ai', element: <AISettingsPage /> },
     ],
   },
 ]

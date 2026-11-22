@@ -1,16 +1,21 @@
+import { QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import { architectureReport, unsupportedArchitecture } from '../../test/fixtures'
+import { makeQueryClient } from '../../test/utils'
 import ArchitectureView from './ArchitectureView'
 
 vi.mock('../../lib/mermaid', () => ({ getMermaid: () => Promise.resolve({ run: () => Promise.resolve() }) }))
 
+// From MVP 3 the layer list shows whether AI explanations are available, which needs a query client.
 const renderView = (report = architectureReport) =>
   render(
-    <MemoryRouter>
-      <ArchitectureView report={report} />
-    </MemoryRouter>,
+    <QueryClientProvider client={makeQueryClient()}>
+      <MemoryRouter>
+        <ArchitectureView report={report} />
+      </MemoryRouter>
+    </QueryClientProvider>,
   )
 
 describe('ArchitectureView', () => {

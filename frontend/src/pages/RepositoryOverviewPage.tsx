@@ -1,5 +1,7 @@
 import { Link, useParams, useSearchParams } from 'react-router'
 import AnalysisProgress from '../components/analysis/AnalysisProgress'
+import InsightPanel from '../components/ai/InsightPanel'
+import ModuleSummaryPanel from '../components/ai/ModuleSummaryPanel'
 import ArchitectureSection from '../components/architecture/ArchitectureSection'
 import DependencyTable from '../components/dependencies/DependencyTable'
 import FindingsList from '../components/findings/FindingsList'
@@ -178,13 +180,28 @@ function ReportTabs({
           <div className="space-y-8">
             <TechStack technologies={report.technologies} />
             <StructurePanel structure={report.structure} />
+            <ModuleSummaryPanel repositoryId={repositoryId} snapshotId={snapshotId} modules={modules} />
             <CapabilityMatrix rows={report.capabilityMatrix} />
             <LimitationsPanel limitations={report.limitations} />
           </div>
         )}
         {active.id === 'dependencies' && <DependencyTable repositoryId={repositoryId} snapshotId={snapshotId} />}
         {active.id === 'code-quality' && (
-          <FindingsList repositoryId={repositoryId} snapshotId={snapshotId} category="CODE_QUALITY" modules={modules} />
+          <div className="space-y-4">
+            <section aria-label="Technical debt summary" className="rounded border border-slate-200 bg-white p-3">
+              <h3 className="text-sm font-semibold">Technical debt summary</h3>
+              <p className="mb-2 text-xs text-slate-600">
+                An optional AI summary of the deduplicated findings of every analyzer (no source code is sent).
+              </p>
+              <InsightPanel
+                repositoryId={repositoryId}
+                snapshotId={snapshotId}
+                type="TECH_DEBT_SUMMARY"
+                actionLabel="Summarize technical debt"
+              />
+            </section>
+            <FindingsList repositoryId={repositoryId} snapshotId={snapshotId} category="CODE_QUALITY" modules={modules} />
+          </div>
         )}
         {active.id === 'security' && section && (
           <SecuritySection repositoryId={repositoryId} snapshotId={snapshotId} section={section} modules={modules} />

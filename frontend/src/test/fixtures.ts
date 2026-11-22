@@ -1,8 +1,10 @@
 import type {
+  AIProviders,
   AnalysisRun,
   ArchitectureReport,
   CapabilityMatrixRow,
   ConsolidatedReport,
+  Insight,
   Repository,
   RunStatus,
   Snapshot,
@@ -330,4 +332,120 @@ export const unsupportedArchitecture: ArchitectureReport = {
   patterns: [],
   diagrams: { layers: null, modules: null, apiFlow: null, entities: null, notes: [] },
   limitations: ['Architecture not supported for TypeScript: no analyzer pack for TypeScript'],
+}
+
+// ── AI (MVP 3) ───────────────────────────────────────────────────────────────────────────────
+
+const aiLimits = {
+  maxInputTokens: 12000,
+  maxOutputTokens: 1500,
+  maxCallsPerAnalysis: 10,
+  timeoutSeconds: 45,
+  maxRetries: 1,
+  charsPerToken: 4,
+}
+
+const unknownHealth = (detail: string) => ({ status: 'UNKNOWN' as const, detail, checkedAt: null, unavailableUntil: null })
+
+export const aiProvidersDisabled: AIProviders = {
+  enabled: false,
+  available: false,
+  unavailableReason: 'AI insights are unavailable: AI is disabled (ai.enabled=false).',
+  defaultProvider: 'ollama',
+  fallbackProviders: [],
+  setupGuideUrl: null,
+  limits: aiLimits,
+  cache: { enabled: true, ttl: 'PT168H' },
+  features: [],
+  providers: ['ollama', 'gemini', 'openrouter'].map((id) => ({
+    id,
+    enabled: false,
+    active: false,
+    dataHandling: id === 'ollama' ? ('LOCAL' as const) : ('HOSTED' as const),
+    dataHandlingAcknowledged: id === 'ollama',
+    permitted: false,
+    chatModel: '',
+    apiKeyConfigured: false,
+    health: unknownHealth('AI is disabled (ai.enabled=false).'),
+    capabilities: null,
+    pricingConfigured: false,
+    currency: 'USD',
+  })),
+}
+
+export const aiProvidersEnabled: AIProviders = {
+  ...aiProvidersDisabled,
+  enabled: true,
+  available: true,
+  unavailableReason: null,
+  providers: [
+    {
+      id: 'ollama',
+      enabled: true,
+      active: true,
+      dataHandling: 'LOCAL',
+      dataHandlingAcknowledged: true,
+      permitted: true,
+      chatModel: 'llama3.2',
+      apiKeyConfigured: false,
+      health: { status: 'UP', detail: 'Model llama3.2 is available.', checkedAt: '2026-11-22T10:00:00Z', unavailableUntil: null },
+      capabilities: {
+        supportsChat: true,
+        supportsStructuredOutput: true,
+        supportsEmbeddings: false,
+        supportsStreaming: false,
+        maxContextTokens: 8192,
+        modelName: 'llama3.2',
+        source: 'CONFIGURATION',
+      },
+      pricingConfigured: false,
+      currency: 'USD',
+    },
+    {
+      id: 'gemini',
+      enabled: true,
+      active: true,
+      dataHandling: 'HOSTED',
+      dataHandlingAcknowledged: false,
+      permitted: false,
+      chatModel: 'gemini-test',
+      apiKeyConfigured: true,
+      health: { status: 'UP', detail: 'ok', checkedAt: '2026-11-22T10:00:00Z', unavailableUntil: null },
+      capabilities: null,
+      pricingConfigured: false,
+      currency: 'USD',
+    },
+  ],
+}
+
+export const insightOk: Insight = {
+  type: 'EXPLAIN_CLASS',
+  targetId: 'sym-1',
+  targetLabel: 'OrderService',
+  status: 'OK',
+  aiGenerated: true,
+  explanation: '**OrderService** coordinates orders. <img src="https://evil.example/x.png"> <script>alert(1)</script> [click](javascript:alert(1))',
+  structured: {
+    summary: '**OrderService** coordinates orders.',
+    keyPoints: ['Uses OrderRepository'],
+    risks: ['orElseThrow without a message'],
+    evidenceRefs: ['E1', 'E2'],
+    missingEvidence: [],
+  },
+  provider: 'ollama',
+  model: 'llama3.2',
+  promptVersion: 'explain-class.v1',
+  fromCache: false,
+  fallback: false,
+  reason: null,
+  evidence: [
+    { id: 'E1', kind: 'TARGET', filePath: 'src/main/java/OrderService.java', startLine: 12, endLine: 60, sourceUrl: `https://github.com/acme/shop/blob/${'a'.repeat(40)}/src/main/java/OrderService.java#L12-L60`, truncated: false, text: 'class com.example.OrderService' },
+    { id: 'E2', kind: 'SOURCE', filePath: 'src/main/java/OrderService.java', startLine: 12, endLine: 60, sourceUrl: `https://github.com/acme/shop/blob/${'a'.repeat(40)}/src/main/java/OrderService.java#L12-L60`, truncated: true, text: '@Service\npublic class OrderService {' },
+  ],
+  withheldLines: 1,
+  warnings: [],
+  limitations: ['1 line(s) were withheld because a possible secret was detected.'],
+  commitSha: 'a'.repeat(40),
+  generatedAt: '2026-11-22T10:00:00Z',
+  setupGuideUrl: null,
 }
