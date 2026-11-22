@@ -80,7 +80,8 @@ AI_ENABLED=true
 AI_DEFAULT_PROVIDER=gemini                     # or openrouter, or keep ollama and list a fallback
 AI_PROVIDERS_GEMINI_ENABLED=true
 GEMINI_API_KEY=...                             # .env only; never commit it
-GEMINI_CHAT_MODEL=<model id>
+GEMINI_CHAT_MODEL=<model id>                   # list the ids your key can use: GET /v1beta/models
+GEMINI_THINKING_LEVEL=low                      # default; empty = not sent (for models that reject it)
 AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED=true
 # OpenRouter: AI_PROVIDERS_OPENROUTER_ENABLED, OPENROUTER_API_KEY, OPENROUTER_CHAT_MODEL,
 #             AI_PROVIDERS_OPENROUTER_DATA_HANDLING_ACKNOWLEDGED
@@ -88,9 +89,11 @@ AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED=true
 
 Then `docker compose up -d` (recreates the backend). Check `/settings/ai`: the provider should be *active* and *up*.
 
+**Gemini thinking.** Gemini models think before answering, and thinking tokens count against the same output limit as the answer (and are billed as output). The adapter therefore sends `thinkingConfig.thinkingLevel` (`GEMINI_THINKING_LEVEL`, default `low`) and adds a 2048-token thinking allowance on top of each answer's limit. Without this, a summary could spend its whole limit thinking and be cut off (`INVALID_OUTPUT`, now reported as "stopped at the output limit"). Very new models can also be overloaded on free keys (timeouts, HTTP 503): if a model keeps timing out, pick an older stable one.
+
 **Rules the router enforces.** The order is the user's preferred provider (stored per browser on the AI settings page), else `ai.features.<feature>.provider`, else `ai.default-provider`, then `ai.fallback-providers`. A hosted provider is never used without its acknowledgement and only for public repositories (`ai.allow-hosted-for-private-repositories=false`), so a local provider is never silently replaced by a hosted one. Rate-limited providers are skipped until their reset time (no retry storm); timeouts and 4xx are never retried, connection errors and 5xx at most `ai.limits.max-retries` times.
 
-**Limits and accounting.** `ai.limits.max-input-tokens` (12000, estimated at `ai.token-estimate.chars-per-token`), `max-output-tokens` (1500), `max-calls-per-analysis` (10 provider calls per analysis run; cached answers are free and still served), `timeout-seconds` (45), `max-retries` (1). Answers are cached for `ai.cache.ttl` (7 days) per provider, model, prompt version, commit and prompt. Every call and cache hit is recorded (`/api/v1/ai/usage`): provider-reported tokens are kept apart from estimates, and cost is shown only when you set `input-price-per-million-tokens` and `output-price-per-million-tokens` for the provider.
+**Limits and accounting.** `ai.limits.max-input-tokens` (12000, estimated at `ai.token-estimate.chars-per-token`), `max-output-tokens` (1500, `AI_MAX_OUTPUT_TOKENS`; an upper bound for the visible answer, each prompt template has its own lower limit and the smaller applies), `max-calls-per-analysis` (10 provider calls per analysis run; cached answers are free and still served), `timeout-seconds` (60, `AI_TIMEOUT_SECONDS`; keep it well below the frontend nginx `proxy_read_timeout` of 120 s), `max-retries` (1). Only validated answers are cached; timeouts and invalid answers are not, so a retry after a failure calls the provider again. Answers are cached for `ai.cache.ttl` (7 days) per provider, model, prompt version, commit and prompt. Every call and cache hit is recorded (`/api/v1/ai/usage`): provider-reported tokens are kept apart from estimates, and cost is shown only when you set `input-price-per-million-tokens` and `output-price-per-million-tokens` for the provider.
 
 **Source for insights.** The extracted source is normally deleted after an analysis. An insight that needs code rebuilds the workspace once from the commit's tarball (one GitHub request), and the regular sweep removes it again (within `repository.workspace.sweep-interval`). Set `ai.source.allow-download=false` to use parser facts only.
 

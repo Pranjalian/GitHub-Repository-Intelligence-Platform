@@ -75,14 +75,18 @@ public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue
 	 * @param currency currency of the prices, for display
 	 * @param requireHttps null: the provider's default (true for hosted providers); false only for tests
 	 * against a local stand-in
+	 * @param thinkingLevel Gemini only: {@code generationConfig.thinkingConfig.thinkingLevel} (e.g. {@code low}).
+	 * Thinking tokens count against the output limit and add latency, so a low level keeps answers fast and
+	 * complete. Blank: not sent (needed for models that do not accept a thinking level)
 	 */
 	public record ProviderSettings(boolean enabled, String baseUrl, String apiKey, String chatModel,
 			boolean dataHandlingAcknowledged, List<String> allowedHosts, Integer maxContextTokens,
 			Boolean structuredOutput, BigDecimal inputPricePerMillionTokens, BigDecimal outputPricePerMillionTokens,
-			String currency, Boolean requireHttps) {
+			String currency, Boolean requireHttps, String thinkingLevel) {
 
 		public ProviderSettings {
 			allowedHosts = allowedHosts == null ? List.of() : List.copyOf(allowedHosts);
+			thinkingLevel = thinkingLevel == null || thinkingLevel.isBlank() ? null : thinkingLevel.trim();
 		}
 
 		public boolean pricingConfigured() {
@@ -100,13 +104,14 @@ public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue
 
 	/**
 	 * @param maxInputTokens prompt budget (estimated); evidence is trimmed to fit
-	 * @param maxOutputTokens requested output limit
+	 * @param maxOutputTokens upper bound for the visible answer (each prompt template has its own, lower limit;
+	 * the smaller one applies). The Gemini adapter adds its thinking allowance on top
 	 * @param maxCallsPerAnalysis provider calls allowed per analysis run of a snapshot (cache hits are free)
-	 * @param timeoutSeconds per HTTP attempt
+	 * @param timeoutSeconds per HTTP attempt; keep it well below the reverse proxy's read timeout (nginx: 120 s)
 	 * @param maxRetries retries after a transient failure (connection error or 5xx); never unbounded
 	 */
 	public record Limits(@DefaultValue("12000") int maxInputTokens, @DefaultValue("1500") int maxOutputTokens,
-			@DefaultValue("10") int maxCallsPerAnalysis, @DefaultValue("45") int timeoutSeconds,
+			@DefaultValue("10") int maxCallsPerAnalysis, @DefaultValue("60") int timeoutSeconds,
 			@DefaultValue("1") int maxRetries) {
 
 		public Limits {

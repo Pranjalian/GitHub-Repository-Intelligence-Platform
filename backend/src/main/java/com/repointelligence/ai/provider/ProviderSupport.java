@@ -36,7 +36,7 @@ public abstract class ProviderSupport implements AIModelService {
 		this.clock = clock;
 		AIProperties.ProviderSettings configured = properties.provider(id);
 		this.settings = configured != null ? configured
-				: new AIProperties.ProviderSettings(false, null, null, null, false, null, null, null, null, null, null, null);
+				: new AIProperties.ProviderSettings(false, null, null, null, false, null, null, null, null, null, null, null, null);
 		String baseUrl = settings.baseUrl() == null || settings.baseUrl().isBlank() ? defaultBaseUrl : settings.baseUrl();
 		java.util.List<String> hosts = settings.allowedHosts().isEmpty() ? defaultHosts : settings.allowedHosts();
 		ProviderHttp built = null;

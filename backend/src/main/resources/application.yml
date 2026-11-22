@@ -149,6 +149,9 @@ ai:
       # Must be true before any repository excerpt is sent to this provider.
       data-handling-acknowledged: ${AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED:false}
       allowed-hosts: [generativelanguage.googleapis.com]
+      # Sent as generationConfig.thinkingConfig.thinkingLevel. Thinking tokens count against max-output-tokens
+      # and add latency; "low" keeps answers fast and complete. Empty: not sent (for models that reject it).
+      thinking-level: ${GEMINI_THINKING_LEVEL:low}
       # Optional pricing (per million tokens). Cost is only shown when both are set; it is never invented.
       input-price-per-million-tokens:
       output-price-per-million-tokens:
@@ -166,10 +169,14 @@ ai:
       currency: USD
   limits:
     max-input-tokens: 12000
-    max-output-tokens: 1500
+    # Upper bound for the visible answer; each prompt template has its own lower limit and the smaller applies.
+    # Thinking models (Gemini) get a separate thinking allowance on top in the adapter.
+    max-output-tokens: ${AI_MAX_OUTPUT_TOKENS:1500}
     # Provider calls per analysis run of a snapshot; cache hits do not count.
     max-calls-per-analysis: ${AI_MAX_CALLS_PER_ANALYSIS:10}
-    timeout-seconds: 45
+    # Per HTTP attempt. Keep well below the frontend nginx proxy_read_timeout (120 s): the insight request
+    # waits for the provider, and evidence collection and one 5xx retry come on top.
+    timeout-seconds: ${AI_TIMEOUT_SECONDS:60}
     # Retries after a connection error or 5xx only; timeouts and rate limits are never retried.
     max-retries: 1
   cache:

@@ -62,8 +62,13 @@ class ProviderAdapterTests {
 	}
 
 	static AIProperties properties(String id, String model, String key, int timeoutSeconds, int maxRetries) {
+		return properties(id, model, key, timeoutSeconds, maxRetries, null);
+	}
+
+	static AIProperties properties(String id, String model, String key, int timeoutSeconds, int maxRetries,
+			String thinkingLevel) {
 		AIProperties.ProviderSettings settings = new AIProperties.ProviderSettings(true, "http://localhost:" + API.port(),
-				key, model, true, List.of("localhost"), null, null, null, null, null, false);
+				key, model, true, List.of("localhost"), null, null, null, null, null, false, thinkingLevel);
 		return new AIProperties(true, id, List.of(), Map.of(), Map.of(id, settings),
 				new AIProperties.Limits(12000, 1500, 10, timeoutSeconds, maxRetries),
 				new AIProperties.Cache(true, Duration.ofDays(7)), new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30),
@@ -181,9 +186,65 @@ class ProviderAdapterTests {
 				.withRequestBody(matchingJsonPath("$.systemInstruction.parts[0].text", equalTo("SYSTEM TEXT")))
 				.withRequestBody(matchingJsonPath("$.contents[0].role", equalTo("user")))
 				.withRequestBody(matchingJsonPath("$.contents[0].parts[0].text", equalTo("USER TEXT")))
-				.withRequestBody(matchingJsonPath("$.generationConfig.maxOutputTokens", equalTo("300")))
+				// the answer's 300 tokens plus the thinking allowance, which Gemini counts against the same limit
+				.withRequestBody(matchingJsonPath("$.generationConfig.maxOutputTokens", equalTo("2348")))
 				.withRequestBody(matchingJsonPath("$.generationConfig.responseMimeType", equalTo("application/json"))));
 			assertThat(API.getAllServeEvents().get(0).getRequest().getUrl()).doesNotContain("key");
+			// no thinking level configured: nothing sent, so models without thinking support still work
+			assertThat(API.getAllServeEvents().get(0).getRequest().getBodyAsString()).doesNotContain("thinkingConfig");
+		}
+
+		@Test
+		void sendsTheConfiguredThinkingLevelAndCountsThinkingTokensAsOutput() {
+			GeminiAIModelService thinking = new GeminiAIModelService(
+					properties("gemini", "gemini-test", "gm-test-key", TIMEOUT, 1, "low"), CLOCK);
+			API.stubFor(post("/v1beta/models/gemini-test:generateContent").willReturn(json(200,
+					"{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{}\"}]},\"finishReason\":\"STOP\"}],"
+							+ "\"usageMetadata\":{\"promptTokenCount\":900,\"candidatesTokenCount\":80,"
+							+ "\"thoughtsTokenCount\":120}}")));
+
+			AIResponse response = thinking.generate(request(SCHEMA));
+
+			assertThat(response.status()).isEqualTo(AIStatus.OK);
+			assertThat(response.outputTokens()).as("answer + thinking, as Gemini bills them").isEqualTo(200);
+			API.verify(postRequestedFor(urlEqualTo("/v1beta/models/gemini-test:generateContent"))
+				.withRequestBody(matchingJsonPath("$.generationConfig.thinkingConfig.thinkingLevel", equalTo("low"))));
+		}
+
+		@Test
+		void aBlankThinkingLevelIsNotSent() {
+			GeminiAIModelService blank = new GeminiAIModelService(
+					properties("gemini", "gemini-test", "gm-test-key", TIMEOUT, 1, "  "), CLOCK);
+			API.stubFor(post("/v1beta/models/gemini-test:generateContent").willReturn(json(200,
+					"{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"hi\"}]},\"finishReason\":\"STOP\"}]}")));
+
+			assertThat(blank.generate(request(null)).status()).isEqualTo(AIStatus.OK);
+			assertThat(API.getAllServeEvents().get(0).getRequest().getBodyAsString()).doesNotContain("thinkingConfig");
+		}
+
+		@Test
+		void anAnswerCutOffAtTheOutputLimitIsInvalidOutputWithTheReason() {
+			API.stubFor(post("/v1beta/models/gemini-test:generateContent").willReturn(json(200,
+					"{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\\"summary\\\":\\\"half\"}]},"
+							+ "\"finishReason\":\"MAX_TOKENS\"}]}")));
+
+			AIResponse response = service.generate(request(SCHEMA));
+
+			assertThat(response.status()).isEqualTo(AIStatus.INVALID_OUTPUT);
+			assertThat(response.detail()).contains("output limit").contains("300 answer tokens");
+		}
+
+		@Test
+		void aRejectedThinkingLevelPointsAtTheSetting() {
+			GeminiAIModelService thinking = new GeminiAIModelService(
+					properties("gemini", "gemini-test", "gm-test-key", TIMEOUT, 1, "bogus"), CLOCK);
+			API.stubFor(post("/v1beta/models/gemini-test:generateContent")
+				.willReturn(json(400, "{\"error\":{\"message\":\"Invalid thinking level\"}}")));
+
+			AIResponse response = thinking.generate(request(null));
+
+			assertThat(response.status()).isEqualTo(AIStatus.ERROR);
+			assertThat(response.detail()).contains("HTTP 400").contains("GEMINI_THINKING_LEVEL");
 		}
 
 		@Test
@@ -242,7 +303,7 @@ class ProviderAdapterTests {
 		@Test
 		void hostedProvidersRequireHttpsByDefault() {
 			AIProperties.ProviderSettings plain = new AIProperties.ProviderSettings(true, "http://localhost:" + API.port(),
-					"k", "gemini-test", true, List.of("localhost"), null, null, null, null, null, null);
+					"k", "gemini-test", true, List.of("localhost"), null, null, null, null, null, null, null);
 			AIProperties props = new AIProperties(true, "gemini", List.of(), Map.of(), Map.of("gemini", plain),
 					new AIProperties.Limits(12000, 1500, 10, TIMEOUT, 1), new AIProperties.Cache(true, Duration.ofDays(7)),
 					new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null);
@@ -256,7 +317,7 @@ class ProviderAdapterTests {
 		@Test
 		void aHostOutsideTheAllowlistIsRefused() {
 			AIProperties.ProviderSettings elsewhere = new AIProperties.ProviderSettings(true, "https://evil.example", "k",
-					"gemini-test", true, List.of(), null, null, null, null, null, null);
+					"gemini-test", true, List.of(), null, null, null, null, null, null, null);
 			AIProperties props = new AIProperties(true, "gemini", List.of(), Map.of(), Map.of("gemini", elsewhere),
 					new AIProperties.Limits(12000, 1500, 10, TIMEOUT, 1), new AIProperties.Cache(true, Duration.ofDays(7)),
 					new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null);

@@ -36,6 +36,9 @@ public class GeminiAIModelService extends ProviderSupport {
 
 	static final String DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com";
 
+	/** Output tokens added for thinking; a ceiling only (unused tokens are not billed). */
+	static final int THINKING_ALLOWANCE_TOKENS = 2048;
+
 	private static final Pattern RETRY_DELAY = Pattern.compile("^(\\d+)(?:\\.\\d+)?s$");
 
 	private volatile Integer runtimeContextTokens;
@@ -93,10 +96,17 @@ public class GeminiAIModelService extends ProviderSupport {
 		user.putArray("parts").addObject().put("text", request.userPrompt());
 		ObjectNode generation = body.putObject("generationConfig");
 		generation.put("temperature", request.temperature());
-		generation.put("maxOutputTokens", request.maxOutputTokens());
+		// Gemini counts thinking tokens against maxOutputTokens. The request's limit is sized for the visible
+		// answer (prompt template), so thinking gets its own allowance on top; otherwise thinking alone can use
+		// the whole limit and the answer is cut off (finish reason MAX_TOKENS, invalid JSON).
+		generation.put("maxOutputTokens", request.maxOutputTokens() + THINKING_ALLOWANCE_TOKENS);
 		if (request.responseSchema() != null && structuredOutputEnabled(true)) {
 			// JSON mode; the schema itself is in the prompt and validated by the gateway
 			generation.put("responseMimeType", "application/json");
+		}
+		if (settings.thinkingLevel() != null) {
+			// thinking tokens share maxOutputTokens with the answer and add latency; a low level keeps both small
+			generation.putObject("thinkingConfig").put("thinkingLevel", settings.thinkingLevel());
 		}
 		ProviderHttp.Result result;
 		try {
@@ -114,7 +124,12 @@ public class GeminiAIModelService extends ProviderSupport {
 		}
 		if (!result.success()) {
 			AIStatus status = result.status() == 404 ? AIStatus.UNAVAILABLE : AIStatus.ERROR;
-			return AIResponse.failure(ID, model, status, describe(result.status(), model));
+			String detail = describe(result.status(), model);
+			if (result.status() == 400 && settings.thinkingLevel() != null) {
+				detail += " If this model does not accept a thinking level, set GEMINI_THINKING_LEVEL to empty"
+						+ " (ai.providers.gemini.thinking-level).";
+			}
+			return AIResponse.failure(ID, model, status, detail);
 		}
 		JsonNode json = parse(result.body());
 		JsonNode candidate = json == null ? null : json.path("candidates").path(0);
@@ -134,10 +149,27 @@ public class GeminiAIModelService extends ProviderSupport {
 					+ (reason != null ? " (finish reason " + reason + ")" : blocked != null ? " (blocked: " + blocked + ")" : "")
 					+ ".");
 		}
+		if ("MAX_TOKENS".equals(text(candidate.get("finishReason")))) {
+			// a cut-off answer is never valid JSON; say why instead of a generic validation failure
+			return AIResponse.failure(ID, model, AIStatus.INVALID_OUTPUT,
+					"Gemini stopped at the output limit before finishing the answer (" + request.maxOutputTokens()
+							+ " answer tokens + " + THINKING_ALLOWANCE_TOKENS + " for thinking). Lower GEMINI_THINKING_LEVEL"
+							+ " or use a model that thinks less.");
+		}
 		JsonNode usage = json.path("usageMetadata");
 		String answeredModel = json.hasNonNull("modelVersion") ? json.get("modelVersion").asString() : model;
 		return AIResponse.ok(ID, answeredModel, content.toString(), integer(usage.get("promptTokenCount")),
-				integer(usage.get("candidatesTokenCount")));
+				outputTokens(usage));
+	}
+
+	/** Answer plus thinking tokens: Gemini bills both as output, and both count against maxOutputTokens. */
+	private static Integer outputTokens(JsonNode usage) {
+		Integer answer = integer(usage.get("candidatesTokenCount"));
+		Integer thoughts = integer(usage.get("thoughtsTokenCount"));
+		if (answer == null) {
+			return thoughts;
+		}
+		return thoughts == null ? answer : answer + thoughts;
 	}
 
 	private HttpRequest.Builder authorized(HttpRequest.Builder builder) {
