@@ -122,3 +122,65 @@ ai:
   # Optional AI explanations (MVP 3). Off by default: the application is fully functional without AI,
   # and with ai.enabled=false no provider client is created and nothing is sent anywhere.
   enabled: ${AI_ENABLED:false}
+  # Provider used unless the request (preferred provider) or a feature route names another.
+  default-provider: ${AI_DEFAULT_PROVIDER:ollama}
+  # Tried in order when the selected provider is unavailable. A hosted provider is only ever used when
+  # its data-handling-acknowledged is true, so a local provider is never silently replaced by a hosted one.
+  fallback-providers: []
+  # Per-feature routing, e.g. a small local model for simple summaries:
+  #   features:
+  #     summarize-module: { provider: ollama, model: llama3.2:3b }
+  features: {}
+  providers:
+    ollama:
+      # Local models; nothing leaves the machine. Needs a running Ollama with the model pulled.
+      enabled: ${AI_PROVIDERS_OLLAMA_ENABLED:false}
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat-model: ${OLLAMA_CHAT_MODEL:}
+      allowed-hosts: [localhost, 127.0.0.1, host.docker.internal, ollama]
+      # context window of the model, if you want the prompt budget capped by it
+      max-context-tokens:
+    gemini:
+      # Hosted. Verify the provider's current terms, quotas and data use before enabling it.
+      enabled: ${AI_PROVIDERS_GEMINI_ENABLED:false}
+      base-url: https://generativelanguage.googleapis.com
+      api-key: ${GEMINI_API_KEY:}
+      chat-model: ${GEMINI_CHAT_MODEL:}
+      # Must be true before any repository excerpt is sent to this provider.
+      data-handling-acknowledged: ${AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED:false}
+      allowed-hosts: [generativelanguage.googleapis.com]
+      # Optional pricing (per million tokens). Cost is only shown when both are set; it is never invented.
+      input-price-per-million-tokens:
+      output-price-per-million-tokens:
+      currency: USD
+    openrouter:
+      # Hosted. Model availability, prices and free tiers change; nothing assumes a model is free.
+      enabled: ${AI_PROVIDERS_OPENROUTER_ENABLED:false}
+      base-url: https://openrouter.ai/api
+      api-key: ${OPENROUTER_API_KEY:}
+      chat-model: ${OPENROUTER_CHAT_MODEL:}
+      data-handling-acknowledged: ${AI_PROVIDERS_OPENROUTER_DATA_HANDLING_ACKNOWLEDGED:false}
+      allowed-hosts: [openrouter.ai]
+      input-price-per-million-tokens:
+      output-price-per-million-tokens:
+      currency: USD
+  limits:
+    max-input-tokens: 12000
+    max-output-tokens: 1500
+    # Provider calls per analysis run of a snapshot; cache hits do not count.
+    max-calls-per-analysis: ${AI_MAX_CALLS_PER_ANALYSIS:10}
+    timeout-seconds: 45
+    # Retries after a connection error or 5xx only; timeouts and rate limits are never retried.
+    max-retries: 1
+  cache:
+    enabled: true
+    ttl: P7D
+  token-estimate:
+    # Used when a provider does not report token usage; such counts are labelled ESTIMATED.
+    chars-per-token: 4
+  health-cache-ttl: PT30S
+  # How long a rate-limited provider is skipped when it gives no reset time.
+  rate-limit-cooldown: PT60S
+  allow-hosted-for-private-repositories: false
+  # Optional link to your setup guide, shown in the UI when AI is unavailable (the README section "AI insights").
+  setup-guide-url:

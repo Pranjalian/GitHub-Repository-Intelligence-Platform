@@ -71,11 +71,13 @@ public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue
 	 * @param inputPricePerMillionTokens price per million input tokens; cost stays null unless both prices are set
 	 * @param outputPricePerMillionTokens price per million output tokens
 	 * @param currency currency of the prices, for display
+	 * @param requireHttps null: the provider's default (true for hosted providers); false only for tests
+	 * against a local stand-in
 	 */
 	public record ProviderSettings(boolean enabled, String baseUrl, String apiKey, String chatModel,
 			boolean dataHandlingAcknowledged, List<String> allowedHosts, Integer maxContextTokens,
 			Boolean structuredOutput, BigDecimal inputPricePerMillionTokens, BigDecimal outputPricePerMillionTokens,
-			String currency) {
+			String currency, Boolean requireHttps) {
 
 		public ProviderSettings {
 			allowedHosts = allowedHosts == null ? List.of() : List.copyOf(allowedHosts);

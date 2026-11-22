@@ -90,9 +90,13 @@ class BoundaryE2eTests extends E2eTestBase {
 
 	@Test
 	void theWholeFlowWorksWithNoAiConfigurationOrBeansAtAll() throws Exception {
-		assertThat(context.getEnvironment().getProperty("ai.provider")).isNull();
+		// From MVP 3 the provider router exists, but with ai.enabled=false (the default) no provider bean, and
+		// so no provider HTTP client, is created.
+		assertThat(context.getEnvironment().getProperty("ai.enabled", Boolean.class)).isFalse();
+		assertThat(context.getBeansOfType(com.repointelligence.ai.provider.AIModelService.class)).isEmpty();
 		assertThat(List.of(context.getBeanDefinitionNames())).noneMatch(name -> name.toLowerCase().contains("openai")
-				|| name.toLowerCase().contains("anthropic") || name.toLowerCase().contains("aiprovider"));
+				|| name.toLowerCase().contains("anthropic") || name.toLowerCase().contains("ollama")
+				|| name.toLowerCase().contains("gemini") || name.toLowerCase().contains("openrouter"));
 
 		Analysis analysis = analyze("acme", "plain", "c".repeat(40), fixture("react-typescript").build());
 

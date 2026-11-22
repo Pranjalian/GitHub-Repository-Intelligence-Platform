@@ -178,7 +178,7 @@ class AIProviderRouterTests {
 		for (String id : List.of("ollama", "gemini", "openrouter")) {
 			boolean ack = acknowledgeHosted || List.of(acknowledged).contains(id);
 			providers.put(id, new AIProperties.ProviderSettings(true, "http://localhost", "k", id + "-model", ack, List.of(),
-					null, null, null, null, null));
+					null, null, null, null, null, null));
 		}
 		return new AIProperties(enabled, defaultProvider, fallbacks, features, providers,
 				new AIProperties.Limits(12000, 1500, 10, 45, 1), new AIProperties.Cache(true, Duration.ofDays(7)),
