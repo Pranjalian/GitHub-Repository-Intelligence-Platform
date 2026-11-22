@@ -56,7 +56,9 @@ public final class PromptAssembler {
 	public static String render(EvidenceBlock block) {
 		StringBuilder header = new StringBuilder(OPEN).append("id=").append(block.id()).append(" kind=").append(block.kind());
 		if (block.filePath() != null) {
-			header.append(" path=\"").append(neutralise(block.filePath()).replace('"', '\'')).append('"');
+			header.append(" path=\"")
+				.append(neutralise(block.filePath()).replace('"', '\'').replaceAll("\\p{Cntrl}", " "))
+				.append('"');
 		}
 		if (block.startLine() != null) {
 			header.append(" lines=").append(block.startLine()).append('-')

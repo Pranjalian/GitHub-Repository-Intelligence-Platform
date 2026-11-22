@@ -125,6 +125,34 @@ public class IngestionService {
 		}
 	}
 
+	/**
+	 * Re-creates the workspace of an already ingested snapshot from its immutable tarball, with the same
+	 * limits as ingestion, for on-demand readers such as AI insights. Changes no run, snapshot or file
+	 * record. The workspace is then removed by the regular sweep (retention rules unchanged).
+	 *
+	 * @throws IllegalStateException when the snapshot was never ingested
+	 */
+	public void restoreWorkspace(UUID snapshotId) throws IOException {
+		Target target = transaction.execute(status -> {
+			RepositorySnapshot snapshot = snapshots.findById(snapshotId)
+				.orElseThrow(() -> new ResourceNotFoundException("Snapshot not found."));
+			return new Target(snapshot.getId(), snapshot.getRepository().getOwner(), snapshot.getRepository().getName(),
+					snapshot.getCommitSha(), snapshot.getIngestionStatus() == IngestionStatus.INGESTED);
+		});
+		if (!target.alreadyIngested()) {
+			throw new IllegalStateException("The snapshot was never ingested.");
+		}
+		Path tarball = workspaces.downloadPath(snapshotId);
+		try {
+			github.downloadTarball(target.owner(), target.name(), target.sha(), tarball,
+					properties.maxTarballSizeMb() * 1024L * 1024L);
+			workspaces.extract(tarball, snapshotId, limits());
+		}
+		finally {
+			deleteQuietly(tarball);
+		}
+	}
+
 	private record Target(UUID snapshotId, String owner, String name, String sha, boolean alreadyIngested) {
 	}
 

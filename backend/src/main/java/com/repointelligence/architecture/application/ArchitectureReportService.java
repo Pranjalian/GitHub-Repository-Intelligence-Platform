@@ -308,7 +308,7 @@ public class ArchitectureReportService {
 				.add(new LayerClassDTO(simpleName(symbol.getFullyQualifiedName()), symbol.getFullyQualifiedName(),
 						symbol.getFilePath(), symbol.getStartLine(), layer.getConfidence(), layer.getMethod(),
 						layer.getEvidence() == null ? List.of() : layer.getEvidence(),
-						urls.of(symbol.getFilePath(), symbol.getStartLine(), symbol.getEndLine())));
+						urls.of(symbol.getFilePath(), symbol.getStartLine(), symbol.getEndLine()), symbol.getId()));
 		}
 		List<LayerDTO> result = new ArrayList<>();
 		grouped.forEach((layer, classes) -> {

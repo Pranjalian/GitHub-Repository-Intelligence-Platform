@@ -25,6 +25,9 @@ public final class PromptScrubber {
 
 	private static final int MAX_LINE = 2000;
 
+	/** Block kind of a verbatim file excerpt. */
+	public static final String SOURCE = "SOURCE";
+
 	private final GenericSecretScanAnalyzer scanner;
 
 	public PromptScrubber(GenericSecretScanAnalyzer scanner) {
@@ -44,7 +47,8 @@ public final class PromptScrubber {
 			Set<Integer> detected = scanner.secretLines(block.filePath(), text);
 			StringBuilder out = new StringBuilder();
 			for (int i = 0; i < lines.length; i++) {
-				Integer fileLine = block.startLine() == null ? null : block.startLine() + i;
+				// only file excerpts map text lines to file lines; metadata blocks merely name a location
+				Integer fileLine = !SOURCE.equals(block.kind()) || block.startLine() == null ? null : block.startLine() + i;
 				String line = lines[i];
 				if (line.length() > MAX_LINE) {
 					line = TOO_LONG;

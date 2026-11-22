@@ -12,4 +12,7 @@ public interface LayerAssignmentRepository extends JpaRepository<LayerAssignment
 
 	long countBySnapshotIdAndRunId(UUID snapshotId, UUID runId);
 
+	List<LayerAssignment> findBySnapshotIdAndRunIdAndSymbolIdIn(UUID snapshotId, UUID runId,
+			java.util.Collection<UUID> symbolIds);
+
 }

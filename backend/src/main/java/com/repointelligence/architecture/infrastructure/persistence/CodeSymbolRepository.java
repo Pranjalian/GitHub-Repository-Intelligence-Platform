@@ -12,4 +12,9 @@ public interface CodeSymbolRepository extends JpaRepository<CodeSymbol, UUID> {
 
 	long countBySnapshotIdAndRunId(UUID snapshotId, UUID runId);
 
+	/** Members (and nested types) of one type. */
+	List<CodeSymbol> findBySnapshotIdAndRunIdAndParentId(UUID snapshotId, UUID runId, UUID parentId);
+
+	List<CodeSymbol> findBySnapshotIdAndRunIdAndIdIn(UUID snapshotId, UUID runId, java.util.Collection<UUID> ids);
+
 }

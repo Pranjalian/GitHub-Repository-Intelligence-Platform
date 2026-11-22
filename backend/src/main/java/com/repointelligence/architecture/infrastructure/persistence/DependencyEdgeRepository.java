@@ -16,6 +16,10 @@ public interface DependencyEdgeRepository extends JpaRepository<DependencyEdge, 
 
 	long countBySnapshotIdAndRunId(UUID snapshotId, UUID runId);
 
+	/** Outgoing edges of the given symbols. */
+	List<DependencyEdge> findBySnapshotIdAndRunIdAndSourceIdIn(UUID snapshotId, UUID runId,
+			java.util.Collection<UUID> sourceIds);
+
 	List<DependencyEdge> findBySnapshotIdAndRunIdAndRelationshipType(UUID snapshotId, UUID runId,
 			RelationshipType relationshipType);
 

@@ -1,0 +1,51 @@
+# Prompt template suggest-refactoring.v1. Fixed text only: repository content is never substituted into these
+# fields; it is appended as delimited data blocks after the task, and PromptAssembler prepends the guard
+# that tells the model to treat it as untrusted data. Changing the meaning of a template means a new
+# version (new file), because the version is part of the cache key and of every usage record.
+id: suggest-refactoring
+version: 1
+feature: suggest-refactoring
+max-output-tokens: 1400
+temperature: 0.2
+system: |
+  Suggest refactorings for one Java type or method. Prefer small, safe, behaviour-preserving steps.
+  Ground every suggestion in the code and findings given, say why it helps and what could break.
+  Do not suggest changes to code you were not shown.
+task: |
+  Suggest refactorings for the code in the TARGET and SOURCE blocks, taking the FINDINGS and
+  DECLARATION blocks into account. Use only these blocks and list anything missing in missingEvidence.
+schema:
+  type: object
+  additionalProperties: false
+  required: [summary, suggestions, risks, evidenceRefs, missingEvidence]
+  properties:
+    summary:
+      type: string
+      minLength: 1
+      maxLength: 2000
+    suggestions:
+      type: array
+      maxItems: 6
+      items:
+        type: object
+        additionalProperties: false
+        required: [title, rationale, evidenceRefs]
+        properties:
+          title: {type: string, maxLength: 200}
+          rationale: {type: string, maxLength: 1500}
+          evidenceRefs:
+            type: array
+            maxItems: 10
+            items: {type: string, pattern: "^E[0-9]+$"}
+    risks:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 500}
+    evidenceRefs:
+      type: array
+      maxItems: 20
+      items: {type: string, pattern: "^E[0-9]+$"}
+    missingEvidence:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 300}

@@ -1,0 +1,44 @@
+# Prompt template explain-finding.v1. Fixed text only: repository content is never substituted into these
+# fields; it is appended as delimited data blocks after the task, and PromptAssembler prepends the guard
+# that tells the model to treat it as untrusted data. Changing the meaning of a template means a new
+# version (new file), because the version is part of the cache key and of every usage record.
+id: explain-finding
+version: 1
+feature: explain-finding
+max-output-tokens: 900
+temperature: 0.2
+system: |
+  Explain one finding of a deterministic static-analysis tool (code quality, security, architecture,
+  dependencies or tests) in plain language: what the rule detected, why it may matter in this code,
+  how likely it is to be a real problem, and how it is usually fixed. The finding itself comes from a
+  scanner, not from you: do not change its severity and do not claim it is verified or a false positive
+  unless the evidence shows it. Secret values are never shown to you; do not ask for them.
+task: |
+  Explain the finding in the TARGET block. The SOURCE block (if present) is the code around it. Use
+  only these blocks and list anything missing in missingEvidence.
+schema:
+  type: object
+  additionalProperties: false
+  required: [summary, keyPoints, risks, evidenceRefs, missingEvidence]
+  properties:
+    summary:
+      type: string
+      minLength: 1
+      maxLength: 3000
+      description: Plain-language explanation in Markdown (no HTML, no images, no links)
+    keyPoints:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 500}
+    risks:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 500}
+    evidenceRefs:
+      type: array
+      maxItems: 20
+      items: {type: string, pattern: "^E[0-9]+$"}
+    missingEvidence:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 300}

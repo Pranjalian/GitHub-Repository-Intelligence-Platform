@@ -178,6 +178,12 @@ ai:
   token-estimate:
     # Used when a provider does not report token usage; such counts are labelled ESTIMATED.
     chars-per-token: 4
+  source:
+    # When the extracted source was already deleted (the default after analysis), rebuild it once from the
+    # commit's tarball (one GitHub download) so an insight can include the code. false: parser facts only.
+    allow-download: true
+    # Longest source excerpt for one class or method.
+    max-lines: 400
   health-cache-ttl: PT30S
   # How long a rate-limited provider is skipped when it gives no reset time.
   rate-limit-cooldown: PT60S

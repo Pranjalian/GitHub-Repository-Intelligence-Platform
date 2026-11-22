@@ -45,7 +45,8 @@ public record ArchitectureReportDTO(UUID repositoryId, UUID snapshotId, UUID run
 	}
 
 	public record LayerClassDTO(String name, String fullyQualifiedName, String filePath, Integer line,
-			Confidence confidence, LayerMethod method, List<Evidence> evidence, String sourceUrl) {
+			Confidence confidence, LayerMethod method, List<Evidence> evidence, String sourceUrl,
+			@Schema(description = "Id of the type's code symbol, for the symbol endpoint and AI insights.") UUID symbolId) {
 	}
 
 	public record EndpointDTO(String httpMethod, String route,

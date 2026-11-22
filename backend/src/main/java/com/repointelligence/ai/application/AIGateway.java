@@ -307,7 +307,8 @@ public class AIGateway {
 			return null;
 		}
 		kept.append("\n... (truncated to fit the input token budget)");
-		Integer end = block.startLine() == null ? null : block.startLine() + count - 1;
+		Integer end = PromptScrubber.SOURCE.equals(block.kind()) && block.startLine() != null ? block.startLine() + count - 1
+				: block.endLine();
 		return block.withText(kept.toString(), end, true);
 	}
 

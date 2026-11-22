@@ -1,0 +1,45 @@
+# Prompt template summarize-module.v1. Fixed text only: repository content is never substituted into these
+# fields; it is appended as delimited data blocks after the task, and PromptAssembler prepends the guard
+# that tells the model to treat it as untrusted data. Changing the meaning of a template means a new
+# version (new file), because the version is part of the cache key and of every usage record.
+id: summarize-module
+version: 1
+feature: summarize-module
+max-output-tokens: 1000
+temperature: 0.2
+system: |
+  Summarize the responsibility of one module (build module or source root) of a code base from facts
+  that deterministic parsers extracted: its types and their layers, REST endpoints, dependencies and
+  finding counts. Do not guess what code you were not shown does; say what is unclear.
+task: |
+  Summarize the module in the TARGET block using the DECLARATION and FINDINGS blocks. List the main
+  responsibilities and the most important types. List anything missing in missingEvidence.
+schema:
+  type: object
+  additionalProperties: false
+  required: [summary, responsibilities, keyTypes, risks, evidenceRefs, missingEvidence]
+  properties:
+    summary:
+      type: string
+      minLength: 1
+      maxLength: 2500
+    responsibilities:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 400}
+    keyTypes:
+      type: array
+      maxItems: 12
+      items: {type: string, maxLength: 300}
+    risks:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 500}
+    evidenceRefs:
+      type: array
+      maxItems: 20
+      items: {type: string, pattern: "^E[0-9]+$"}
+    missingEvidence:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 300}

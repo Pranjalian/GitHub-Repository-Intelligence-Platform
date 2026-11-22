@@ -23,6 +23,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param limits call, token, time and retry limits
  * @param cache response cache
  * @param tokenEstimate heuristic used when a provider does not report token usage
+ * @param source how source excerpts for insights are obtained
  * @param healthCacheTtl how long a provider health check is reused
  * @param rateLimitCooldown how long a rate-limited provider is skipped when it gives no reset time
  * @param allowHostedForPrivateRepositories whether hosted providers may process non-public repositories
@@ -33,7 +34,8 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue("ollama") String defaultProvider,
 		List<String> fallbackProviders, Map<String, FeatureRoute> features,
 		Map<String, ProviderSettings> providers, @DefaultValue Limits limits, @DefaultValue Cache cache,
-		@DefaultValue TokenEstimate tokenEstimate, @DefaultValue("PT30S") Duration healthCacheTtl,
+		@DefaultValue TokenEstimate tokenEstimate, @DefaultValue Source source,
+		@DefaultValue("PT30S") Duration healthCacheTtl,
 		@DefaultValue("PT60S") Duration rateLimitCooldown,
 		@DefaultValue("false") boolean allowHostedForPrivateRepositories, String setupGuideUrl) {
 
@@ -123,6 +125,14 @@ public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue
 	}
 
 	public record Cache(@DefaultValue("true") boolean enabled, @DefaultValue("P7D") Duration ttl) {
+	}
+
+	/**
+	 * @param allowDownload rebuild a deleted workspace from the commit's tarball (one GitHub download) when an
+	 * insight needs source; when false, insights use parser facts only
+	 * @param maxLines longest excerpt of one symbol
+	 */
+	public record Source(@DefaultValue("true") boolean allowDownload, @DefaultValue("400") int maxLines) {
 	}
 
 	public record TokenEstimate(@DefaultValue("4") double charsPerToken) {

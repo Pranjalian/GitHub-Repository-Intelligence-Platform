@@ -63,7 +63,7 @@ class ProviderAdapterTests {
 				key, model, true, List.of("localhost"), null, null, null, null, null, false);
 		return new AIProperties(true, id, List.of(), Map.of(), Map.of(id, settings),
 				new AIProperties.Limits(12000, 1500, 10, timeoutSeconds, maxRetries),
-				new AIProperties.Cache(true, Duration.ofDays(7)), new AIProperties.TokenEstimate(4), Duration.ofSeconds(30),
+				new AIProperties.Cache(true, Duration.ofDays(7)), new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30),
 				Duration.ofSeconds(60), false, null);
 	}
 
@@ -242,7 +242,7 @@ class ProviderAdapterTests {
 					"k", "gemini-test", true, List.of("localhost"), null, null, null, null, null, null);
 			AIProperties props = new AIProperties(true, "gemini", List.of(), Map.of(), Map.of("gemini", plain),
 					new AIProperties.Limits(12000, 1500, 10, 2, 1), new AIProperties.Cache(true, Duration.ofDays(7)),
-					new AIProperties.TokenEstimate(4), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null);
+					new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null);
 
 			ProviderHealth health = new GeminiAIModelService(props, CLOCK).health();
 
@@ -256,7 +256,7 @@ class ProviderAdapterTests {
 					"gemini-test", true, List.of(), null, null, null, null, null, null);
 			AIProperties props = new AIProperties(true, "gemini", List.of(), Map.of(), Map.of("gemini", elsewhere),
 					new AIProperties.Limits(12000, 1500, 10, 2, 1), new AIProperties.Cache(true, Duration.ofDays(7)),
-					new AIProperties.TokenEstimate(4), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null);
+					new AIProperties.TokenEstimate(4), new AIProperties.Source(true, 400), Duration.ofSeconds(30), Duration.ofSeconds(60), false, null);
 
 			assertThat(new GeminiAIModelService(props, CLOCK).health().detail()).contains("not in ai.providers.gemini.allowed-hosts");
 		}

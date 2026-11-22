@@ -16,8 +16,22 @@ public class ArchitectureController {
 
 	private final ArchitectureReportService service;
 
-	public ArchitectureController(ArchitectureReportService service) {
+	private final com.repointelligence.architecture.application.SymbolQueryService symbols;
+
+	public ArchitectureController(ArchitectureReportService service,
+			com.repointelligence.architecture.application.SymbolQueryService symbols) {
 		this.service = service;
+		this.symbols = symbols;
+	}
+
+	@Operation(summary = "A code symbol of a snapshot with its members",
+			description = "Types list their methods, constructors, fields and nested types. Ids come from the "
+					+ "architecture report (layers[].classes[].symbolId) and are used for AI insights. 404 unless the "
+					+ "symbol belongs to the latest completed run of the snapshot.")
+	@GetMapping("/api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/symbols/{symbolId}")
+	public SymbolDTO symbol(@PathVariable UUID repositoryId, @PathVariable UUID snapshotId,
+			@PathVariable UUID symbolId) {
+		return symbols.symbol(repositoryId, snapshotId, symbolId);
 	}
 
 	@Operation(summary = "Architecture of a snapshot",

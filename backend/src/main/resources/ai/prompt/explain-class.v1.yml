@@ -1,0 +1,44 @@
+# Prompt template explain-class.v1. Fixed text only: repository content is never substituted into these
+# fields; it is appended as delimited data blocks after the task, and PromptAssembler prepends the guard
+# that tells the model to treat it as untrusted data. Changing the meaning of a template means a new
+# version (new file), because the version is part of the cache key and of every usage record.
+id: explain-class
+version: 1
+feature: explain-class
+max-output-tokens: 1200
+temperature: 0.2
+system: |
+  Explain one class or interface of a Java code base to a developer who is new to the code.
+  Describe its responsibility, how it collaborates with the related types given, and anything that
+  looks risky (error handling, concurrency, security, performance). Be concise and concrete.
+task: |
+  Explain the type described in the TARGET block. Its source is in the SOURCE block (it may be
+  truncated); DECLARATION blocks describe directly related types; FINDINGS blocks list static-analysis
+  findings inside it. Use only these blocks. If something needed for a full explanation is missing,
+  list it in missingEvidence.
+schema:
+  type: object
+  additionalProperties: false
+  required: [summary, keyPoints, risks, evidenceRefs, missingEvidence]
+  properties:
+    summary:
+      type: string
+      minLength: 1
+      maxLength: 3000
+      description: Plain-language explanation in Markdown (no HTML, no images, no links)
+    keyPoints:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 500}
+    risks:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 500}
+    evidenceRefs:
+      type: array
+      maxItems: 20
+      items: {type: string, pattern: "^E[0-9]+$"}
+    missingEvidence:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 300}

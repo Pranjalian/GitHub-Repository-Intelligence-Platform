@@ -1,0 +1,43 @@
+# Prompt template explain-method.v1. Fixed text only: repository content is never substituted into these
+# fields; it is appended as delimited data blocks after the task, and PromptAssembler prepends the guard
+# that tells the model to treat it as untrusted data. Changing the meaning of a template means a new
+# version (new file), because the version is part of the cache key and of every usage record.
+id: explain-method
+version: 1
+feature: explain-method
+max-output-tokens: 1000
+temperature: 0.2
+system: |
+  Explain one method or constructor of a Java code base to a developer who is new to the code.
+  Describe what it does step by step at a high level, its inputs and outputs, side effects, and
+  anything that looks risky (error handling, null handling, concurrency, security, performance).
+task: |
+  Explain the method described in the TARGET block. Its source is in the SOURCE block; the enclosing
+  type and the types it calls are in DECLARATION blocks; FINDINGS blocks list findings inside it. Use
+  only these blocks and list anything missing in missingEvidence.
+schema:
+  type: object
+  additionalProperties: false
+  required: [summary, keyPoints, risks, evidenceRefs, missingEvidence]
+  properties:
+    summary:
+      type: string
+      minLength: 1
+      maxLength: 3000
+      description: Plain-language explanation in Markdown (no HTML, no images, no links)
+    keyPoints:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 500}
+    risks:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 500}
+    evidenceRefs:
+      type: array
+      maxItems: 20
+      items: {type: string, pattern: "^E[0-9]+$"}
+    missingEvidence:
+      type: array
+      maxItems: 8
+      items: {type: string, maxLength: 300}
