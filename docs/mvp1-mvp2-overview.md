@@ -4,7 +4,7 @@ A short guide to what was built in MVP 1 (repository analysis) and MVP 2 (archit
 
 **In one sentence:** you give the platform a public GitHub URL; it downloads that exact commit, reads the code without ever running it, and produces an evidence-backed report of technologies, structure, dependencies, code quality, security, tests and (from MVP 2) architecture with diagrams.
 
-**No AI is used in MVP 1 or MVP 2.** MVP 3 (section 4a) adds optional AI explanations on top; everything below still works with AI disabled. Every result comes from parsers and fixed, data-driven rules, so the same commit always gives the same report, and every statement points to its evidence (file, line, annotation). AI arrives in MVP 3 as an optional add-on that only explains what MVP 1 and 2 discovered.
+**No AI is used in MVP 1 or MVP 2.** MVP 3 (section 4a) adds optional AI explanations on top, and MVP 4 (section 4b) code search (no AI) and optional Q&A; everything below still works with AI disabled. Every result comes from parsers and fixed, data-driven rules, so the same commit always gives the same report, and every statement points to its evidence (file, line, annotation). AI arrives in MVP 3 as an optional add-on that only explains what MVP 1 and 2 discovered.
 
 ---
 
@@ -160,6 +160,33 @@ flowchart TD
 
 AI only explains what the deterministic analysis found: it never changes a finding, a count or a status. Every answer says which provider and model wrote it, which prompt version was used and exactly which evidence was sent.
 
+## 4b. MVP 4 steps: Repository search and Q&A (search needs no AI)
+
+| Step | Title | One-liner |
+|---|---|---|
+| 4.1 | Chunking, keyword index and embeddings | An optional per-snapshot index job splits the commit's text files (secrets withheld first) into Java class and method chunks, YAML/properties sections, Markdown sections or labelled line windows, stores them with a PostgreSQL full-text index, and adds embeddings keyed by content hash, model and model version when an embedding model is configured. |
+| 4.2 | Deterministic search and hybrid retrieval | `GET .../search`: exact symbol lookup in the MVP 2 symbol graph and full-text search with language/module/file-type filters, no model involved; hybrid retrieval fuses keyword, symbol and semantic (pgvector or in-process cosine) results with reciprocal rank fusion; a retrieval evaluation set measures recall@5 and MRR. |
+| 4.3 | Q&A service and API | `POST .../questions`: retrieval, a bounded prompt through the AI gateway (all MVP 3 guardrails, own per-snapshot budget), and an answer whose citations are checked against the chunks that were sent; "not enough evidence" is said explicitly; without a model, deterministic search results are returned instead. |
+| 4.4 | Search and Q&A frontend | A Search page (always available) and a Q&A page with sources, follow-ups, the AI-generated badge and clear "AI unavailable" / "no embedding provider" states, both with the index status and an "Index this snapshot" button. |
+
+```mermaid
+flowchart TD
+    IX["Index this snapshot<br/>POST .../index"] --> W["Workspace (rebuilt from the tarball if needed)"]
+    W --> SC["Secret scrub (same as AI prompts)"]
+    SC --> CH["Chunker<br/>Java class/method, YAML, properties, Markdown, line windows"]
+    CH --> DB[("code_chunk<br/>+ tsvector keyword index")]
+    CH -.->|"only new content hashes"| EM["Embedding model (optional)<br/>Ollama or Gemini"]
+    EM -.-> EV[("chunk_embedding<br/>hash + model + version")]
+    S["Search page<br/>GET .../search"] --> SY["Symbol lookup (code_symbol)"]
+    S --> KW["Full-text search (code_chunk)"]
+    Q["Q&A page<br/>POST .../questions"] --> R["Hybrid retrieval<br/>keyword + symbol + semantic, fused"]
+    R --> GW["AI gateway<br/>scrub, budget, cache, schema"]
+    GW --> A["Answer with validated sources,<br/>or 'not enough evidence'"]
+    Q -.->|"no model"| KW
+```
+
+Search always works without AI: symbol search right after the analysis, text search once the snapshot is indexed. Every query is bound to one snapshot of one repository in the storage layer, so no answer can draw on another commit or repository. A Q&A answer is shown as grounded only when it cites at least one retrieved chunk that was actually sent; every citation links to GitHub at the exact commit.
+
 ---
 
 ## 5. Tools
@@ -186,6 +213,9 @@ AI only explains what the deterministic analysis found: it never changes a findi
 | Quality | Spotless, ESLint, TypeScript | Formatting, lint and type checks | MVP 1 |
 | AI (optional) | Ollama, Gemini, OpenRouter | Explanations behind `AIModelService`; all off by default | MVP 3 |
 | AI (optional) | networknt json-schema-validator 3.0.8 | Validates every structured AI answer | MVP 3 |
+| Search | PostgreSQL full-text search (`tsvector`, `simple` configuration) | Keyword index of code chunks | MVP 4 |
+| Search (optional) | pgvector 0.8.7 (in the Docker database image) | Semantic search; without it vectors are ranked in the application | MVP 4 |
+| AI (optional) | Ollama `/api/embed`, Gemini `batchEmbedContents` | Embeddings, separate from the chat model; off by default | MVP 4 |
 | Frontend | react-markdown 10.1.0 | AI text as Markdown, without raw HTML, images or links | MVP 3 |
 | CI | GitHub Actions | Backend, frontend and Docker image jobs on every push to `main` | MVP 1 |
 

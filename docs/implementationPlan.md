@@ -1196,10 +1196,10 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 6. Indexing is a separate, optional job per snapshot (`POST …/snapshots/{snapshotId}/index`), not part of the MVP 1 pipeline
 
 **Tests:**
-- [ ] Unit: Java class split into class and method chunks with correct metadata
-- [ ] Unit: chunk content is secret-redacted
-- [ ] Unit: unchanged content hashes are not re-embedded on a new snapshot
-- [ ] Unit: changing embedding model creates new embeddings without corrupting the old ones
+- [x] Unit: Java class split into class and method chunks with correct metadata
+- [x] Unit: chunk content is secret-redacted
+- [x] Unit: unchanged content hashes are not re-embedded on a new snapshot
+- [x] Unit: changing embedding model creates new embeddings without corrupting the old ones
 
 ---
 
@@ -1212,10 +1212,10 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 4. **Retrieval evaluation dataset:** `rag-eval/questions.yml` with questions → expected files/symbols for the fixtures; a test computes recall@K and MRR, measured separately from answer quality, and fails on regression below a threshold
 
 **Tests:**
-- [ ] Unit: symbol search finds exact identifiers; text search works with embeddings unavailable
-- [ ] Unit: semantic search returns relevant chunks for fixture queries
-- [ ] Unit: queries cannot return chunks from another snapshot or repository
-- [ ] Eval: recall@K / MRR above the agreed baseline
+- [x] Unit: symbol search finds exact identifiers; text search works with embeddings unavailable
+- [x] Unit: semantic search returns relevant chunks for fixture queries
+- [x] Unit: queries cannot return chunks from another snapshot or repository
+- [x] Eval: recall@K / MRR above the agreed baseline
 
 ---
 
@@ -1231,10 +1231,10 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 4. AI unavailable → `status: UNAVAILABLE` and the deterministic search results for the question terms
 
 **Tests:**
-- [ ] Unit: prompt within budget; answer includes source references; invalid citations removed/flagged
-- [ ] Unit: insufficient evidence → explicit response
-- [ ] Unit: prompt-injection chunk does not alter behaviour
-- [ ] Integration: full Q&A flow on an indexed fixture (WireMock provider)
+- [x] Unit: prompt within budget; answer includes source references; invalid citations removed/flagged
+- [x] Unit: insufficient evidence → explicit response
+- [x] Unit: prompt-injection chunk does not alter behaviour
+- [x] Integration: full Q&A flow on an indexed fixture (WireMock provider)
 
 ---
 
@@ -1246,20 +1246,20 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 3. Index status and "Index this snapshot" action
 
 **Tests:**
-- [ ] Unit: search works with AI disabled; QA unavailable states render
-- [ ] Integration (mock API): question → answer with sources
+- [x] Unit: search works with AI disabled; QA unavailable states render
+- [x] Integration (mock API): question → answer with sources
 
 ---
 
 ### MVP 4: Exit Criteria Checklist
 
-- [ ] Source indexed into meaningful, secret-redacted chunks
-- [ ] Deterministic symbol/text search works with no model configured
-- [ ] Semantic + keyword hybrid retrieval works; evaluation metrics tracked
-- [ ] Q&A returns grounded answers with source references, or says evidence is insufficient
-- [ ] No cross-repository or cross-commit leakage (tested)
-- [ ] Re-indexing a new commit is incremental by content hash
-- [ ] All previous MVP features still work
+- [x] Source indexed into meaningful, secret-redacted chunks (`RagIndexE2eTests`, `CodeChunkerTests`)
+- [x] Deterministic symbol/text search works with no model configured (`AIDisabledE2eTests`, `RagSearchE2eTests`)
+- [x] Semantic + keyword hybrid retrieval works; evaluation metrics tracked (`RetrievalEvaluationTests`; semantic verified with a deterministic stand-in embedder and the in-process vector store, not yet with a real embedding model or pgvector, see the MVP 4 completion report)
+- [x] Q&A returns grounded answers with source references, or says evidence is insufficient (`RagQaE2eTests`, WireMock model)
+- [x] No cross-repository or cross-commit leakage (tested: `RagIsolationE2eTests`)
+- [x] Re-indexing a new commit is incremental by content hash (`RagIndexE2eTests`)
+- [x] All previous MVP features still work (766 backend and 141 frontend tests green; Docker stack rebuilt and one spring-petclinic analysis re-run through nginx: report, findings, architecture, dependencies, tests, coverage and AI settings endpoints answer; see the completion report)
 
 ---
 
@@ -1497,4 +1497,15 @@ After each MVP, verify that **all prior exit criteria still pass**:
 - A persistent, server-side preferred provider per repository (today it is per browser) and a per-repository hosted-processing policy (today: public repositories only).
 - Prompt evaluation fixtures (expected key points per fixture class) to compare models and template versions, in the spirit of Problem §13.4.
 - **Per-feature model routing from environment variables.** The router already supports `ai.features.<feature>.provider` / `.model` (for example a light model for `summarize-module`, `tech-debt-summary` and `explain-finding`, and a stronger model only for `explain-class` and `suggest-refactoring`). Today this is set only in `application.yml` and cannot be set from `.env` or a hosting dashboard. Add environment variables such as `AI_FEATURE_EXPLAIN_CLASS_MODEL` (passed through `compose.yaml`, listed in `.env.example`, shown on `/settings/ai`), so free-tier daily quotas are spent on the cheap model and the stronger model is used only where it adds value. Context (2026-11-22, Gemini free tier): Gemini 3.6 Flash allows 20 requests per day, against 500 for Gemini 3.5 Flash Lite; the local setup now uses Flash Lite for every feature with `AI_MAX_CALLS_PER_ANALYSIS=5`.
+
+### C.5 MVP 4 follow-ups (search and Q&A)
+
+**Status:** recommended, not scheduled.
+- Evaluate retrieval with a real embedding model (for example Ollama `nomic-embed-text`) on the evaluation set and on spring-petclinic; the measured semantic and hybrid numbers use a lexical stand-in, and with it hybrid fusion is below keyword+symbol alone (recall@5 0.750 vs 0.833). If that holds for a real model, add a configurable weight per source to the fusion.
+- Run `PgVectorStoreTests` against the Docker database (`CREATE DATABASE repointel_vector_test`) and add it as an optional CI job with a pgvector service container (CI only, not needed for local builds).
+- Index automatically after an analysis (opt-in setting), and incrementally reuse chunks of unchanged files (today chunks are rebuilt, only embeddings are reused).
+- Approximate vector index (HNSW, per model as a partial expression index) once snapshots exceed a few tens of thousands of chunks.
+- A stemmed (`english`) keyword field for prose (Markdown, comments) next to the exact `simple` field for identifiers; today stemming is a light query-side prefix only.
+- Symbol extraction for other languages (C.2) so symbol search and symbol-based retrieval cover more than Java.
+- Server-side conversation list and reload (`GET .../conversations/{id}`); conversations are stored but the UI keeps them in memory only.
 

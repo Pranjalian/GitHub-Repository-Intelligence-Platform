@@ -402,12 +402,14 @@ com.repointelligence
 │   ├── usage/                       # Token/cost tracking
 │   └── cache/                       # Response caching
 │
-├── rag/                             # MVP 4
-│   ├── ingestion/
-│   ├── chunking/
-│   ├── embedding/
-│   ├── retrieval/
-│   └── vectorstore/
+├── rag/                             # MVP 4 (as built; see §19)
+│   ├── api/                         # IndexController, SearchController, QAController
+│   ├── indexing/                    # SnapshotIndexService/Indexer (job), ChunkStore (JDBC, tsvector)
+│   ├── chunking/                    # CodeChunker: Java (JavaParser), YAML/properties, Markdown, line windows
+│   ├── embedding/                   # EmbeddingService, EmbeddingStore (hash + model + version)
+│   ├── retrieval/                   # SearchService, RetrievalService (RRF), SymbolLookup, QueryTerms
+│   ├── vectorstore/                 # VectorStore: PgVectorStore or InProcessVectorStore
+│   └── qa/                          # QAService, conversations
 │
 ├── impact/                          # MVP 5
 │   ├── api/
@@ -1320,7 +1322,7 @@ graph TD
 | **PostgreSQL (zero-install)** | `mvnw spring-boot:test-run` starts the app with embedded PostgreSQL binaries (`TestRepoIntelligenceApplication` + `EmbeddedPostgresConfig`) | Binaries version pinned via `embedded-postgres-binaries-bom`; data discarded on exit |
 | **PostgreSQL (persistent)** | Native PostgreSQL 16 install (Windows: EDB installer) with `scripts/db/create-dev-db.sql` creating the `repointel` role and `repointelligence` database, or `docker compose up -d postgres` (same role and database) | App uses the `DB_URL`/`DB_USERNAME`/`DB_PASSWORD` defaults with `mvnw spring-boot:run` |
 | **Semgrep (optional)** | Included in the Docker backend image (pinned); otherwise a native install (`pip install semgrep`, or WSL on Windows) | Analyzer reports `UNAVAILABLE` when the CLI is not found |
-| **pgvector (MVP 4)** | Native install adds the pgvector extension. Tests: open decision, either embedded binaries built with pgvector or a native test database (see the implementation plan) | Stock embedded binaries do not include pgvector |
+| **pgvector (MVP 4)** | Docker Compose: `db/Dockerfile` (postgres:16-alpine + pgvector built from a checksum-pinned release). Native installs add the extension themselves. The V7 migration creates it only when available; otherwise vectors are ranked in the application. Tests: embedded PostgreSQL without pgvector (in-process store) plus the opt-in `PgVectorStoreTests` against a real database (`PGVECTOR_TEST_DB_URL`) | Stock embedded binaries do not include pgvector |
 | **Ollama (optional, MVP 3+)** | Native Ollama installer, pinned version | Only when local AI is enabled |
 
 ---
@@ -1495,3 +1497,15 @@ Targets as of this revision. Verify the current stable, mutually compatible vers
 | **Local runtime** | Docker Compose (PostgreSQL 16, backend, nginx frontend) recommended; native processes and embedded PostgreSQL also supported. Tests use embedded PostgreSQL, no Docker | n/a |
 | **Vector store (MVP 4)** | pgvector | 0.7+ |
 | **Local AI (MVP 3+)** | Ollama | pinned current |
+
+---
+
+## 19. MVP 4 as built (deviations and additions)
+
+- **pgvector is optional, the schema is not.** Vectors are stored as `real[]` in one `chunk_embedding` table keyed by `(content_hash, embedding_model, embedding_model_version)` with a `dimensions` column, instead of one `vector(N)` table per model. With pgvector installed, queries cast to `vector` and use `<=>`; without it (embedded tests, native installs without the extension) `InProcessVectorStore` ranks the snapshot's vectors exactly in the application (bounded by `rag.retrieval.max-in-process-vectors`). Both are exact (no ANN index): a snapshot holds at most `rag.indexing.max-chunks` chunks and every query is limited to one snapshot and one model version.
+- **Embedding providers live in `ai.provider`.** `EmbeddingModelService` is implemented by the existing Ollama and Gemini adapters (the same bean implements chat and embeddings), selected by `EmbeddingRouter` (`ai.embedding.provider`): one provider, no fallback, hosted only when acknowledged and permitted. The embedding model is `ai.providers.<id>.embedding-model`, separate from the chat model.
+- **Java chunks come from JavaParser directly** (same library and language level as the MVP 2 symbol graph), not from the stored `code_symbol` rows: the symbol graph exists only for Spring/Java production code, while the index also covers test sources and Javadoc.
+- **The RAG module depends on `ai`, `report`, `repository` and `analysis.generic`; nothing depends on `rag`** (package boundary test).
+- **Q&A has its own call budget** (`rag.qa.max-questions-per-snapshot`) through `GatewayRequest.CallBudget`; its usage records carry no run id, so Q&A never uses up an analysis run's insight budget. Embedding calls are recorded as usage (`embed-chunks`, `embed-query`) without a run id and are bounded per index job (`ai.embedding.max-batches-per-index`).
+- **Workspace leases.** Index jobs and source excerpts lease the workspace (`WorkspaceLeases`); the sweeper skips leased workspaces, and an index job deletes a workspace it had to rebuild once it is done.
+

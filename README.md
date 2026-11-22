@@ -1,8 +1,8 @@
 # GitHub Repository Intelligence Platform
 
-Evidence-backed analysis of public GitHub repositories. Submit a public repository URL and get a commit-scoped report: technologies, structure, dependencies, code quality, secrets and security rules, tests and (real) coverage, plus an honest capability matrix that says what the platform could not analyze and why. For Java/Spring Boot it also discovers the **architecture**: layers, REST endpoints with request/response types, JPA entities and relationships, dependency injection chains, Maven module dependencies, dependency cycles and design-pattern candidates, with Mermaid diagrams. It is deterministic: **no AI and no AI key are needed**, and no code from the analyzed repository is ever executed. Optionally (MVP 3), an AI provider you configure (local Ollama, or hosted Gemini/OpenRouter after you acknowledge their data handling) can **explain** classes, methods and findings, suggest refactorings and summarise modules and technical debt; every answer is marked AI-generated and lists the evidence it was given.
+Evidence-backed analysis of public GitHub repositories. Submit a public repository URL and get a commit-scoped report: technologies, structure, dependencies, code quality, secrets and security rules, tests and (real) coverage, plus an honest capability matrix that says what the platform could not analyze and why. For Java/Spring Boot it also discovers the **architecture**: layers, REST endpoints with request/response types, JPA entities and relationships, dependency injection chains, Maven module dependencies, dependency cycles and design-pattern candidates, with Mermaid diagrams. It is deterministic: **no AI and no AI key are needed**, and no code from the analyzed repository is ever executed. Optionally (MVP 3), an AI provider you configure (local Ollama, or hosted Gemini/OpenRouter after you acknowledge their data handling) can **explain** classes, methods and findings, suggest refactorings and summarise modules and technical debt; every answer is marked AI-generated and lists the evidence it was given. MVP 4 adds **code search** that needs no model (exact symbol lookup and full-text search in one commit) and optional **repository Q&A**: answers grounded in retrieved code with source links, or an explicit "not enough evidence".
 
-See [docs/](docs/) for the problem statement, architecture, implementation plan and the completion reports for [MVP 1](docs/mvp1-completion-report.md), [MVP 2](docs/mvp2-completion-report.md) and [MVP 3](docs/mvp3-completion-report.md).
+See [docs/](docs/) for the problem statement, architecture, implementation plan and the completion reports for [MVP 1](docs/mvp1-completion-report.md), [MVP 2](docs/mvp2-completion-report.md), [MVP 3](docs/mvp3-completion-report.md) and [MVP 4](docs/mvp4-completion-report.md).
 
 > Local single-user tool. There is no authentication yet: do not expose it to the public internet.
 
@@ -47,7 +47,7 @@ Host ports can be changed with `POSTGRES_PORT`, `BACKEND_PORT` and `FRONTEND_POR
 
 5. Optional AI insights: with AI configured (below), use **AI** next to a class on the architecture page (explain the class, suggest refactorings, explain a method), **Explain this finding** in a finding's detail panel, **Summarize technical debt** on the Code Quality tab and **Summarize module** on the Overview tab. **AI Settings** (`/settings/ai`) shows providers, health, data handling, limits and usage.
 
-API documentation: http://localhost:8080/swagger-ui.html. Flow: `POST /api/v1/repositories/analyze` returns a run id; poll `GET /api/v1/analysis-runs/{runId}`; read `GET /api/v1/repositories/{repositoryId}/reports/{snapshotId}` and the findings, dependencies, tests, coverage and architecture endpoints under `/snapshots/{snapshotId}/`. MVP 3 adds `GET .../snapshots/{snapshotId}/symbols/{symbolId}` (a type with its members), `POST .../snapshots/{snapshotId}/insights` (`{type, targetId, provider?}`; types `EXPLAIN_CLASS`, `EXPLAIN_METHOD`, `EXPLAIN_FINDING`, `SUGGEST_REFACTORING`, `SUMMARIZE_MODULE`, `TECH_DEBT_SUMMARY`), `GET /api/v1/ai/providers` and `GET /api/v1/ai/usage`. With AI disabled the insight endpoint answers `200` with `status: UNAVAILABLE` and a reason.
+API documentation: http://localhost:8080/swagger-ui.html. Flow: `POST /api/v1/repositories/analyze` returns a run id; poll `GET /api/v1/analysis-runs/{runId}`; read `GET /api/v1/repositories/{repositoryId}/reports/{snapshotId}` and the findings, dependencies, tests, coverage and architecture endpoints under `/snapshots/{snapshotId}/`. MVP 3 adds `GET .../snapshots/{snapshotId}/symbols/{symbolId}` (a type with its members), `POST .../snapshots/{snapshotId}/insights` (`{type, targetId, provider?}`; types `EXPLAIN_CLASS`, `EXPLAIN_METHOD`, `EXPLAIN_FINDING`, `SUGGEST_REFACTORING`, `SUMMARIZE_MODULE`, `TECH_DEBT_SUMMARY`), `GET /api/v1/ai/providers` and `GET /api/v1/ai/usage`. With AI disabled the insight endpoint answers `200` with `status: UNAVAILABLE` and a reason. MVP 4 adds `POST`/`GET .../snapshots/{snapshotId}/index` (index job and state), `GET .../snapshots/{snapshotId}/search?q=&type=symbol|text&language=&module=&fileType=&limit=` and `POST .../snapshots/{snapshotId}/questions` (`{question, conversationId?, provider?}`; statuses `OK`, `INSUFFICIENT_EVIDENCE`, `NOT_INDEXED`, `UNAVAILABLE` with deterministic `searchResults`, `SKIPPED`, `RATE_LIMITED`, `TIMEOUT`, `INVALID_OUTPUT`, `ERROR`).
 
 ## GitHub token
 
@@ -97,6 +97,16 @@ Then `docker compose up -d` (recreates the backend). Check `/settings/ai`: the p
 
 **Source for insights.** The extracted source is normally deleted after an analysis. An insight that needs code rebuilds the workspace once from the commit's tarball (one GitHub request), and the regular sweep removes it again (within `repository.workspace.sweep-interval`). Set `ai.source.allow-download=false` to use parser facts only.
 
+## Search and Q&A (MVP 4)
+
+Open a repository and choose **Search code** or **Ask a question** (routes `/repositories/:id/search` and `/repositories/:id/qa`).
+
+- **Symbol search** works right after the analysis and needs nothing else: an exact identifier (`OwnerController`, `Owner.getPets`, `org.x.Owner#getPets`), looked up in the MVP 2 symbol graph (Java). No prefix or fuzzy matching.
+- **Index this snapshot** (button on both pages, or `POST /api/v1/repositories/{id}/snapshots/{snapshotId}/index`) builds the snapshot's search index: text files are secret-scrubbed exactly like AI prompts, then split into Java class and method chunks (with Javadoc; test sources too), YAML and properties sections, Markdown sections, or labelled 60-line windows for other languages. Lockfiles, minified files and files over 256 KB are skipped and reported. It needs no AI and runs on its own thread, separate from analyses. If the extracted source was already deleted, it is rebuilt once from the commit's tarball (one GitHub request) and removed again afterwards.
+- **Text search** (after indexing): every word must match; identifiers also match by their camelCase parts (`findByLastName` matches *last name*). Filters: language, module, file type.
+- **Semantic search** needs an embedding model, configured separately from the chat model. With AI enabled and Ollama: `ollama pull nomic-embed-text`, then `OLLAMA_EMBEDDING_MODEL=nomic-embed-text` (any Ollama embedding model works; nothing is assumed). Gemini: `AI_EMBEDDING_PROVIDER=gemini`, `GEMINI_EMBEDDING_MODEL=<model id>` and the Gemini acknowledgement. Embeddings are stored per content hash, model and model version (the Ollama digest, Gemini's model version), so a new commit only embeds changed chunks, and changing the model creates new vectors without touching the old ones. There is no fallback between embedding providers: vectors of different models are not comparable. The Docker database includes **pgvector** (`db/Dockerfile`); elsewhere vectors are ranked in the application (`RAG_VECTOR_STORE=auto|pgvector|in-process`).
+- **Q&A**: the question is answered from the top chunks of a hybrid retrieval (keyword, symbol and semantic results, fused with reciprocal rank fusion). The prompt goes through the same AI gateway as insights (secret scrub, token budget, cache, schema validation, usage record) with its own budget of `RAG_MAX_QUESTIONS_PER_SNAPSHOT` (50) provider calls per snapshot. Every citation in the answer is checked against the chunks that were actually sent; unknown ones are removed and reported, and an answer that cites no retrieved chunk is not shown as grounded. When nothing relevant is found, or the model says the evidence is insufficient, the answer says so and lists what was searched. Follow-ups see only a summary of the last three turns. Without a model, the answer is *AI unavailable* plus deterministic search results for the question's words.
+
 ## Configuration reference
 
 All keys live in `backend/src/main/resources/application.yml` and can be overridden with environment variables or `-D` properties.
@@ -112,6 +122,8 @@ All keys live in `backend/src/main/resources/application.yml` and can be overrid
 | Architecture | `analysis.analyzers.spring-architecture-analyzer.options.include-tests` (default false), `max-symbols` (50000), `max-edges` (200000), `max-file-kb` (512); layer, repository and package rules in `backend/src/main/resources/architecture/spring-architecture.yml` |
 | Vulnerability lookup | `analysis.vulnerabilities.osv.*` |
 | AI (optional) | `ai.enabled` (`AI_ENABLED`), `default-provider`, `fallback-providers`, `features.<feature>.{provider,model}`, `providers.<id>.{enabled, base-url, api-key, chat-model, data-handling-acknowledged, allowed-hosts, max-context-tokens, structured-output, input-price-per-million-tokens, output-price-per-million-tokens, currency}`, `limits.*`, `cache.{enabled,ttl}`, `token-estimate.chars-per-token`, `source.{allow-download,max-lines}`, `health-cache-ttl`, `rate-limit-cooldown`, `allow-hosted-for-private-repositories`, `setup-guide-url`; prompt templates in `backend/src/main/resources/ai/prompt/` |
+| Embeddings (optional) | `ai.providers.<id>.embedding-model` (`OLLAMA_EMBEDDING_MODEL`, `GEMINI_EMBEDDING_MODEL`), `ai.embedding.{provider (AI_EMBEDDING_PROVIDER), batch-size, max-input-chars, max-batches-per-index}` |
+| Search index and Q&A | `rag.indexing.{allow-download, max-file-kb, max-files, max-chunks, max-chunk-lines, window-lines, window-overlap, excluded-files, queue-capacity}`, `rag.retrieval.{top-k, candidates, rrf-k, vector-store (RAG_VECTOR_STORE), max-in-process-vectors, max-search-results}`, `rag.qa.{max-question-chars, history-turns, history-answer-chars, max-questions-per-snapshot (RAG_MAX_QUESTIONS_PER_SNAPSHOT)}` |
 
 ## Known limitations
 
@@ -122,6 +134,7 @@ All keys live in `backend/src/main/resources/application.yml` and can be overrid
 - Deep analysis exists for Java/Maven; other stacks get generic analysis (structure, secrets, test files, npm dependencies) and an honest "unsupported" matrix, including for architecture.
 - Architecture discovery reads source only, with **no classpath**: types and inherited methods from libraries are not resolved (kept by name, labelled *unresolved*); calls are resolved only when the receiver's declared type is visible; reflection, proxies, conditional beans, `@Bean` methods, XML configuration, interface-declared or functional endpoints and Gradle modules are not analysed; test sources are excluded by default. Layers from package names alone and all pattern candidates except Spring Data repositories are *Likely* or *Possible*, never *Detected*.
 - AI insights (optional) are explanations, not analysis results: they can be wrong, are marked AI-generated and list their evidence. They see at most a bounded excerpt plus parser facts (no classpath, no runtime behaviour); class source excerpts start at the declaration, so Javadoc above a class is not included. The per-analysis call budget is counted per analysis run, and an in-progress budget reservation is held in memory (one backend instance). Insights for non-Java repositories are limited to findings, modules and technical debt (no symbols).
+- Search and Q&A (MVP 4): indexing is a separate step per snapshot (not part of the analysis). Text search does not stem words (*policies* does not match *policy*). Symbol search covers the Java symbol graph only; other languages fall back to type and method names of indexed chunks where there are any (none for line windows). Semantic search was verified with a deterministic stand-in embedder in tests, not with a real embedding model (see the MVP 4 completion report). The Q&A budget in progress is held in memory (one backend instance), like the insight budget.
 - There is **no authentication**: this is a local single-user tool. Do not expose it to the public internet.
 
 ## Run without Docker
@@ -185,7 +198,9 @@ Repository-derived text (file paths, code excerpts, findings) is untrusted: it m
 pnpm lint && pnpm typecheck && pnpm test --run && pnpm build
 ```
 
-Backend database tests use embedded PostgreSQL (no H2, no Docker).
+Backend database tests use embedded PostgreSQL (no H2, no Docker). The embedded binaries have no pgvector, so those tests use the in-process vector store; `PgVectorStoreTests` checks the pgvector store against a real database when `PGVECTOR_TEST_DB_URL` points to an empty test database with the extension (for example `CREATE DATABASE repointel_vector_test` in the Docker Compose database, then `PGVECTOR_TEST_DB_URL=jdbc:postgresql://localhost:5432/repointel_vector_test ./mvnw test -Dtest=PgVectorStoreTests`; it cleans that database).
+
+The retrieval evaluation (`RetrievalEvaluationTests`, questions in `backend/src/test/resources/rag-eval/questions.yml`) writes recall@5 and MRR per retrieval mode to `backend/target/rag-eval/report.md` and fails when a mode drops below its threshold.
 
 `./mvnw verify` also runs a Spotless check (unused imports, trailing whitespace, final newline). Fix violations with `./mvnw spotless:apply`.
 
@@ -224,7 +239,7 @@ Tests that need external CLIs (for example Semgrep) are tagged and excluded by d
 | maven-model (POM reading only) | 3.9.16 |
 | springdoc-openapi | 3.2.0 |
 | PostgreSQL (embedded, tests) | 16.16 |
-| PostgreSQL (Docker Compose) | `postgres:16-alpine` |
+| PostgreSQL (Docker Compose) | `postgres:16-alpine` + pgvector 0.8.7 (`db/Dockerfile`, built from the checksum-pinned source release) |
 | Semgrep (Docker backend image) | 1.186.0 |
 | zonky embedded-postgres | 2.2.2 |
 | Node.js (tested) | 22.14 |
