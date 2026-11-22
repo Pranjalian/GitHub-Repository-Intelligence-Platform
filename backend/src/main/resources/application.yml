@@ -117,3 +117,8 @@ app:
     title: GitHub Repository Intelligence Platform
     version: 0.0.1
     description: Deterministic analysis of public GitHub repositories.
+
+ai:
+  # Optional AI explanations (MVP 3). Off by default: the application is fully functional without AI,
+  # and with ai.enabled=false no provider client is created and nothing is sent anywhere.
+  enabled: ${AI_ENABLED:false}
