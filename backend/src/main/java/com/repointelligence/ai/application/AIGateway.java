@@ -46,7 +46,8 @@ import tools.jackson.databind.node.StringNode;
  * <li>secret scrub of every data block ({@link PromptScrubber})</li>
  * <li>bounded prompt: evidence trimmed to {@code ai.limits.max-input-tokens} (and the model's context)</li>
  * <li>cache lookup (a hit costs no call, so it is served even when the budget is used up)</li>
- * <li>call budget per analysis run ({@code ai.limits.max-calls-per-analysis})</li>
+ * <li>call budget per analysis run ({@code ai.limits.max-calls-per-analysis}), or the request's own feature
+ * budget (Q&A: per snapshot)</li>
  * <li>provider call with the timeout and retry limit (inside the adapter)</li>
  * <li>schema validation; invalid answers become INVALID_OUTPUT and are never shown</li>
  * <li>usage record (also for failures and cache hits)</li>
@@ -88,7 +89,7 @@ public class AIGateway {
 
 	private final Clock clock;
 
-	private final Map<UUID, AtomicInteger> inFlight = new ConcurrentHashMap<>();
+	private final Map<String, AtomicInteger> inFlight = new ConcurrentHashMap<>();
 
 	public AIGateway(AIProperties properties, AIProviderRouter router, GenericSecretScanAnalyzer secretScanner,
 			AIResponseCache cache, AIUsageService usage, AnalysisFindingRepository findings, Clock clock) {
@@ -164,11 +165,10 @@ public class AIGateway {
 		}
 
 		// 6. call budget
-		if (!reserve(request.runId())) {
+		GatewayRequest.CallBudget budget = budget(request);
+		if (!reserve(budget)) {
 			return new GatewayResult(AIStatus.SKIPPED, null, null, service.getProviderId(), model, promptVersion, false,
-					decision.fallback(), "AI call budget reached: at most " + properties.limits().maxCallsPerAnalysis()
-							+ " provider calls per analysis (ai.limits.max-calls-per-analysis). Cached answers are still served.",
-					included, scrubbed.withheldLines(), List.of(), null);
+					decision.fallback(), budget.exhausted(), included, scrubbed.withheldLines(), List.of(), null);
 		}
 		try {
 			// 7. provider call (timeout and retry limit inside the adapter)
@@ -237,7 +237,7 @@ public class AIGateway {
 					clock.instant());
 		}
 		finally {
-			release(request.runId());
+			release(budget);
 		}
 	}
 
@@ -363,8 +363,10 @@ public class AIGateway {
 			Integer inputTokens, Integer outputTokens, int estimatedInput, Integer estimatedOutput, Long latency,
 			String detail) {
 		try {
+			// calls under a feature budget carry no run id, so they never use up an analysis run's insight budget
+			UUID runId = request.budget() == null ? request.runId() : null;
 			usage.record(new AIUsageService.Call(provider, model, request.template().feature(),
-					request.template().promptVersion(), request.repositoryId(), request.snapshotId(), request.runId(), status,
+					request.template().promptVersion(), request.repositoryId(), request.snapshotId(), runId, status,
 					cacheHit, inputTokens, outputTokens, estimatedInput, estimatedOutput, latency, detail));
 		}
 		catch (RuntimeException ex) {
@@ -373,11 +375,22 @@ public class AIGateway {
 		}
 	}
 
-	private boolean reserve(UUID runId) {
-		AtomicInteger counter = inFlight.computeIfAbsent(runId == null ? new UUID(0, 0) : runId, id -> new AtomicInteger());
+	/** The request's own budget, else the per-run insight budget. */
+	private GatewayRequest.CallBudget budget(GatewayRequest request) {
+		if (request.budget() != null) {
+			return request.budget();
+		}
+		UUID runId = request.runId();
+		return new GatewayRequest.CallBudget("run:" + runId, properties.limits().maxCallsPerAnalysis(),
+				() -> usage.callsForRun(runId), "AI call budget reached: at most " + properties.limits().maxCallsPerAnalysis()
+						+ " provider calls per analysis (ai.limits.max-calls-per-analysis). Cached answers are still served.");
+	}
+
+	private boolean reserve(GatewayRequest.CallBudget budget) {
+		AtomicInteger counter = inFlight.computeIfAbsent(budget.key(), id -> new AtomicInteger());
 		synchronized (counter) {
-			long used = usage.callsForRun(runId) + counter.get();
-			if (used >= properties.limits().maxCallsPerAnalysis()) {
+			long used = budget.used().getAsLong() + counter.get();
+			if (used >= budget.limit()) {
 				return false;
 			}
 			counter.incrementAndGet();
@@ -385,8 +398,8 @@ public class AIGateway {
 		}
 	}
 
-	private void release(UUID runId) {
-		AtomicInteger counter = inFlight.get(runId == null ? new UUID(0, 0) : runId);
+	private void release(GatewayRequest.CallBudget budget) {
+		AtomicInteger counter = inFlight.get(budget.key());
 		if (counter != null) {
 			synchronized (counter) {
 				counter.decrementAndGet();

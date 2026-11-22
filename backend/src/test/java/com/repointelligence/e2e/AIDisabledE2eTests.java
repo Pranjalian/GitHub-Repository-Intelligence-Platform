@@ -71,4 +71,40 @@ class AIDisabledE2eTests extends E2eTestBase {
 		assertThat(jdbc.queryForObject("SELECT count(*) FROM ai_usage_record", Integer.class)).isZero();
 	}
 
+	@Test
+	void withoutAiQuestionsAreUnavailableAndDeterministicSearchAnswersInstead() throws Exception {
+		Analysis analysis = analyze("acme", "shop", "d6".repeat(20), fixture("spring-boot-architecture").build());
+		String base = "/api/v1/repositories/" + analysis.repositoryId() + "/snapshots/" + analysis.snapshotId();
+		String question = "{\"question\":\"Where are discount policies applied?\"}";
+
+		String notIndexed = mockMvc.perform(post(base + "/questions").contentType(MediaType.APPLICATION_JSON).content(question))
+			.andExpect(status().isOk())
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+		assertThat((String) JsonPath.read(notIndexed, "$.status")).isEqualTo("NOT_INDEXED");
+
+		indexAndWait(analysis);
+		String json = mockMvc.perform(post(base + "/questions").contentType(MediaType.APPLICATION_JSON).content(question))
+			.andExpect(status().isOk())
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+
+		assertThat((String) JsonPath.read(json, "$.status")).isEqualTo("UNAVAILABLE");
+		assertThat((Boolean) JsonPath.read(json, "$.aiGenerated")).isFalse();
+		assertThat((Object) JsonPath.read(json, "$.answer")).isNull();
+		assertThat((String) JsonPath.read(json, "$.reason")).contains("AI is disabled").contains("Deterministic search");
+		assertThat((List<String>) JsonPath.read(json, "$.searchResults[*].filePath"))
+			.contains("src/main/java/com/example/shop/service/DiscountPolicy.java");
+		// text and symbol search work with no model at all
+		String text = getJson(base + "/search?q=discount");
+		assertThat((String) JsonPath.read(text, "$.status")).isEqualTo("OK");
+		assertThat((List<?>) JsonPath.read(text, "$.results")).isNotEmpty();
+		String symbol = getJson(base + "/search?type=symbol&q=OrderService");
+		assertThat((List<String>) JsonPath.read(symbol, "$.results[*].qualifiedName"))
+			.contains("com.example.shop.service.OrderService");
+		assertThat(jdbc.queryForObject("SELECT count(*) FROM ai_usage_record", Integer.class)).isZero();
+	}
+
 }

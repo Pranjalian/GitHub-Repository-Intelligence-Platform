@@ -172,6 +172,33 @@ class AIGatewayTests {
 	}
 
 	@Test
+	void aFeatureBudgetIsSeparateFromTheRunBudgetAndItsCallsCarryNoRunId() {
+		// the run budget (3 in this test context) is used up first
+		for (int i = 0; i < 3; i++) {
+			gateway.execute(request(List.of(source("src/R" + i + ".java", 1, "class R" + i + " {}"))));
+		}
+		java.util.concurrent.atomic.AtomicLong used = new java.util.concurrent.atomic.AtomicLong();
+		GatewayRequest.CallBudget budget = new GatewayRequest.CallBudget("qa:" + snapshotId, 1, used::get,
+				"Q&A call budget reached.");
+		List<EvidenceBlock> evidence = List.of(source("src/Q.java", 1, "class Q {}"));
+
+		GatewayResult first = gateway.execute(new GatewayRequest(TEMPLATE, evidence, repositoryId, snapshotId, runId,
+				"ab".repeat(20), null, true, budget));
+		used.set(1);
+		GatewayResult second = gateway.execute(new GatewayRequest(TEMPLATE,
+				List.of(source("src/Q2.java", 1, "class Q2 {}")), repositoryId, snapshotId, runId, "ab".repeat(20), null, true,
+				budget));
+
+		assertThat(first.status()).isEqualTo(AIStatus.OK);
+		assertThat(second.status()).isEqualTo(AIStatus.SKIPPED);
+		assertThat(second.detail()).isEqualTo("Q&A call budget reached.");
+		assertThat(jdbc.queryForObject("SELECT count(*) FROM ai_usage_record WHERE run_id IS NULL", Integer.class))
+			.isEqualTo(1);
+		assertThat(jdbc.queryForObject("SELECT count(*) FROM ai_usage_record WHERE run_id = ?", Integer.class, runId))
+			.isEqualTo(3);
+	}
+
+	@Test
 	void promptsNeverContainSecretValues() {
 		String flagged = "zq8Rk2LmWv93TqPn";
 		jdbc.update("INSERT INTO analysis_finding (snapshot_id, run_id, analyzer_id, category, rule_id, severity, confidence,"

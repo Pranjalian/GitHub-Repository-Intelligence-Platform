@@ -61,6 +61,11 @@ public class AIUsageService {
 		return runId == null ? 0 : records.countByRunIdAndCacheHitFalse(runId);
 	}
 
+	/** Provider calls of one feature for one snapshot (e.g. Q&A), cache hits excluded. */
+	public long callsForSnapshotFeature(UUID snapshotId, String feature) {
+		return snapshotId == null ? 0 : records.countBySnapshotIdAndFeatureAndCacheHitFalse(snapshotId, feature);
+	}
+
 	private void applyCost(AIUsageRecord record, Call call, boolean reported) {
 		AIProperties.ProviderSettings settings = properties.provider(call.provider());
 		if (settings == null || !settings.pricingConfigured()) {

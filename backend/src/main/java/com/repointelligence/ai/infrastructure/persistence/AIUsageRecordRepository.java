@@ -10,4 +10,7 @@ public interface AIUsageRecordRepository extends JpaRepository<AIUsageRecord, UU
 	/** Provider calls (not cache hits) counted against the call budget of one analysis run. */
 	long countByRunIdAndCacheHitFalse(UUID runId);
 
+	/** Provider calls of one feature for one snapshot (feature budgets such as Q&A). */
+	long countBySnapshotIdAndFeatureAndCacheHitFalse(UUID snapshotId, String feature);
+
 }

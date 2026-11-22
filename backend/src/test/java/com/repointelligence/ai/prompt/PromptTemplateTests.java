@@ -30,7 +30,9 @@ class PromptTemplateTests {
 			schemas.getSchema(json.writeValueAsString(template.schema()));
 			assertThat(template.maxOutputTokens()).isBetween(200, 1500);
 		}
-		assertThat(registry.all()).hasSize(6);
+		// the six insight templates of MVP 3 plus answer-question (repository Q&A, MVP 4)
+		assertThat(registry.all()).hasSize(7);
+		assertThat(registry.forFeature("answer-question").promptVersion()).isEqualTo("answer-question.v1");
 	}
 
 	@Test
