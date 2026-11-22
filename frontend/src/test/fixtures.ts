@@ -1,4 +1,7 @@
 import type {
+  IndexStatus,
+  QuestionAnswer,
+  SearchResult,
   AIProviders,
   AnalysisRun,
   ArchitectureReport,
@@ -448,4 +451,113 @@ export const insightOk: Insight = {
   commitSha: 'a'.repeat(40),
   generatedAt: '2026-11-22T10:00:00Z',
   setupGuideUrl: null,
+}
+
+// ── MVP 4: search index, search and Q&A ────────────────────────────────────────────────────────
+
+export function indexStatus(status: IndexStatus['status'], extra: Partial<IndexStatus> = {}): IndexStatus {
+  const indexed = status === 'COMPLETED' || status === 'COMPLETED_WITH_WARNINGS'
+  return {
+    snapshotId: SNAP_NEW,
+    status,
+    embeddingStatus: indexed ? 'NOT_CONFIGURED' : null,
+    embeddingDetail: indexed ? 'No embeddings: AI is disabled (ai.enabled=false), so no embeddings are made.' : null,
+    embeddingProvider: null,
+    embeddingModel: null,
+    embeddingModelVersion: null,
+    embeddingDimensions: null,
+    filesIndexed: indexed ? 31 : null,
+    filesSkipped: indexed ? 2 : null,
+    chunkCount: indexed ? 75 : null,
+    embeddedChunks: indexed ? 0 : null,
+    reusedEmbeddings: null,
+    newEmbeddings: null,
+    detail: indexed ? 'Indexed 75 chunk(s) from 31 file(s); 2 file(s) skipped.' : 'This snapshot has not been indexed yet.',
+    warnings: [],
+    requestedAt: null,
+    startedAt: null,
+    completedAt: indexed ? '2026-11-22T10:00:00Z' : null,
+    vectorStore: 'in-process',
+    ...extra,
+  }
+}
+
+export const ownerControllerSymbol: SearchResult = {
+  kind: 'SYMBOL',
+  chunkId: null,
+  symbolId: '55555555-5555-5555-5555-555555555555',
+  symbolType: 'CLASS',
+  name: 'OwnerController',
+  qualifiedName: 'org.example.owner.OwnerController',
+  signature: null,
+  filePath: 'src/main/java/org/example/owner/OwnerController.java',
+  startLine: 48,
+  endLine: 188,
+  language: 'Java',
+  module: '.',
+  chunkType: null,
+  section: null,
+  score: null,
+  snippet: null,
+  sourceUrl: `https://github.com/octo/demo/blob/${SHA_NEW}/src/main/java/org/example/owner/OwnerController.java#L48-L188`,
+  redacted: false,
+}
+
+export const ownerChunk: SearchResult = {
+  ...ownerControllerSymbol,
+  kind: 'CHUNK',
+  symbolId: null,
+  chunkId: '66666666-6666-6666-6666-666666666666',
+  symbolType: null,
+  name: 'OwnerController.processFindForm',
+  chunkType: 'METHOD',
+  section: 'processFindForm(Owner, BindingResult, Model)',
+  startLine: 90,
+  endLine: 118,
+  score: 0.42,
+  snippet: 'Collection<Owner> results = this.owners.findByLastName(owner.getLastName());',
+  sourceUrl: `https://github.com/octo/demo/blob/${SHA_NEW}/src/main/java/org/example/owner/OwnerController.java#L90-L118`,
+}
+
+export function answer(extra: Partial<QuestionAnswer> = {}): QuestionAnswer {
+  return {
+    conversationId: '77777777-7777-7777-7777-777777777777',
+    messageId: '88888888-8888-8888-8888-888888888888',
+    question: 'Where are owners searched by last name?',
+    status: 'OK',
+    aiGenerated: true,
+    answer: 'Owners are looked up in `processFindForm` [E2]. <img src=x onerror=alert(1)>',
+    insufficientEvidence: false,
+    clarifyingQuestion: null,
+    missingEvidence: [],
+    sources: [
+      {
+        ref: 'E2',
+        chunkId: ownerChunk.chunkId as string,
+        filePath: ownerChunk.filePath,
+        startLine: 90,
+        endLine: 118,
+        chunkType: 'METHOD',
+        label: 'OwnerController.processFindForm',
+        snippet: ownerChunk.snippet,
+        sourceUrl: ownerChunk.sourceUrl,
+        score: 0.03,
+      },
+    ],
+    retrieved: [],
+    searched: 'keyword search for owners, searched, last, name (4 hit(s)); symbol lookup (no matching symbols); semantic search not used (the index has no embeddings (NOT_CONFIGURED))',
+    searchResults: [],
+    provider: 'ollama',
+    model: 'llama3.2',
+    promptVersion: 'answer-question.v1',
+    fromCache: false,
+    fallback: false,
+    reason: null,
+    warnings: [],
+    limitations: [],
+    commitSha: SHA_NEW,
+    generatedAt: '2026-11-22T10:00:00Z',
+    index: indexStatus('COMPLETED'),
+    ...extra,
+  }
 }

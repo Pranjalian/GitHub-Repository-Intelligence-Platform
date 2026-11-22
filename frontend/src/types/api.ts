@@ -555,3 +555,128 @@ export interface AIUsageRecord {
   latencyMs: number | null
   detail: string | null
 }
+
+// ── MVP 4: search index, deterministic search and repository Q&A ─────────────────────────────
+
+export type IndexState = 'NOT_INDEXED' | 'QUEUED' | 'INDEXING' | 'COMPLETED' | 'COMPLETED_WITH_WARNINGS' | 'FAILED'
+
+export type EmbeddingState = 'PENDING' | 'NOT_CONFIGURED' | 'UNAVAILABLE' | 'COMPLETED' | 'PARTIAL' | 'FAILED'
+
+export interface IndexStatus {
+  snapshotId: string
+  status: IndexState
+  embeddingStatus: EmbeddingState | null
+  embeddingDetail: string | null
+  embeddingProvider: string | null
+  embeddingModel: string | null
+  embeddingModelVersion: string | null
+  embeddingDimensions: number | null
+  filesIndexed: number | null
+  filesSkipped: number | null
+  chunkCount: number | null
+  embeddedChunks: number | null
+  reusedEmbeddings: number | null
+  newEmbeddings: number | null
+  detail: string | null
+  warnings: string[]
+  requestedAt: string | null
+  startedAt: string | null
+  completedAt: string | null
+  vectorStore: string | null
+}
+
+export const isIndexInFlight = (status: IndexState | undefined | null) => status === 'QUEUED' || status === 'INDEXING'
+
+export const isIndexSearchable = (status: IndexState | undefined | null) =>
+  status === 'COMPLETED' || status === 'COMPLETED_WITH_WARNINGS'
+
+export type SearchType = 'text' | 'symbol'
+
+export interface SearchParams {
+  q: string
+  type: SearchType
+  language?: string
+  module?: string
+  fileType?: string
+}
+
+export interface SearchResult {
+  kind: 'SYMBOL' | 'CHUNK'
+  chunkId: string | null
+  symbolId: string | null
+  symbolType: string | null
+  name: string | null
+  qualifiedName: string | null
+  signature: string | null
+  filePath: string
+  startLine: number | null
+  endLine: number | null
+  language: string | null
+  module: string | null
+  chunkType: string | null
+  section: string | null
+  score: number | null
+  snippet: string | null
+  sourceUrl: string | null
+  redacted: boolean
+}
+
+export interface SearchResponse {
+  query: string
+  type: 'TEXT' | 'SYMBOL'
+  status: 'OK' | 'NOT_INDEXED' | 'NOT_SUPPORTED'
+  reason: string | null
+  commitSha: string
+  source: 'SYMBOL_GRAPH' | 'CHUNK_NAMES' | 'KEYWORD_INDEX' | null
+  results: SearchResult[]
+  terms: string[]
+  index: IndexStatus
+}
+
+export type AnswerStatus = 'OK' | 'INSUFFICIENT_EVIDENCE' | 'NOT_INDEXED' | AIStatus
+
+export interface AnswerSource {
+  ref: string | null
+  chunkId: string
+  filePath: string
+  startLine: number
+  endLine: number
+  chunkType: string
+  label: string | null
+  snippet: string | null
+  sourceUrl: string | null
+  score: number | null
+}
+
+export interface QuestionAnswer {
+  conversationId: string | null
+  messageId: string | null
+  question: string
+  status: AnswerStatus
+  aiGenerated: boolean
+  answer: string | null
+  insufficientEvidence: boolean
+  clarifyingQuestion: string | null
+  missingEvidence: string[]
+  sources: AnswerSource[]
+  retrieved: AnswerSource[]
+  searched: string | null
+  searchResults: SearchResult[]
+  provider: string | null
+  model: string | null
+  promptVersion: string | null
+  fromCache: boolean
+  fallback: boolean
+  reason: string | null
+  warnings: string[]
+  limitations: string[]
+  commitSha: string | null
+  generatedAt: string | null
+  index: IndexStatus | null
+}
+
+export interface QuestionRequest {
+  question: string
+  conversationId?: string | null
+  provider?: string | null
+}

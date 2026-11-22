@@ -92,7 +92,19 @@ export default function RepositoryOverviewPage({ pollIntervalMs }: { pollInterva
           <h2 className="text-xl font-semibold">
             {repo.owner}/{repo.name}
           </h2>
-          <SnapshotSelector snapshots={items} selectedId={selected.id} onSelect={selectSnapshot} />
+          <div className="flex flex-wrap items-center gap-3">
+            <SnapshotSelector snapshots={items} selectedId={selected.id} onSelect={selectSnapshot} />
+            {completed && (
+              <nav aria-label="Snapshot views" className="flex gap-3 text-sm">
+                <Link to={`/repositories/${repositoryId}/search?snapshot=${selected.id}`} className="text-blue-700 hover:underline">
+                  Search code
+                </Link>
+                <Link to={`/repositories/${repositoryId}/qa?snapshot=${selected.id}`} className="text-blue-700 hover:underline">
+                  Ask a question
+                </Link>
+              </nav>
+            )}
+          </div>
         </div>
         <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
           <dt className="text-slate-500">URL</dt>

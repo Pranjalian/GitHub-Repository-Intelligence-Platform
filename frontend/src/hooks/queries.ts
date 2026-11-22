@@ -1,5 +1,9 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  askQuestion,
+  getIndexStatus,
+  requestIndex,
+  searchSnapshot,
   getAIProviders,
   getAIUsage,
   getSymbol,
@@ -16,7 +20,14 @@ import {
   listRepositories,
   listSnapshots,
 } from '../api/repositories'
-import { isTerminal, type FindingFilters, type InsightRequest } from '../types/api'
+import {
+  isIndexInFlight,
+  isTerminal,
+  type FindingFilters,
+  type InsightRequest,
+  type QuestionRequest,
+  type SearchParams,
+} from '../types/api'
 
 export const useRepositories = (page: number, size = 20) =>
   useQuery({
@@ -109,6 +120,43 @@ export function useInsight(repositoryId: string, snapshotId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (request: InsightRequest) => requestInsight(repositoryId, snapshotId, request),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['ai-usage'] }),
+  })
+}
+
+// ── MVP 4 ────────────────────────────────────────────────────────────────────────────────────
+
+/** Index state of a snapshot; polled while a job is queued or running. */
+export const useIndexStatus = (repositoryId: string, snapshotId: string | undefined, pollIntervalMs = 2000) =>
+  useQuery({
+    queryKey: ['index', repositoryId, snapshotId],
+    queryFn: () => getIndexStatus(repositoryId, snapshotId as string),
+    enabled: !!snapshotId,
+    refetchInterval: (query) => (isIndexInFlight(query.state.data?.status) ? pollIntervalMs : false),
+  })
+
+export function useRequestIndex(repositoryId: string, snapshotId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => requestIndex(repositoryId, snapshotId),
+    onSuccess: (status) => {
+      queryClient.setQueryData(['index', repositoryId, snapshotId], status)
+    },
+  })
+}
+
+/** Runs only for a submitted query (params null until then). */
+export const useSearch = (repositoryId: string, snapshotId: string | undefined, params: SearchParams | null) =>
+  useQuery({
+    queryKey: ['search', repositoryId, snapshotId, params],
+    queryFn: () => searchSnapshot(repositoryId, snapshotId as string, params as SearchParams),
+    enabled: !!snapshotId && !!params,
+  })
+
+export function useAskQuestion(repositoryId: string, snapshotId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (request: QuestionRequest) => askQuestion(repositoryId, snapshotId, request),
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['ai-usage'] }),
   })
 }

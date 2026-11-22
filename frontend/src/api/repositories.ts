@@ -3,8 +3,13 @@ import type {
   AIUsageRecord,
   AnalysisRun,
   CodeSymbol,
+  IndexStatus,
   Insight,
   InsightRequest,
+  QuestionAnswer,
+  QuestionRequest,
+  SearchParams,
+  SearchResponse,
   ArchitectureReport,
   AnalyzeRepositoryResponse,
   ConsolidatedReport,
@@ -90,3 +95,21 @@ export const getAIProviders = () => apiFetch<AIProviders>('/api/v1/ai/providers'
 
 export const getAIUsage = (filters: { provider?: string; feature?: string; page?: number; size?: number }) =>
   apiFetch<PageResponse<AIUsageRecord>>(`/api/v1/ai/usage${query({ ...filters })}`)
+
+// ── MVP 4: search index, search and Q&A ────────────────────────────────────────────────────────
+
+export const getIndexStatus = (repositoryId: string, snapshotId: string) =>
+  apiFetch<IndexStatus>(`${snapshotBase(repositoryId, snapshotId)}/index`)
+
+export const requestIndex = (repositoryId: string, snapshotId: string) =>
+  apiFetch<IndexStatus>(`${snapshotBase(repositoryId, snapshotId)}/index`, { method: 'POST' })
+
+export const searchSnapshot = (repositoryId: string, snapshotId: string, params: SearchParams) =>
+  apiFetch<SearchResponse>(`${snapshotBase(repositoryId, snapshotId)}/search${query({ ...params })}`)
+
+export const askQuestion = (repositoryId: string, snapshotId: string, request: QuestionRequest) =>
+  apiFetch<QuestionAnswer>(`${snapshotBase(repositoryId, snapshotId)}/questions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  })
