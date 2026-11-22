@@ -1,6 +1,7 @@
 package com.repointelligence.repository.application;
 
 import com.repointelligence.common.exception.UpstreamRateLimitException;
+import com.repointelligence.repository.infrastructure.storage.WorkspaceLeases;
 import com.repointelligence.repository.infrastructure.storage.WorkspaceManager;
 import java.io.IOException;
 import java.util.Map;
@@ -28,11 +29,14 @@ public class SnapshotSourceService {
 
 	private final IngestionService ingestion;
 
+	private final WorkspaceLeases leases;
+
 	private final Map<UUID, Object> locks = new ConcurrentHashMap<>();
 
-	public SnapshotSourceService(WorkspaceManager workspaces, IngestionService ingestion) {
+	public SnapshotSourceService(WorkspaceManager workspaces, IngestionService ingestion, WorkspaceLeases leases) {
 		this.workspaces = workspaces;
 		this.ingestion = ingestion;
+		this.leases = leases;
 	}
 
 	/** Lines {@code from..to} (1-based, inclusive, clamped to the file) or the reason they are unavailable. */
@@ -78,6 +82,13 @@ public class SnapshotSourceService {
 		if (path == null || path.isBlank()) {
 			return Excerpt.unavailable("no file path");
 		}
+		// leased while reading, so the sweeper (or an index job tidying up) cannot remove the files meanwhile
+		try (WorkspaceLeases.Lease lease = leases.acquire(snapshotId)) {
+			return readLeased(snapshotId, path, from, to, allowDownload);
+		}
+	}
+
+	private Excerpt readLeased(UUID snapshotId, String path, int from, int to, boolean allowDownload) {
 		String problem = ensureWorkspace(snapshotId, allowDownload);
 		if (problem != null) {
 			return Excerpt.unavailable(problem);

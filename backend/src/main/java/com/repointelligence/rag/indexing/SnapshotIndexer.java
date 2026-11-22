@@ -7,7 +7,9 @@ import com.repointelligence.ai.prompt.EvidenceBlock;
 import com.repointelligence.ai.provider.AIProperties;
 import com.repointelligence.analysis.domain.ModuleRecord;
 import com.repointelligence.analysis.generic.GenericSecretScanAnalyzer;
+import com.repointelligence.analysis.infrastructure.persistence.AnalysisRunRepository;
 import com.repointelligence.analysis.infrastructure.persistence.ModuleRecordRepository;
+import com.repointelligence.common.model.RunStatus;
 import com.repointelligence.common.security.SecretRedactor;
 import com.repointelligence.rag.RagProperties;
 import com.repointelligence.rag.chunking.ChunkDraft;
@@ -58,7 +60,12 @@ public class SnapshotIndexer {
 	private static final Set<FileType> INDEXED_TYPES = Set.of(FileType.SOURCE, FileType.TEST, FileType.CONFIG,
 			FileType.BUILD, FileType.DOCS);
 
+	private static final Set<RunStatus> IN_FLIGHT_RUNS = Set.of(RunStatus.QUEUED, RunStatus.INGESTING,
+			RunStatus.ANALYZING);
+
 	private final SnapshotIndexRepository indexes;
+
+	private final AnalysisRunRepository runs;
 
 	private final ReportService reports;
 
@@ -94,8 +101,9 @@ public class SnapshotIndexer {
 			ModuleRecordRepository modules, SnapshotSourceService sources, WorkspaceManager workspaces,
 			WorkspaceLeases leases, CodeChunker chunker, ChunkStore chunks, EmbeddingService embeddings,
 			AIGateway gateway, GenericSecretScanAnalyzer secretScanner, RagProperties properties, AIProperties ai,
-			TransactionTemplate transactions, Clock clock) {
+			TransactionTemplate transactions, Clock clock, AnalysisRunRepository runs) {
 		this.indexes = indexes;
+		this.runs = runs;
 		this.reports = reports;
 		this.files = files;
 		this.modules = modules;
@@ -132,6 +140,7 @@ public class SnapshotIndexer {
 		if (job == null) {
 			return;
 		}
+		boolean existed = workspaces.exists(job.snapshotId());
 		try (WorkspaceLeases.Lease lease = leases.acquire(job.snapshotId())) {
 			index(job);
 		}
@@ -140,6 +149,28 @@ public class SnapshotIndexer {
 			finish(indexId, IndexStatus.FAILED,
 					"Indexing failed (" + ex.getClass().getSimpleName() + ": " + SecretRedactor.redact(String.valueOf(ex.getMessage())) + ").",
 					List.of());
+		}
+		finally {
+			if (!existed) {
+				removeRestoredWorkspace(job.snapshotId());
+			}
+		}
+	}
+
+	/**
+	 * A workspace rebuilt only for this job is removed again: everything was read once, and keeping a whole
+	 * extracted repository until the next hourly sweep serves nobody. It stays when an analysis or a reader
+	 * (insight excerpt, another job) is using it.
+	 */
+	private void removeRestoredWorkspace(UUID snapshotId) {
+		try {
+			if (!leases.isLeased(snapshotId) && !runs.findSnapshotIdsByStatusIn(IN_FLIGHT_RUNS).contains(snapshotId)) {
+				workspaces.delete(snapshotId);
+			}
+		}
+		catch (RuntimeException ex) {
+			log.warn("Could not remove the workspace of snapshot {} after indexing: {}", snapshotId,
+					ex.getClass().getSimpleName());
 		}
 	}
 

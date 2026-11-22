@@ -66,6 +66,10 @@ class RagIndexE2eTests extends RagE2eTestBase {
 		assertThat((Integer) JsonPath.read(index, "$.embeddingDimensions")).isEqualTo(64);
 		assertThat((String) JsonPath.read(index, "$.vectorStore")).isEqualTo("in-process");
 		int chunkCount = JsonPath.read(index, "$.chunkCount");
+		// the workspace was rebuilt from the tarball for indexing and removed again afterwards
+		GITHUB.verify(2, com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor(
+				com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo("/repos/acme/shop/tarball/" + SHA_A)));
+		assertThat(WORKSPACE_ROOT.resolve(analysis.snapshotId())).doesNotExist();
 		assertThat((Integer) JsonPath.read(index, "$.embeddedChunks")).isEqualTo(chunkCount);
 
 		List<Map<String, Object>> orderService = jdbc.queryForList("""
