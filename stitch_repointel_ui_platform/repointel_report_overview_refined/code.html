@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'surface-container-highest': '#31353f', 'error': '#ffb4ab', 'on-tertiary-fixed-variant': '#5516be', 'inverse-on-surface': '#2c303a', 'error-container': '#93000a', 'secondary': '#b7c8e1', 'secondary-fixed': '#d3e4fe', 'on-surface': '#dfe2ef', 'on-secondary-fixed': '#0b1c30', 'tertiary-fixed-dim': '#d0bcff', 'background': '#0f131c', 'on-secondary-fixed-variant': '#38485d', 'surface-container-lowest': '#0a0e17', 'surface-container-high': '#262a34', 'surface': '#0f131c', 'surface-container-low': '#181b25', 'inverse-primary': '#0053db', 'on-tertiary': '#3c0091', 'on-surface-variant': '#c3c6d7', 'on-error-container': '#ffdad6', 'on-error': '#690005', 'on-secondary': '#213145', 'on-tertiary-container': '#f6edff', 'outline-variant': '#434655', 'surface-container': '#1c1f29', 'primary-fixed-dim': '#b4c5ff', 'tertiary': '#d0bcff', 'on-background': '#dfe2ef', 'secondary-container': '#3a4a5f', 'tertiary-fixed': '#e9ddff', 'on-tertiary-fixed': '#23005c', 'outline': '#8d90a0', 'on-primary-fixed': '#00174b', 'secondary-fixed-dim': '#b7c8e1', 'primary-fixed': '#dbe1ff', 'surface-dim': '#0f131c', 'primary-container': '#2563eb', 'on-primary-fixed-variant': '#003ea8', 'on-primary-container': '#eeefff', 'primary': '#b4c5ff', 'surface-tint': '#b4c5ff', 'on-secondary-container': '#a9bad3', 'tertiary-container': '#7d4ce7', 'surface-bright': '#353943', 'inverse-surface': '#dfe2ef', 'on-primary': '#002a78', 'surface-variant': '#31353f' }, borderRadius: { 'DEFAULT': '0.125rem', 'lg': '0.25rem', 'xl': '0.5rem', 'full': '0.75rem' }, spacing: { 'margin': '1.5rem', 'gutter-dense': '0.5rem', 'space-lg': '1.25rem', 'space-md': '0.75rem', 'space-xl': '2rem', 'margin-mobile': '1rem', 'space-xs': '0.25rem', 'gutter': '1rem', 'space-sm': '0.5rem' }, fontFamily: { 'headline-xl-mobile': ['Geist'], 'headline-lg-mobile': ['Geist'], 'code-md': ['JetBrains Mono'], 'code-sm': ['JetBrains Mono'], 'code-lg': ['JetBrains Mono'], 'headline-md': ['Geist'], 'headline-lg': ['Geist'], 'body-md': ['Geist'], 'body-lg': ['Geist'], 'body-sm': ['Geist'], 'label-sm': ['JetBrains Mono'], 'label-md': ['JetBrains Mono'], 'headline-xl': ['Geist'] }, fontSize: { 'headline-xl-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '600' }], 'headline-lg-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.015em', fontWeight: '600' }], 'code-md': ['12px', { lineHeight: '16px', letterSpacing: '0em', fontWeight: '400' }], 'code-sm': ['11px', { lineHeight: '14px', letterSpacing: '0.02em', fontWeight: '500' }], 'code-lg': ['13px', { lineHeight: '20px', letterSpacing: '0em', fontWeight: '400' }], 'headline-md': ['18px', { lineHeight: '24px', letterSpacing: '-0.015em', fontWeight: '600' }], 'headline-lg': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '600' }], 'body-md': ['13px', { lineHeight: '18px', letterSpacing: '-0.002em', fontWeight: '400' }], 'body-lg': ['15px', { lineHeight: '22px', letterSpacing: '-0.005em', fontWeight: '400' }], 'body-sm': ['12px', { lineHeight: '16px', letterSpacing: '0em', fontWeight: '400' }], 'label-sm': ['10px', { lineHeight: '12px', letterSpacing: '0.06em', fontWeight: '500' }], 'label-md': ['11px', { lineHeight: '14px', letterSpacing: '0.04em', fontWeight: '600' }], 'headline-xl': ['32px', { lineHeight: '40px', letterSpacing: '-0.025em', fontWeight: '600' }] } } } };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 bottom-0 w-64 bg-surface-container-lowest z-50 flex flex-col justify-between overflow-y-auto"><div class="flex flex-col"><div class="px-space-md pt-space-md pb-space-sm bg-surface-container-low"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[20px]">terminal</span><span class="font-headline-md text-headline-md text-on-surface tracking-tight font-bold">RepoIntel</span></div><span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-space-xs py-0.5 rounded-DEFAULT">LOCAL</span></div><div class="mt-space-xs"><span class="font-code-sm text-code-sm text-outline block leading-tight">v1.4 Local Single-User • No Auth</span></div></div><div class="px-space-md pt-space-md pb-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Global Workspace</span></div><nav class="px-space-xs flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="font-body-md text-body-md">Dashboard</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="add-repository" href="#"><span class="material-symbols-outlined text-[18px]">add_circle</span><span class="font-body-md text-body-md">Add Repository</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ai-settings" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span class="font-body-md text-body-md">AI Settings</span></a></nav><div class="mt-space-md px-space-md py-space-xs bg-surface-container-low"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Active Context</span><span class="material-symbols-outlined text-primary text-[14px]">lock_open</span></div><div class="mt-space-xs flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-secondary">emoji_symbols</span><span class="font-code-sm text-code-sm text-on-surface font-semibold truncate">spring-petclinic</span></div><div class="mt-0.5 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-outline">commit</span><span class="font-code-sm text-code-sm text-outline">500158f</span><span class="font-label-sm text-label-sm text-outline">•</span><span class="font-code-sm text-code-sm text-outline">snapshot</span></div></div><div class="px-space-xs pt-space-xs flex flex-col gap-0.5"><div class="px-space-sm pt-space-xs pb-0.5"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Diagnostics</span></div><nav class="flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a aria-current="page" class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT transition-colors pl-space-md bg-surface-container-high text-on-surface font-semibold" data-path="report-overview" href="#"><span class="font-body-md text-body-md">Overview</span><span class="material-symbols-outlined text-[14px] text-outline">insights</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-dependencies" href="#"><span class="font-body-md text-body-md">Dependencies</span><span class="font-code-sm text-code-sm text-secondary bg-surface-container-high px-1 rounded-DEFAULT">48</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-code-quality" href="#"><span class="font-body-md text-body-md">Code Quality</span><span class="font-code-sm text-code-sm text-primary">94%</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-security" href="#"><span class="font-body-md text-body-md">Security</span><span class="font-code-sm text-code-sm text-error bg-surface-container-high px-1 rounded-DEFAULT">0 vuln</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-tests-coverage" href="#"><span class="font-body-md text-body-md">Tests &amp; Coverage</span><span class="font-code-sm text-code-sm text-outline">88.2%</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-architecture" href="#"><span class="font-body-md text-body-md">Architecture</span><span class="material-symbols-outlined text-[14px] text-outline">schema</span></a></nav><div class="px-space-sm pt-space-xs pb-0.5 mt-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Analytical Engine</span></div><nav class="flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="code-search" href="#"><span class="material-symbols-outlined text-[18px]">search</span><span class="font-body-md text-body-md">Code Search</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ask-qa" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">chat_paste_go</span><span class="font-body-md text-body-md">Ask (Q&amp;A)</span></div><span class="font-label-sm text-label-sm bg-tertiary-container text-on-tertiary-container px-1 py-0.5 rounded-DEFAULT font-bold">AI</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="impact-analysis" href="#"><span class="material-symbols-outlined text-[18px]">alt_route</span><span class="font-body-md text-body-md">Impact Analysis</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="investigations" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">manage_search</span><span class="font-body-md text-body-md">Investigations</span></div><span class="font-label-sm text-label-sm bg-tertiary-container text-on-tertiary-container px-1 py-0.5 rounded-DEFAULT font-bold">AI</span></a></nav></div></div><div class="p-space-sm bg-surface-container-low m-space-xs rounded-DEFAULT"><div class="flex items-center gap-space-xs"><div class="w-2 h-2 rounded-full bg-primary"></div><span class="font-code-sm text-code-sm text-on-surface font-semibold">Local Engine Idle</span></div><div class="mt-1 font-label-sm text-label-sm text-outline leading-tight">Sandboxed • Host Memory 1.4 GB</div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-14 bg-surface-container-lowest/90 backdrop-blur-md z-40 px-space-lg flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1.5 font-code-md text-code-md text-outline"><span class="hover:text-on-surface transition-colors cursor-pointer">spring-projects</span><span>/</span><span class="text-on-surface font-semibold hover:text-primary transition-colors cursor-pointer">spring-petclinic</span></div><span class="text-outline">:</span><button class="flex items-center gap-1 px-space-xs py-0.5 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-secondary hover:text-on-surface font-code-sm text-code-sm transition-colors"><span class="material-symbols-outlined text-[14px]">commit</span><span>500158f</span><span class="material-symbols-outlined text-[13px] text-outline">content_copy</span></button><div class="hidden xl:flex items-center gap-space-xs text-outline font-label-sm text-label-sm pl-space-xs"><span>•</span><span>2025-02-28</span><span>•</span><span class="text-primary font-medium">Completed</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-2 px-space-sm py-1 bg-surface-container-low rounded-DEFAULT"><div class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></div><span class="font-code-sm text-code-sm text-on-surface">AI: Local Ollama (llama3.2)</span></div><div class="hidden lg:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container-lowest rounded-DEFAULT"><span class="material-symbols-outlined text-primary text-[15px]">shield_lock</span><span class="font-label-sm text-label-sm text-outline">Daemon • Safe read-only</span></div><button class="w-7 h-7 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Toggle Theme"><span class="material-symbols-outlined text-[16px]">dark_mode</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-14 bg-background px-space-lg"><div class="flex flex-col w-full pb-space-xl">
+<!-- Sub-Header / Analysis Telemetry Bar -->
+<section class="py-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex flex-wrap items-center gap-space-sm min-w-0">
+<div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-secondary text-[16px]">save_as</span>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">main</span>
+</div>
+<div class="flex items-center gap-1.5 bg-surface-container px-space-sm py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-outline text-[14px]">commit</span>
+<span class="font-code-sm text-code-sm text-primary font-semibold" id="commit-sha">500158f</span>
+<button class="text-outline hover:text-on-surface transition-colors flex items-center" onclick="navigator.clipboard.writeText('500158f'); document.getElementById('copied-toast').classList.remove('opacity-0'); setTimeout(()=&gt;document.getElementById('copied-toast').classList.add('opacity-0'), 1500);" title="Copy commit hash">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+<span class="opacity-0 transition-opacity font-label-sm text-label-sm text-primary" id="copied-toast">copied</span>
+</div>
+<div class="relative group">
+<button class="flex items-center gap-space-xs bg-surface-container hover:bg-surface-container-high px-space-sm py-1 rounded-DEFAULT text-on-surface transition-colors">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Snapshot</span>
+<span class="font-code-sm text-code-sm font-semibold">2025-02-28 (Latest)</span>
+<span class="material-symbols-outlined text-[16px] text-outline">arrow_drop_down</span>
+</button>
+<div class="hidden group-hover:flex flex-col absolute left-0 top-full mt-1 w-56 bg-surface-container-high shadow-xl rounded-DEFAULT z-20 py-1">
+<a class="px-space-sm py-1.5 text-left font-code-sm text-code-sm text-on-surface bg-surface-container-highest flex items-center justify-between" href="#">
+<span>500158f (Current)</span>
+<span class="material-symbols-outlined text-[14px] text-primary">check</span>
+</a>
+<a class="px-space-sm py-1.5 text-left font-code-sm text-code-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors flex items-center justify-between" href="#">
+<span>a93bf12 (2025-02-14)</span>
+<span class="font-label-sm text-label-sm text-outline">v3.2.3</span>
+</a>
+<a class="px-space-sm py-1.5 text-left font-code-sm text-code-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors flex items-center justify-between" href="#">
+<span>08fc231 (2025-01-10)</span>
+<span class="font-label-sm text-label-sm text-outline">v3.2.0</span>
+</a>
+</div>
+</div>
+<div class="flex items-center gap-space-xs text-outline font-label-sm text-label-sm pl-space-xs">
+<span>Analyzed: Today 14:32:10 UTC</span>
+<span>•</span>
+<span class="text-secondary">Static Engine v1.4.2</span>
+</div>
+</div>
+<!-- Execution Status Telemetry -->
+<div class="flex items-center gap-space-md self-start md:self-auto">
+<div class="flex items-center gap-space-xs bg-surface-container-lowest px-space-sm py-1 rounded-DEFAULT">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="font-code-sm text-code-sm text-on-surface">Analysis Completed</span>
+<span class="font-label-sm text-label-sm text-outline font-mono">18.4s wall-clock</span>
+</div>
+<button class="flex items-center gap-1 px-space-sm py-1 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm uppercase rounded-DEFAULT transition-colors">
+<span class="material-symbols-outlined text-[14px]">refresh</span>
+<span>Re-Analyze</span>
+</button>
+</div>
+</section>
+<!-- Summary Telemetry Grid (6-Card Scannable Strip) -->
+<section class="mt-space-xs grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-space-xs">
+<!-- Card 1: Primary Stack -->
+<div class="bg-surface-container p-space-sm flex flex-col justify-between rounded-DEFAULT">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Primary Stack</span>
+<span class="font-label-sm text-label-sm text-primary bg-primary/10 px-1 rounded-DEFAULT">JAVA 17</span>
+</div>
+<div class="mt-space-xs">
+<div class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">Java 92%</div>
+<div class="font-code-sm text-code-sm text-secondary truncate mt-0.5">Spring Boot 3.2.4</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low -mx-space-sm -mb-space-sm px-space-sm py-1 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline">POM Target</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">Maven 3.9+</span>
+</div>
+</div>
+<!-- Card 2: Code Footprint -->
+<div class="bg-surface-container p-space-sm flex flex-col justify-between rounded-DEFAULT">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Code Footprint</span>
+<span class="font-label-sm text-label-sm text-outline bg-surface-container-high px-1 rounded-DEFAULT">AST</span>
+</div>
+<div class="mt-space-xs">
+<div class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">32 Files</div>
+<div class="font-code-sm text-code-sm text-on-surface-variant truncate mt-0.5">1 Maven Module • 3,412 SLOC</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low -mx-space-sm -mb-space-sm px-space-sm py-1 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline">Root</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono">src/main</span>
+</div>
+</div>
+<!-- Card 3: Dependencies -->
+<div class="bg-surface-container p-space-sm flex flex-col justify-between rounded-DEFAULT">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Dependencies</span>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-container/40 px-1 rounded-DEFAULT font-mono">BASIC</span>
+</div>
+<div class="mt-space-xs">
+<div class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">46 Direct</div>
+<div class="font-code-sm text-code-sm text-secondary truncate mt-0.5">14 Managed Starters</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low -mx-space-sm -mb-space-sm px-space-sm py-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-outline">info</span>
+<span class="font-label-sm text-label-sm text-outline truncate">Transitives omitted</span>
+</div>
+</div>
+<!-- Card 4: Findings Matrix -->
+<div class="bg-surface-container p-space-sm flex flex-col justify-between col-span-2 md:col-span-1 lg:col-span-2 rounded-DEFAULT">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Diagnostic Findings</span>
+<span class="font-code-sm text-code-sm text-on-surface font-bold bg-surface-container-high px-1.5 rounded-DEFAULT">22 Total</span>
+</div>
+<div class="mt-space-xs grid grid-cols-4 gap-1">
+<div class="bg-surface-container-lowest p-1 rounded-DEFAULT text-center">
+<div class="font-label-sm text-label-sm text-outline uppercase">Crit</div>
+<div class="font-headline-md text-headline-md text-outline font-semibold">0</div>
+</div>
+<div class="bg-error-container/20 p-1 rounded-DEFAULT text-center">
+<div class="font-label-sm text-label-sm text-error uppercase">High</div>
+<div class="font-headline-md text-headline-md text-error font-semibold">3</div>
+</div>
+<div class="bg-secondary-container/30 p-1 rounded-DEFAULT text-center">
+<div class="font-label-sm text-label-sm text-secondary uppercase">Med</div>
+<div class="font-headline-md text-headline-md text-secondary font-semibold">12</div>
+</div>
+<div class="bg-surface-container-low p-1 rounded-DEFAULT text-center">
+<div class="font-label-sm text-label-sm text-outline uppercase">Low</div>
+<div class="font-headline-md text-headline-md text-on-surface-variant font-semibold">7</div>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low -mx-space-sm -mb-space-sm px-space-sm py-1 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline">Semgrep (0) • PMD (22)</span>
+<span class="font-label-sm text-label-sm text-primary">0 Vulns</span>
+</div>
+</div>
+<!-- Card 5: Tests -->
+<div class="bg-surface-container p-space-sm flex flex-col justify-between rounded-DEFAULT">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Unit &amp; IT Suite</span>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-container/40 px-1 rounded-DEFAULT font-mono">STATIC</span>
+</div>
+<div class="mt-space-xs">
+<div class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">24 Tests</div>
+<div class="font-code-sm text-code-sm text-on-surface-variant truncate mt-0.5">AST Tagged (JUnit 5)</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low -mx-space-sm -mb-space-sm px-space-sm py-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-outline">not_started</span>
+<span class="font-label-sm text-label-sm text-outline truncate">Static Inventory Only</span>
+</div>
+</div>
+<!-- Card 6: Coverage (Honest Unavailable Data - Neutral Muted) -->
+<div class="bg-surface-container p-space-sm flex flex-col justify-between rounded-DEFAULT">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Coverage</span>
+<span class="font-label-sm text-label-sm text-outline bg-surface-container-high px-1 rounded-DEFAULT font-mono">N/A</span>
+</div>
+<div class="mt-space-xs">
+<div class="font-headline-md text-headline-md text-on-surface-variant font-bold tracking-tight">Unavailable</div>
+<div class="font-code-sm text-code-sm text-outline truncate mt-0.5">No committed JaCoCo report</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low -mx-space-sm -mb-space-sm px-space-sm py-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-outline">visibility_off</span>
+<span class="font-label-sm text-label-sm text-outline truncate">Not guessed</span>
+</div>
+</div>
+</section>
+<!-- Main Multi-Panel Diagnostic Stage -->
+<div class="mt-space-md grid grid-cols-1 lg:grid-cols-12 gap-space-md items-start">
+<!-- LEFT 8 COLS: Deep Diagnostic Evidence & Stack Lineage -->
+<div class="lg:col-span-8 flex flex-col gap-space-md">
+<!-- Section: Capability Matrix (Redesigned 2D Heat-Map Grid) -->
+<section class="bg-surface-container p-space-md flex flex-col gap-space-sm rounded-DEFAULT">
+<div class="flex flex-wrap items-center justify-between gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">grid_on</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Static Engine Capability Matrix</h2>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-primary bg-primary/10 px-1.5 py-0.5 rounded-DEFAULT">DEEP</span>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-container/40 px-1.5 py-0.5 rounded-DEFAULT">BASIC</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high px-1.5 py-0.5 rounded-DEFAULT">GENERIC</span>
+<span class="font-label-sm text-label-sm text-outline bg-surface-container-lowest px-1.5 py-0.5 rounded-DEFAULT">UNSUPPORTED / N/A</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Zero-execution, safe read-only sandbox coverage across detected technologies. Hover any cell for parser adapter details.
+        </p>
+<!-- 2D Heat-Map Grid -->
+<div class="mt-space-xs overflow-x-auto bg-surface-container-low rounded-DEFAULT">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-highest text-outline font-label-sm text-label-sm uppercase">
+<th class="py-space-xs px-space-sm min-w-[140px]">Technology</th>
+<th class="py-space-xs px-space-xs text-center">Technology</th>
+<th class="py-space-xs px-space-xs text-center">Structure</th>
+<th class="py-space-xs px-space-xs text-center">Dependencies</th>
+<th class="py-space-xs px-space-xs text-center">Code Quality</th>
+<th class="py-space-xs px-space-xs text-center">Security</th>
+<th class="py-space-xs px-space-xs text-center">Tests</th>
+<th class="py-space-xs px-space-xs text-center">Architecture</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20 font-code-sm text-code-sm">
+<!-- Row 1: Java 17 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-space-sm font-semibold text-on-surface whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>Java 17</span>
+</div>
+</td>
+<td class="p-1 text-center" title="JavaParser 3.25 full AST identifier matching &amp; JDK 17 target verification">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="TreeWalker + Package AST hierarchy resolved all 28 Java classes">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Direct imports parsed via AST; transitive resolution requires Maven network fetch">
+<div class="bg-secondary-container/30 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-secondary font-bold">BASIC</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Warnings</span>
+</div>
+</td>
+<td class="p-1 text-center" title="PMD 7.0.0-rc4 + Checkstyle rulesets executed on all 28 Java files (22 findings)">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Semgrep OSS java.spring ruleset scanned all Java sources; 0 vulnerabilities">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Clean (0)</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Annotation scanner (@Test, @ParameterizedTest) inventoried 24 tests; JVM not booted">
+<div class="bg-secondary-container/30 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-secondary font-bold">BASIC</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Inactive</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Full package &amp; class dependency graph extracted from Java AST">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+</tr>
+<!-- Row 2: Spring Boot 3.2.4 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-space-sm font-semibold text-on-surface whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>Spring Boot 3.2.4</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Detected via spring-boot-starter-parent v3.2.4 in pom.xml">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Resolved @SpringBootApplication, @Controller, @Service, and @Repository beans">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="14 managed starters identified; BOM transitives not expanded offline">
+<div class="bg-secondary-container/30 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-secondary font-bold">BASIC</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Warnings</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Spring-specific PMD &amp; Bean injection anti-pattern checks applied">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Semgrep Spring Web &amp; JPA injection rulesets passed with 0 findings">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Clean (0)</span>
+</div>
+</td>
+<td class="p-1 text-center" title="SpringBootTest &amp; WebMvcTest annotations inventoried statically">
+<div class="bg-secondary-container/30 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-secondary font-bold">BASIC</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Inactive</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Spring Component Dependency Graph Engine mapped all bean injections">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+</tr>
+<!-- Row 3: Apache Maven -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-space-sm font-semibold text-on-surface whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span>Apache Maven</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Maven POM StAX parser + .mvn/wrapper/maven-wrapper.properties">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Single-module POM structure &amp; standard src/main, src/test layout">
+<div class="bg-primary/10 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-primary font-bold">DEEP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="pom.xml direct XML parse only; no remote repository resolving">
+<div class="bg-secondary-container/30 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-secondary font-bold">BASIC</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Warnings</span>
+</div>
+</td>
+<td class="p-1 text-center" title="POM XML schema &amp; plugin version hygiene checked">
+<div class="bg-surface-container-high px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">GENERIC</span>
+<span class="font-label-sm text-label-sm text-outline border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="No CVE database lookup performed offline for Maven coordinates">
+<div class="bg-surface-container-lowest px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-outline font-bold">UNAVAILABLE</span>
+<span class="font-label-sm text-label-sm text-outline/80 border-b border-dotted border-outline/40">N/A</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Maven Surefire execution disabled in zero-execution sandbox">
+<div class="bg-surface-container-lowest px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-outline font-bold">UNAVAILABLE</span>
+<span class="font-label-sm text-label-sm text-outline/80 border-b border-dotted border-outline/40">N/A</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Build lifecycle &amp; module hierarchy not applicable to single-module POM">
+<div class="bg-surface-container-lowest px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-outline font-bold">UNSUPPORTED</span>
+<span class="font-label-sm text-label-sm text-outline/80 border-b border-dotted border-outline/40">N/A</span>
+</div>
+</td>
+</tr>
+<!-- Row 4: HTML / Thymeleaf -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-space-sm font-semibold text-on-surface whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span>HTML / Thymeleaf</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Detected 12 Thymeleaf templates under resources/templates">
+<div class="bg-secondary-container/30 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-secondary font-bold">BASIC</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Template directory &amp; fragment layout paths indexed">
+<div class="bg-surface-container-high px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">GENERIC</span>
+<span class="font-label-sm text-label-sm text-outline border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Template-to-controller model bindings not statically traced">
+<div class="bg-surface-container-lowest px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-outline font-bold">UNSUPPORTED</span>
+<span class="font-label-sm text-label-sm text-outline/80 border-b border-dotted border-outline/40">N/A</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Basic HTML well-formedness check only">
+<div class="bg-surface-container-high px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">GENERIC</span>
+<span class="font-label-sm text-label-sm text-outline border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Semgrep HTML/Thymeleaf XSS pattern scan clean">
+<div class="bg-secondary-container/30 px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-secondary font-bold">BASIC</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-b border-dotted border-outline/50">Clean (0)</span>
+</div>
+</td>
+<td class="p-1 text-center" title="No UI/DOM test runner available in static mode">
+<div class="bg-surface-container-lowest px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-outline font-bold">UNSUPPORTED</span>
+<span class="font-label-sm text-label-sm text-outline/80 border-b border-dotted border-outline/40">N/A</span>
+</div>
+</td>
+<td class="p-1 text-center" title="View layer architecture not graphed">
+<div class="bg-surface-container-lowest px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-outline font-bold">UNSUPPORTED</span>
+<span class="font-label-sm text-label-sm text-outline/80 border-b border-dotted border-outline/40">N/A</span>
+</div>
+</td>
+</tr>
+<!-- Row 5: CSS / SCSS -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-space-sm font-semibold text-on-surface whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span>CSS / SCSS</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Detected static stylesheet assets via file extension">
+<div class="bg-surface-container-high px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">GENERIC</span>
+<span class="font-label-sm text-label-sm text-outline border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Static asset file count &amp; SLOC">
+<div class="bg-surface-container-high px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">GENERIC</span>
+<span class="font-label-sm text-label-sm text-outline border-b border-dotted border-outline/50">Complete</span>
+</div>
+</td>
+<td class="p-1 text-center" title="No CSS/SCSS package resolver configured">
+<div class="bg-surface-container-lowest px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-outline font-bold">UNSUPPORTED</span>
+<span class="font-label-sm text-label-sm text-outline/80 border-b border-dotted border-outline/40">N/A</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Stylelint not enabled for this repository">
+<div class="bg-surface-container-lowest px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-outline font-bold">UNAVAILABLE</span>
+<span class="font-label-sm text-label-sm text-outline/80 border-b border-dotted border-outline/40">N/A</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Not applicable to static stylesheets">
+<div class="bg-surface-container-lowest px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-outline font-bold">UNSUPPORTED</span>
+<span class="font-label-sm text-label-sm text-outline/80 border-b border-dotted border-outline/40">N/A</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Not applicable to static stylesheets">
+<div class="bg-surface-container-lowest px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-outline font-bold">UNSUPPORTED</span>
+<span class="font-label-sm text-label-sm text-outline/80 border-b border-dotted border-outline/40">N/A</span>
+</div>
+</td>
+<td class="p-1 text-center" title="Not applicable to static stylesheets">
+<div class="bg-surface-container-lowest px-1.5 py-1 rounded-DEFAULT flex flex-col items-center gap-0.5 cursor-help">
+<span class="font-label-sm text-label-sm text-outline font-bold">UNSUPPORTED</span>
+<span class="font-label-sm text-label-sm text-outline/80 border-b border-dotted border-outline/40">N/A</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Section: Technology Stack (Grouped by Kind with Expandable Evidence) -->
+<section class="bg-surface-container p-space-md flex flex-col gap-space-md rounded-DEFAULT">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">stacks</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Technology Stack &amp; Evidence</h2>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Grouped by kind • Deterministic rule matches</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<!-- Group 1: Languages -->
+<div class="bg-surface-container-low p-space-sm rounded-DEFAULT">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-outline tracking-wider">Languages</span>
+<span class="font-label-sm text-label-sm text-primary font-mono bg-primary/10 px-1 rounded-DEFAULT">DETECTED</span>
+</div>
+<div class="flex items-baseline justify-between">
+<span class="font-body-lg text-body-lg text-on-surface font-semibold">Java <span class="font-code-sm text-code-sm text-outline font-normal">(JDK 17)</span></span>
+<span class="font-code-md text-code-md text-on-surface font-bold">92.4%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden flex my-space-xs">
+<div class="bg-primary h-full" style="width: 92.4%" title="Java: 92.4%"></div>
+<div class="bg-secondary h-full" style="width: 5.1%" title="XML: 5.1%"></div>
+<div class="bg-tertiary h-full" style="width: 2.5%" title="HTML/CSS: 2.5%"></div>
+</div>
+<div class="flex items-center gap-space-md font-code-sm text-code-sm text-outline mt-1">
+<span>XML: <span class="text-on-surface">5.1%</span></span>
+<span>•</span>
+<span>HTML/CSS: <span class="text-on-surface">2.5%</span></span>
+</div>
+<details class="group mt-space-xs">
+<summary class="cursor-pointer list-none flex items-center gap-1 font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[14px] group-open:rotate-90 transition-transform">chevron_right</span>
+<span>Evidence (3 file extensions)</span>
+</summary>
+<div class="mt-1 font-code-sm text-code-sm text-outline bg-surface-container-lowest p-1.5 rounded-DEFAULT">
+<span class="text-secondary">.java</span> (28 files, 3,152 SLOC) • <span class="text-secondary">.xml</span> (2 files, 174 SLOC) • <span class="text-secondary">.html/.css</span> (12 templates, 86 SLOC)
+</div></details>
+</div>
+<!-- Group 2: Frameworks -->
+<div class="bg-surface-container-low p-space-sm rounded-DEFAULT">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-outline tracking-wider">Frameworks</span>
+<span class="font-label-sm text-label-sm text-outline font-mono">3 detected</span>
+</div>
+<div class="space-y-1.5">
+<details class="group bg-surface-container p-1.5 rounded-DEFAULT" open="">
+<summary class="cursor-pointer list-none flex items-center justify-between font-body-sm text-body-sm font-semibold text-on-surface">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-primary">hub</span>
+<span>Spring Boot</span>
+<span class="font-code-sm text-code-sm text-secondary font-normal">v3.2.4</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-1 rounded-DEFAULT">DETECTED</span>
+<span class="material-symbols-outlined text-[14px] text-outline group-open:rotate-180 transition-transform">expand_more</span>
+</div>
+</summary>
+<div class="mt-1.5 font-code-sm text-code-sm text-outline bg-surface-container-lowest p-1.5 rounded-DEFAULT">
+<span class="text-secondary">pom.xml:21</span> — matched rule <span class="text-on-surface font-mono">spring-boot-starter-parent</span> (v3.2.4)
+</div>
+</details>
+<details class="group bg-surface-container p-1.5 rounded-DEFAULT">
+<summary class="cursor-pointer list-none flex items-center justify-between font-body-sm text-body-sm font-semibold text-on-surface">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-secondary">database</span>
+<span>Spring Data JPA</span>
+<span class="font-code-sm text-code-sm text-secondary font-normal">v3.2.4</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-1 rounded-DEFAULT">DETECTED</span>
+<span class="material-symbols-outlined text-[14px] text-outline group-open:rotate-180 transition-transform">expand_more</span>
+</div>
+</summary>
+<div class="mt-1.5 font-code-sm text-code-sm text-outline bg-surface-container-lowest p-1.5 rounded-DEFAULT">
+<span class="text-secondary">pom.xml:48</span> — matched rule <span class="text-on-surface font-mono">spring-boot-starter-data-jpa</span>; imports in <span class="text-on-surface font-mono">OwnerRepository.java</span>
+</div>
+</details>
+<details class="group bg-surface-container p-1.5 rounded-DEFAULT">
+<summary class="cursor-pointer list-none flex items-center justify-between font-body-sm text-body-sm font-semibold text-on-surface">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-secondary">web</span>
+<span>Spring Web MVC + Thymeleaf</span>
+<span class="font-code-sm text-code-sm text-secondary font-normal">v3.1.2</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-1 rounded-DEFAULT">DETECTED</span>
+<span class="material-symbols-outlined text-[14px] text-outline group-open:rotate-180 transition-transform">expand_more</span>
+</div>
+</summary>
+<div class="mt-1.5 font-code-sm text-code-sm text-outline bg-surface-container-lowest p-1.5 rounded-DEFAULT">
+<span class="text-secondary">pom.xml:56</span> — matched rule <span class="text-on-surface font-mono">spring-boot-starter-thymeleaf</span>; 12 templates in <span class="text-on-surface font-mono">resources/templates</span>
+</div>
+</details>
+</div>
+</div>
+<!-- Group 3: Build Tools & Package Managers -->
+<div class="bg-surface-container-low p-space-sm rounded-DEFAULT">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-outline tracking-wider">Build Tools &amp; Package Managers</span>
+</div>
+<details class="group bg-surface-container p-1.5 rounded-DEFAULT">
+<summary class="cursor-pointer list-none flex items-center justify-between font-body-sm text-body-sm font-semibold text-on-surface">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-primary">build</span>
+<span>Apache Maven</span>
+<span class="font-code-sm text-code-sm text-secondary font-normal">v3.9+ Wrapper</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-1 rounded-DEFAULT">DETECTED</span>
+<span class="material-symbols-outlined text-[14px] text-outline group-open:rotate-180 transition-transform">expand_more</span>
+</div>
+</summary>
+<div class="mt-1.5 font-code-sm text-code-sm text-outline bg-surface-container-lowest p-1.5 rounded-DEFAULT">
+<span class="text-secondary">pom.xml</span> — root declaration with <span class="text-on-surface font-mono">.mvn/wrapper/maven-wrapper.properties</span> &amp; <span class="text-on-surface font-mono">./mvnw</span>
+</div>
+</details>
+</div>
+<!-- Group 4: Databases & Persistence + Test Frameworks -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm">
+<div class="bg-surface-container-low p-space-sm rounded-DEFAULT">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-outline tracking-wider">Databases &amp; Persistence</span>
+</div>
+<div class="space-y-1.5">
+<details class="group bg-surface-container p-1.5 rounded-DEFAULT">
+<summary class="cursor-pointer list-none flex items-center justify-between font-body-sm text-body-sm font-semibold text-on-surface">
+<span>H2 In-Memory DB</span>
+<div class="flex items-center gap-1">
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-1 rounded-DEFAULT">DETECTED</span>
+<span class="material-symbols-outlined text-[14px] text-outline group-open:rotate-180 transition-transform">expand_more</span>
+</div>
+</summary>
+<div class="mt-1.5 font-code-sm text-code-sm text-outline bg-surface-container-lowest p-1.5 rounded-DEFAULT">
+<span class="text-secondary">pom.xml:72</span> — matched <span class="text-on-surface font-mono">com.h2database:h2</span> + <span class="text-on-surface font-mono">schema.sql</span>
+</div>
+</details>
+<details class="group bg-surface-container p-1.5 rounded-DEFAULT">
+<summary class="cursor-pointer list-none flex items-center justify-between font-body-sm text-body-sm font-semibold text-on-surface">
+<span>MySQL &amp; Postgres Drivers</span>
+<div class="flex items-center gap-1">
+<span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-1 rounded-DEFAULT">LIKELY</span>
+<span class="material-symbols-outlined text-[14px] text-outline group-open:rotate-180 transition-transform">expand_more</span>
+</div>
+</summary>
+<div class="mt-1.5 font-code-sm text-code-sm text-outline bg-surface-container-lowest p-1.5 rounded-DEFAULT">
+<span class="text-secondary">pom.xml:78</span> — runtime scope drivers declared for external profiles
+</div>
+</details>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-sm rounded-DEFAULT">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-outline tracking-wider">Test Frameworks</span>
+</div>
+<div class="space-y-1.5">
+<details class="group bg-surface-container p-1.5 rounded-DEFAULT">
+<summary class="cursor-pointer list-none flex items-center justify-between font-body-sm text-body-sm font-semibold text-on-surface">
+<span>JUnit 5 + Mockito + Testcontainers</span>
+<div class="flex items-center gap-1">
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-1 rounded-DEFAULT">DETECTED</span>
+<span class="material-symbols-outlined text-[14px] text-outline group-open:rotate-180 transition-transform">expand_more</span>
+</div>
+</summary>
+<div class="mt-1.5 font-code-sm text-code-sm text-outline bg-surface-container-lowest p-1.5 rounded-DEFAULT">
+<span class="text-secondary">pom.xml:94</span> — matched <span class="text-on-surface font-mono">org.testcontainers:junit-jupiter</span> &amp; <span class="text-on-surface font-mono">spring-boot-starter-test</span>
+</div>
+</details>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Optional "Module Summary" AI Card (Compact & Secondary) -->
+<section class="bg-tertiary-container/10 border border-tertiary/20 p-space-md rounded-DEFAULT flex flex-col gap-space-xs">
+<div class="flex flex-wrap items-center justify-between gap-space-xs">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary text-[16px]">auto_awesome</span>
+<h3 class="font-body-lg text-body-lg text-on-surface font-semibold">Module Summary</h3>
+<span class="font-label-sm text-label-sm bg-tertiary-container/40 text-tertiary px-1.5 py-0.5 rounded-DEFAULT font-mono">AI-GENERATED • OPTIONAL</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<select aria-label="Select module to summarize" class="bg-surface-container-low border border-outline-variant/50 text-on-surface font-code-sm text-code-sm rounded-DEFAULT px-space-sm py-1 focus:outline-none focus:border-tertiary">
+<option value="root">root (spring-petclinic)</option>
+<option value="owner">org.springframework.samples.petclinic.owner</option>
+<option value="vet">org.springframework.samples.petclinic.vet</option>
+</select>
+<button class="flex items-center gap-1 px-space-sm py-1 bg-tertiary-container text-on-tertiary-container hover:opacity-90 font-label-sm text-label-sm uppercase rounded-DEFAULT transition-opacity">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+<span>Summarize module</span>
+</button>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Generate a concise natural-language architectural summary for the selected module using local Ollama (<span class="font-code-sm text-on-surface">llama3.2</span>). Deterministic metrics above remain unaffected.
+        </p>
+</section>
+<!-- Section: Limitations Panel (Crucial Engineering Honesty) -->
+<section class="bg-surface-container-low p-space-md rounded-DEFAULT flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-secondary">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Analytical Boundaries &amp; Guardrails</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          To maintain zero-trust security and complete host safety, this report was compiled strictly from passive AST examination and file-tree parsing. Note the following intentional limitations:
+        </p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm mt-space-xs">
+<div class="bg-surface-container p-space-sm rounded-DEFAULT flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1 text-secondary mb-1">
+<span class="material-symbols-outlined text-[15px]">inventory_2</span>
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">Direct Scope Only</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">
+                Transitive BOM dependencies (e.g. spring-core via spring-boot-starter) are not dynamically expanded because network repository fetch is disabled.
+              </p>
+</div>
+<span class="font-label-sm text-label-sm text-secondary uppercase font-mono mt-space-xs">46 Direct / ~110 Estimated</span>
+</div>
+<div class="bg-surface-container p-space-sm rounded-DEFAULT flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1 text-secondary mb-1">
+<span class="material-symbols-outlined text-[15px]">play_disabled</span>
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">No Runtime Execution</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">
+                Tests are inventoried from bytecode annotations (@Test) rather than executed via Maven Surefire. Flaky tests cannot be identified.
+              </p>
+</div>
+<span class="font-label-sm text-label-sm text-outline uppercase font-mono mt-space-xs">JVM Did Not Boot</span>
+</div>
+<div class="bg-surface-container p-space-sm rounded-DEFAULT flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1 text-secondary mb-1">
+<span class="material-symbols-outlined text-[15px]">running_with_errors</span>
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">Coverage Report Absent</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">
+                No jacoco.xml or lcov report was committed in this git ref. Dynamic test coverage metrics are therefore completely omitted rather than guessed.
+              </p>
+</div>
+<span class="font-label-sm text-label-sm text-outline uppercase font-mono mt-space-xs">Coverage: Unavailable</span>
+</div>
+</div>
+</section>
+</div>
+<!-- RIGHT 4 COLS: Structure Breakdown & Entry Points Stage -->
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- Section: Visual Repository Breakdown Card -->
+<section class="bg-surface-container p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">pie_chart</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Repository Anatomy</h2>
+</div>
+<span class="font-code-sm text-code-sm text-outline font-mono">32 Files Total</span>
+</div>
+<!-- Rich SVG Composition Visualizer -->
+<div class="p-space-sm bg-surface-container-low flex flex-col items-center justify-center">
+<div class="relative w-40 h-40 flex items-center justify-center">
+<!-- Inline SVG Donut Chart (under 2KB) -->
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<!-- Background Ring -->
+<path class="text-surface-container-highest stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3.5"></path>
+<!-- Java Segment (92.4%) -->
+<path class="text-primary stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="92.4, 100" stroke-linecap="round" stroke-width="3.5"></path>
+<!-- XML Segment (5.1% offset) -->
+<path class="text-secondary stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="5.1, 100" stroke-dashoffset="-92.4" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-code-lg text-code-lg text-on-surface font-bold">3.4k</span>
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Lines</span>
+</div>
+</div>
+<div class="w-full mt-space-sm space-y-1.5 font-code-sm text-code-sm">
+<div class="flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-sm bg-primary"></span>
+<span class="text-on-surface">Java Sources</span>
+</div>
+<span class="font-mono">28 files (92.4%)</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-sm bg-secondary"></span>
+<span class="text-on-surface">Build &amp; Metadata (XML)</span>
+</div>
+<span class="font-mono">2 files (5.1%)</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-sm bg-tertiary"></span>
+<span class="text-on-surface">Templates &amp; Static</span>
+</div>
+<span class="font-mono">2 files (2.5%)</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Verified Application Entry Points -->
+<section class="bg-surface-container p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">terminal</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Resolved Entry Points</h2>
+</div>
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-1.5 py-0.5 rounded-DEFAULT font-mono">AST VERIFIED</span>
+</div>
+<div class="space-y-space-xs">
+<!-- Entry Point 1 -->
+<div class="p-space-sm bg-surface-container-low rounded-DEFAULT flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-code-sm text-code-sm text-primary font-semibold truncate">PetClinicApplication.java</span>
+<span class="font-label-sm text-label-sm text-outline font-mono">Line 32</span>
+</div>
+<div class="font-code-sm text-code-sm text-on-surface bg-surface-container p-1 rounded-DEFAULT">
+<span class="text-secondary">public static void</span> <span class="text-primary font-bold">main</span>(String[] args)
+            </div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-outline mt-0.5">
+<span class="material-symbols-outlined text-[13px] text-primary">play_arrow</span>
+<span>@SpringBootApplication bootloader</span>
+</div>
+</div>
+<!-- Entry Point 2: Web API Root -->
+<div class="p-space-sm bg-surface-container-low rounded-DEFAULT flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-code-sm text-code-sm text-on-surface font-semibold truncate">OwnerController.java</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono">HTTP Router</span>
+</div>
+<div class="font-code-sm text-code-sm text-on-surface-variant bg-surface-container p-1 rounded-DEFAULT">
+<span class="text-secondary">@GetMapping</span>("/owners")
+            </div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-outline mt-0.5">
+<span class="material-symbols-outlined text-[13px] text-secondary">alt_route</span>
+<span>Primary UI &amp; Form handler interface</span>
+</div>
+</div>
+<!-- Entry Point 3: Data initialization -->
+<div class="p-space-sm bg-surface-container-low rounded-DEFAULT flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-code-sm text-code-sm text-on-surface font-semibold truncate">schema.sql + data.sql</span>
+<span class="font-label-sm text-label-sm text-outline font-mono">Boot Seed</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Direct SQL schema execution enabled in Spring default profile. Auto-creates Vet, Pet, Visit tables.
+            </p>
+</div>
+</div>
+</section>
+<!-- Quick Action / Diagnostic Inspect Banner -->
+<div class="p-space-md bg-surface-container-high rounded-DEFAULT flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-outline">Deep Dive Workflow</span>
+<div class="font-body-lg text-body-lg text-on-surface font-semibold">Inspect Lineage Graphs</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Explore complete Spring Bean dependency injections, JPA entity graphs, and PMD quality telemetry in dedicated inspector tabs.
+        </p>
+<div class="mt-space-xs flex items-center gap-space-xs">
+<a class="px-space-sm py-1 bg-primary text-on-primary font-body-sm text-body-sm font-semibold rounded-DEFAULT flex items-center gap-1 hover:bg-primary-fixed-dim transition-colors" href="#">
+<span>Dependencies Tab</span>
+<span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+</a>
+<a class="px-space-sm py-1 bg-surface-container hover:bg-surface-container-highest text-on-surface font-body-sm text-body-sm rounded-DEFAULT transition-colors" href="#">
+<span>Code Quality (22)</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Inline Mini Diagnostics Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Micro interaction for copying commit SHAs or highlighting elements
+      const shaButton = document.getElementById('commit-sha');
+      if (shaButton) {
+        shaButton.addEventListener('mouseenter', () => {
+          shaButton.classList.add('underline');
+        });
+        shaButton.addEventListener('mouseleave', () => {
+          shaButton.classList.remove('underline');
+        });
+      }
+    });
+  </script>
+</div></main></div></body></html>

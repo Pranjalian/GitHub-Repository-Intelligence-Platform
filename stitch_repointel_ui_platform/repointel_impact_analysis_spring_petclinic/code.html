@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "inverse-on-surface": "#2c303a",
+          "outline": "#8d90a0",
+          "secondary-fixed": "#d3e4fe",
+          "primary-fixed-dim": "#b4c5ff",
+          "secondary": "#b7c8e1",
+          "on-primary": "#002a78",
+          "surface-container-high": "#262a34",
+          "on-secondary-fixed-variant": "#38485d",
+          "on-secondary-fixed": "#0b1c30",
+          "tertiary-container": "#7d4ce7",
+          "on-primary-fixed-variant": "#003ea8",
+          "primary": "#b4c5ff",
+          "background": "#0f131c",
+          "tertiary-fixed": "#e9ddff",
+          "surface-dim": "#0f131c",
+          "inverse-primary": "#0053db",
+          "primary-fixed": "#dbe1ff",
+          "inverse-surface": "#dfe2ef",
+          "on-surface": "#dfe2ef",
+          "on-error-container": "#ffdad6",
+          "on-tertiary-fixed-variant": "#5516be",
+          "on-primary-fixed": "#00174b",
+          "tertiary-fixed-dim": "#d0bcff",
+          "on-secondary": "#213145",
+          "on-primary-container": "#eeefff",
+          "surface-container-highest": "#31353f",
+          "error-container": "#93000a",
+          "on-surface-variant": "#c3c6d7",
+          "primary-container": "#2563eb",
+          "surface-container-low": "#181b25",
+          "on-error": "#690005",
+          "surface-container-lowest": "#0a0e17",
+          "surface-bright": "#353943",
+          "on-tertiary-fixed": "#23005c",
+          "outline-variant": "#434655",
+          "tertiary": "#d0bcff",
+          "secondary-fixed-dim": "#b7c8e1",
+          "on-tertiary-container": "#f6edff",
+          "on-background": "#dfe2ef",
+          "surface": "#0f131c",
+          "surface-container": "#1c1f29",
+          "surface-tint": "#b4c5ff",
+          "secondary-container": "#3a4a5f",
+          "surface-variant": "#31353f",
+          "error": "#ffb4ab",
+          "on-secondary-container": "#a9bad3",
+          "on-tertiary": "#3c0091"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-sm": "0.5rem",
+          "gutter": "1rem",
+          "space-xl": "2rem",
+          "space-lg": "1.25rem",
+          "gutter-dense": "0.5rem",
+          "margin-mobile": "1rem",
+          "space-xs": "0.25rem",
+          "margin": "1.5rem",
+          "space-md": "0.75rem"
+        },
+        "fontFamily": {
+          "label-md": [
+            "JetBrains Mono"
+          ],
+          "headline-lg": [
+            "Geist"
+          ],
+          "body-sm": [
+            "Geist"
+          ],
+          "headline-xl-mobile": [
+            "Geist"
+          ],
+          "headline-xl": [
+            "Geist"
+          ],
+          "code-lg": [
+            "JetBrains Mono"
+          ],
+          "body-md": [
+            "Geist"
+          ],
+          "body-lg": [
+            "Geist"
+          ],
+          "headline-lg-mobile": [
+            "Geist"
+          ],
+          "label-sm": [
+            "JetBrains Mono"
+          ],
+          "code-sm": [
+            "JetBrains Mono"
+          ],
+          "headline-md": [
+            "Geist"
+          ],
+          "code-md": [
+            "JetBrains Mono"
+          ]
+        },
+        "fontSize": {
+          "label-md": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.04em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0em",
+              "fontWeight": "400"
+            }
+          ],
+          "headline-xl-mobile": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-xl": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.025em",
+              "fontWeight": "600"
+            }
+          ],
+          "code-lg": [
+            "13px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0em",
+              "fontWeight": "400"
+            }
+          ],
+          "body-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "-0.002em",
+              "fontWeight": "400"
+            }
+          ],
+          "body-lg": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "letterSpacing": "-0.005em",
+              "fontWeight": "400"
+            }
+          ],
+          "headline-lg-mobile": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.06em",
+              "fontWeight": "500"
+            }
+          ],
+          "code-sm": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-md": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ],
+          "code-md": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0em",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.45)]"><div class="flex flex-col h-full overflow-hidden"><div class="h-14 px-margin-mobile flex items-center justify-between bg-surface-container-low"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-primary text-[20px]">hub</span><span class="font-headline-md text-headline-md tracking-tight text-on-surface">RepoIntel</span></div><span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high px-space-xs py-[2px] rounded">v1.4</span></div><div class="flex-1 overflow-y-auto px-space-sm py-space-md flex flex-col gap-space-md"><div class="flex flex-col gap-space-xs"><div class="px-space-sm py-space-xs font-label-sm text-label-sm text-outline uppercase tracking-wider">Global Workspace</div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-medium rounded-lg"><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="font-body-sm text-body-sm">Dashboard</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="add-repository" href="#"><span class="material-symbols-outlined text-[18px]">add_circle</span><span class="font-body-sm text-body-sm">Add Repository</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="ai-settings" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span class="font-body-sm text-body-sm">AI Settings</span></a></nav></div><div class="p-space-sm rounded bg-surface-container-low flex flex-col gap-space-xs"><div class="flex items-center justify-between font-label-sm text-label-sm text-outline uppercase tracking-wider"><span>Active Context</span><span class="material-symbols-outlined text-[14px] text-outline">lock</span></div><div class="font-code-sm text-code-sm text-on-surface truncate">spring-petclinic</div><div class="flex items-center gap-space-xs font-code-sm text-code-sm text-on-surface-variant"><span>500158f</span><span>•</span><span>snapshot</span></div></div><div class="flex flex-col gap-space-xs"><div class="px-space-sm py-space-xs font-label-sm text-label-sm text-outline uppercase tracking-wider">Diagnostics</div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-medium rounded-lg"><a class="flex items-center justify-between px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="overview" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">analytics</span><span class="font-body-sm text-body-sm">Overview</span></div></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="dependencies" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">account_tree</span><span class="font-body-sm text-body-sm">Dependencies</span></div><span class="font-code-sm text-code-sm px-space-xs py-[1px] rounded bg-surface-container-high text-on-surface-variant">48</span></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="code-quality" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">verified</span><span class="font-body-sm text-body-sm">Code Quality</span></div><span class="font-code-sm text-code-sm px-space-xs py-[1px] rounded bg-surface-container-high text-on-surface-variant">94%</span></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="security" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">security</span><span class="font-body-sm text-body-sm">Security</span></div><span class="font-code-sm text-code-sm px-space-xs py-[1px] rounded bg-surface-container-high text-on-surface-variant">0 vuln</span></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="tests-and-coverage" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">task_alt</span><span class="font-body-sm text-body-sm">Tests &amp; Coverage</span></div><span class="font-code-sm text-code-sm px-space-xs py-[1px] rounded bg-surface-container-high text-on-surface-variant">88.2%</span></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="architecture" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">schema</span><span class="font-body-sm text-body-sm">Architecture</span></div></a></nav></div><div class="flex flex-col gap-space-xs"><div class="px-space-sm py-space-xs font-label-sm text-label-sm text-outline uppercase tracking-wider">Analytical Engine</div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-medium rounded-lg"><a class="flex items-center justify-between px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="code-search" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">manage_search</span><span class="font-body-sm text-body-sm">Code Search</span></div></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="ask" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">forum</span><span class="font-body-sm text-body-sm">Ask (Q&amp;A)</span></div><span class="font-label-sm text-label-sm px-space-xs py-[1px] rounded bg-tertiary-container text-on-tertiary-container">AI</span></a><a aria-current="page" class="flex items-center justify-between px-space-sm py-space-xs transition-colors bg-primary-container text-on-primary-container font-medium rounded-lg" data-path="impact-analysis" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">timeline</span><span class="font-body-sm text-body-sm">Impact Analysis</span></div></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="investigations" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">troubleshoot</span><span class="font-body-sm text-body-sm">Investigations</span></div><span class="font-label-sm text-label-sm px-space-xs py-[1px] rounded bg-tertiary-container text-on-tertiary-container">AI</span></a></nav></div></div></div><div class="p-space-sm bg-surface-container-lowest flex flex-col gap-space-xs"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-secondary"></span><span class="font-label-sm text-label-sm text-on-surface">Local Engine Idle</span></div><div class="font-label-sm text-label-sm text-outline truncate">Sandbox • Host Memory 1.4 GB</div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-14 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.45)] z-40 flex items-center justify-between px-margin"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs font-code-sm text-code-sm text-on-surface-variant"><span class="text-on-surface">spring-projects</span><span>/</span><span class="text-on-surface font-semibold">spring-petclinic</span></div><div class="flex items-center gap-space-xs px-space-xs py-[2px] rounded bg-surface-container-high"><span class="material-symbols-outlined text-[14px] text-primary">commit</span><span class="font-code-sm text-code-sm text-on-surface">500158f</span><button class="text-outline hover:text-on-surface transition-colors flex items-center" type="button"><span class="material-symbols-outlined text-[14px]">content_copy</span></button></div><div class="hidden xl:flex items-center gap-space-xs font-label-sm text-label-sm text-outline"><span>2025-02-28</span><span>•</span><span class="text-secondary">Completed</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-sm py-space-xs rounded bg-surface-container-low"><span class="w-2 h-2 rounded-full bg-primary"></span><span class="font-label-sm text-label-sm text-on-surface">AI: Local Ollama (llama3.2)</span></div><div class="hidden lg:flex items-center gap-space-xs font-label-sm text-label-sm text-outline px-space-sm py-space-xs rounded bg-surface-container-lowest">Daemon • Safe read-only</div><button class="p-space-xs rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">dark_mode</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-14 px-margin bg-background min-h-screen"><div class="flex flex-col w-full gap-space-lg pb-16">
+<!-- TOP CONTEXT / SUB-HEADER BAR -->
+<div class="bg-surface-container-low rounded-lg p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm flex-wrap">
+<h1 class="font-headline-lg text-headline-lg tracking-tight text-on-surface">Change Impact Analysis</h1>
+<span class="font-label-sm text-label-sm tracking-widest uppercase bg-surface-container-highest text-primary px-space-xs py-[2px] rounded">
+            AST Static Analysis + Call Graph Resolution
+          </span>
+<span class="font-code-sm text-code-sm text-secondary bg-surface-container-high px-space-xs py-[2px] rounded flex items-center gap-[4px]">
+<span class="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>
+            Deterministic Graph
+          </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-space-xs flex-wrap">
+<span>Target: <span class="font-code-sm text-on-surface font-semibold">spring-petclinic</span> @ <span class="font-code-sm text-primary">500158f</span></span>
+<span>•</span>
+<span>Deterministic AST symbol propagation across <span class="text-on-surface font-medium">48 source files</span></span>
+<span>•</span>
+<span class="font-code-sm text-outline">0 remote RPC calls</span>
+</p>
+</div>
+<!-- Quick Action Toolbar -->
+<div class="flex items-center gap-space-xs flex-wrap">
+<button class="flex items-center gap-space-xs px-space-sm py-[6px] rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-body-sm text-body-sm transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary">download</span>
+<span>Export JSON</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-sm py-[6px] rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-body-sm text-body-sm transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-secondary">compare_arrows</span>
+<span>Compare: <span class="font-code-sm text-primary">main</span></span>
+</button>
+<button class="flex items-center gap-space-xs px-space-sm py-[6px] rounded bg-primary-container hover:bg-primary text-on-primary-container hover:text-on-primary font-body-sm text-body-sm font-medium transition-all shadow-sm" id="rerun-btn" type="button">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+<span>Re-run Analysis</span>
+</button>
+</div>
+</div>
+</div>
+<!-- INPUT CONFIGURATION SUITE (3 COLUMNS + ACTION BAR) -->
+<div class="bg-surface-container-low rounded-lg p-space-md shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-primary">tune</span>
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Analysis Scope &amp; Target Symbol</span>
+</div>
+<span class="font-code-sm text-code-sm text-outline">Parser: Eclipse JDT / AST Core 3.32</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+<!-- Col 1: Symbol Search & Autocomplete Picker -->
+<div class="lg:col-span-5 flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant flex items-center justify-between">
+<span>Target Symbol Root</span>
+<span class="font-code-sm text-code-sm text-outline">Press ⌘K to switch</span>
+</label>
+<div class="relative">
+<div class="w-full bg-surface-container-highest rounded px-space-sm py-[8px] flex flex-col gap-[4px] cursor-pointer hover:bg-surface-bright transition-colors shadow-inner" id="symbol-picker-trigger">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs min-w-0">
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-[6px] py-[1px] rounded uppercase font-semibold">METHOD</span>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold truncate">OwnerController.processCreationForm</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-outline">unfold_more</span>
+</div>
+<div class="font-code-sm text-code-sm text-outline truncate flex items-center gap-[4px]">
+<span class="material-symbols-outlined text-[13px] text-outline">folder</span>
+              src/main/java/org/springframework/samples/petclinic/owner/OwnerController.java:88
+            </div>
+</div>
+<!-- Dropdown Autocomplete Preview -->
+<div class="hidden absolute top-full left-0 right-0 mt-1 z-30 bg-surface-container rounded-lg shadow-xl p-space-xs flex flex-col gap-[2px]" id="symbol-dropdown">
+<div class="px-space-xs py-[4px] font-label-sm text-label-sm text-outline uppercase">Recent Seed Symbols</div>
+<div class="px-space-xs py-[6px] rounded hover:bg-surface-container-highest flex items-center justify-between cursor-pointer">
+<div class="flex flex-col min-w-0">
+<span class="font-code-sm text-code-sm text-on-surface truncate">OwnerRepository.findByLastName</span>
+<span class="font-code-sm text-code-sm text-outline truncate">owner/OwnerRepository.java:42</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-low px-[4px] rounded">REPO</span>
+</div>
+<div class="px-space-xs py-[6px] rounded hover:bg-surface-container-highest flex items-center justify-between cursor-pointer">
+<div class="flex flex-col min-w-0">
+<span class="font-code-sm text-code-sm text-on-surface truncate">Pet.setBirthDate</span>
+<span class="font-code-sm text-code-sm text-outline truncate">owner/Pet.java:54</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-low px-[4px] rounded">ENTITY</span>
+</div>
+<div class="px-space-xs py-[6px] rounded hover:bg-surface-container-highest flex items-center justify-between cursor-pointer">
+<div class="flex flex-col min-w-0">
+<span class="font-code-sm text-code-sm text-on-surface truncate">VisitController.initNewVisitForm</span>
+<span class="font-code-sm text-code-sm text-outline truncate">visit/VisitController.java:65</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-low px-[4px] rounded">CONTROLLER</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Col 2: Propagation Depth & Flags -->
+<div class="lg:col-span-3 flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant flex items-center justify-between">
+<span>Propagation Traversal</span>
+<span class="font-code-sm text-code-sm text-primary">Depth: 3</span>
+</label>
+<!-- Depth Segmented Bar -->
+<div class="grid grid-cols-4 bg-surface-container-highest rounded p-[2px] gap-[2px]">
+<button class="py-[6px] text-center font-code-sm text-code-sm rounded text-outline hover:text-on-surface" type="button">1 Hop</button>
+<button class="py-[6px] text-center font-code-sm text-code-sm rounded text-outline hover:text-on-surface" type="button">2 Hops</button>
+<button class="py-[6px] text-center font-code-sm text-code-sm rounded bg-primary-container text-on-primary-container font-semibold" type="button">3 Hops</button>
+<button class="py-[6px] text-center font-code-sm text-code-sm rounded text-outline hover:text-on-surface" type="button">Full (6)</button>
+</div>
+<!-- Micro Flags -->
+<div class="flex flex-col gap-[3px] mt-[4px]">
+<label class="flex items-center justify-between cursor-pointer py-[1px]">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-[4px]">
+<span class="material-symbols-outlined text-[13px] text-secondary">flaky</span> Include Test Callers
+            </span>
+<input checked="" class="accent-primary h-3.5 w-3.5 rounded bg-surface-container-highest" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between cursor-pointer py-[1px]">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-[4px]">
+<span class="material-symbols-outlined text-[13px] text-secondary">lan</span> Cross-Module Traversal
+            </span>
+<input checked="" class="accent-primary h-3.5 w-3.5 rounded bg-surface-container-highest" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between cursor-pointer py-[1px]">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-[4px]">
+<span class="material-symbols-outlined text-[13px] text-secondary">input</span> HTTP Endpoint Ingress
+            </span>
+<input checked="" class="accent-primary h-3.5 w-3.5 rounded bg-surface-container-highest" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- Col 3: Change Description (AI Context Layer) -->
+<div class="lg:col-span-4 flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant flex items-center justify-between">
+<span class="flex items-center gap-[4px]">
+<span class="text-tertiary">✦</span> Optional Change Intent
+          </span>
+<span class="font-label-sm text-label-sm text-tertiary">Local LLM Context</span>
+</label>
+<textarea class="w-full bg-surface-container-highest text-on-surface rounded p-space-xs font-body-sm text-body-sm focus:outline-none focus:bg-surface-bright resize-none shadow-inner" placeholder="E.g., Adding mandatory owner telephone validation and updating validation binding error handling." rows="3">Adding mandatory owner telephone validation and updating validation binding error handling.</textarea>
+<div class="flex flex-col gap-[2px]">
+<div class="font-label-sm text-label-sm text-tertiary/90 flex items-center gap-[4px] leading-tight">
+<span>✦</span> AI CONTEXT LAYER: Synthesizes plain-language regression guidance. Localhost only.
+          </div>
+<div class="font-label-sm text-label-sm text-outline flex items-center gap-[4px] leading-tight">
+<span class="material-symbols-outlined text-[12px]">info</span>
+            Fallback: When AI is offline, natural language digest is disabled while AST graph remains 100% sound.
+          </div>
+</div>
+</div>
+</div>
+<!-- Execution Bar / Status -->
+<div class="flex items-center justify-between pt-space-xs bg-surface-container-lowest/50 p-space-xs rounded">
+<div class="flex items-center gap-space-sm">
+<span class="inline-flex items-center gap-[6px] font-code-sm text-code-sm text-secondary">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+          Analyzed in 380ms (deterministic ast walk)
+        </span>
+<span class="font-code-sm text-code-sm text-outline hidden md:inline">|</span>
+<span class="font-code-sm text-code-sm text-outline hidden md:inline">Memory: 41.2 MB retained</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-[4px] rounded text-outline hover:text-on-surface font-body-sm text-body-sm transition-colors" type="button">
+          Clear Selection
+        </button>
+<button class="px-space-md py-[4px] rounded bg-primary text-on-primary font-body-sm text-body-sm font-semibold hover:opacity-90 transition-opacity shadow-sm flex items-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+<span>Analyze Impact</span>
+</button>
+</div>
+</div>
+</div>
+<!-- AI SUMMARY CARD (RESTYLED / RESTRAINED PURPLE TINT) -->
+<div class="bg-gradient-to-r from-surface-container-low via-surface-container to-surface-container-low rounded-lg p-space-md shadow-sm relative overflow-hidden">
+<div class="absolute -right-12 -top-12 w-48 h-48 bg-tertiary-container/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex flex-col gap-space-xs relative z-10">
+<div class="flex items-center justify-between flex-wrap gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-space-xs py-[2px] rounded flex items-center gap-[4px] font-semibold">
+<span>✦</span> AI-GENERATED IMPACT DIGEST
+          </span>
+<span class="font-code-sm text-code-sm text-outline">Ollama • llama3.2 (q4_K_M)</span>
+</div>
+<span class="font-code-sm text-code-sm text-outline bg-surface-container-high px-space-xs py-[1px] rounded">
+          Cached (18ms)
+        </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed mt-1">
+        Modifying <span class="font-code-sm text-code-sm text-primary font-semibold bg-surface-container-highest px-1 py-[1px] rounded">OwnerController.processCreationForm</span> directly alters web form submission for new owners (<code class="font-code-sm text-code-sm text-secondary">POST /owners/new</code>). Risk is concentrated in web layer input binding and HTTP response redirection. Downstream database persistence through <code class="font-code-sm text-code-sm text-secondary">OwnerRepository.save</code> is structurally stable, but 3 web integration tests will fail if HTTP redirect semantics or validation errors change.
+      </p>
+<div class="flex items-center gap-space-xs bg-surface-container-high/70 p-space-xs rounded mt-1">
+<span class="material-symbols-outlined text-[16px] text-tertiary">arrow_forward</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Suggested Next Step:</span>
+<code class="font-code-sm text-code-sm text-on-surface bg-surface-container-lowest px-space-xs py-[2px] rounded">./mvnw test -Dtest=OwnerControllerTests#testProcessCreationFormSuccess</code>
+</div>
+</div>
+</div>
+<!-- HEURISTIC RISK SCORE CARD -->
+<div class="bg-surface-container-low rounded-lg p-space-md shadow-sm flex flex-col gap-space-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-md">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Composite Heuristic Score</span>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl font-bold text-on-surface tracking-tight">68</span>
+<span class="font-headline-md text-headline-md text-outline">/ 100</span>
+<span class="ml-2 font-label-md text-label-md px-space-xs py-[2px] rounded bg-secondary-container text-on-secondary-container uppercase">
+              Moderate-High Risk
+            </span>
+</div>
+</div>
+</div>
+<!-- Visual Progress Gauge / Tier Bar -->
+<div class="flex-1 max-w-xl flex flex-col gap-space-xs">
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>Low (0-30)</span>
+<span>Moderate (31-60)</span>
+<span class="text-primary font-bold">High (61-80)</span>
+<span>Critical (81-100)</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden flex">
+<div class="h-full bg-secondary" style="width: 30%"></div>
+<div class="h-full bg-secondary/80" style="width: 30%"></div>
+<div class="h-full bg-primary relative" style="width: 20%">
+<!-- Indicator Pin -->
+<div class="absolute right-0 top-0 bottom-0 w-1 bg-on-primary"></div>
+</div>
+<div class="h-full bg-surface-bright" style="width: 20%"></div>
+</div>
+<div class="font-code-sm text-code-sm text-outline text-right">Computed at 68% index threshold</div>
+</div>
+</div>
+<!-- Mandatory Honest Notice -->
+<div class="bg-surface-container p-space-xs rounded flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[15px] text-outline">info</span>
+<span class="font-body-sm text-body-sm text-outline">
+<span class="text-on-surface font-medium">* Notice:</span> Heuristic risk score is a deterministic rule-based composite score, NOT an empirical failure probability. Computed from structural graph factors below.
+      </span>
+</div>
+<!-- 5-Column Factor Breakdown Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-sm pt-space-xs">
+<!-- Factor 1 -->
+<div class="bg-surface-container rounded p-space-sm flex flex-col justify-between gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase">Dependency Depth</span>
+<span class="font-code-sm text-code-sm text-primary font-bold">15/20</span>
+</div>
+<div class="font-code-lg text-code-lg text-on-surface font-semibold">3 Hops</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Controller → Service / Repo → DB Entity</p>
+</div>
+<!-- Factor 2 -->
+<div class="bg-surface-container rounded p-space-sm flex flex-col justify-between gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase">Dependents Count</span>
+<span class="font-code-sm text-code-sm text-primary font-bold">20/25</span>
+</div>
+<div class="font-code-lg text-code-lg text-on-surface font-semibold">14 Affected Nodes</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">1 route, 4 callers, 3 repos, 6 tests</p>
+</div>
+<!-- Factor 3 -->
+<div class="bg-surface-container rounded p-space-sm flex flex-col justify-between gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase">Public API Exposure</span>
+<span class="font-code-sm text-code-sm text-primary font-bold">25/25</span>
+</div>
+<div class="font-code-lg text-code-lg text-primary font-semibold">HIGH (Ingress)</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Direct HTTP POST /owners/new (@Valid)</p>
+</div>
+<!-- Factor 4 -->
+<div class="bg-surface-container rounded p-space-sm flex flex-col justify-between gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase">Security Vulnerabilities</span>
+<span class="font-code-sm text-code-sm text-secondary font-bold">0/15</span>
+</div>
+<div class="font-code-lg text-code-lg text-secondary font-semibold">0 Known CVEs</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">No taint flow or unsafe deserialization</p>
+</div>
+<!-- Factor 5 -->
+<div class="bg-surface-container rounded p-space-sm flex flex-col justify-between gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase">Test Dampener</span>
+<span class="font-code-sm text-code-sm text-secondary font-bold">-12/15</span>
+</div>
+<div class="font-code-lg text-code-lg text-secondary font-semibold">88% Coverage</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">3 detected integration tests mitigate risk</p>
+</div>
+</div>
+</div>
+<!-- TWO-COLUMN MAIN VIEW: AFFECTED COMPONENTS & DEPENDENCY GRAPH -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-md">
+<!-- LEFT COLUMN: Affected Components Tree (5 Cols) -->
+<div class="xl:col-span-5 bg-surface-container-low rounded-lg p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-primary">account_tree</span>
+<span class="font-headline-md text-headline-md text-on-surface">Affected Components</span>
+<span class="font-code-sm text-code-sm bg-surface-container-highest px-space-xs py-[1px] rounded text-primary">14</span>
+</div>
+<!-- Filter Pills -->
+<div class="flex items-center gap-[4px] overflow-x-auto pb-[2px]">
+<button class="px-space-xs py-[2px] rounded bg-primary-container text-on-primary-container font-label-sm text-label-sm" type="button">All (14)</button>
+<button class="px-space-xs py-[2px] rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface font-label-sm text-label-sm" type="button">Routes (1)</button>
+<button class="px-space-xs py-[2px] rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface font-label-sm text-label-sm" type="button">Callers (4)</button>
+<button class="px-space-xs py-[2px] rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface font-label-sm text-label-sm" type="button">Repos (3)</button>
+</div>
+</div>
+<!-- Tree Hierarchy Container -->
+<div class="flex flex-col gap-space-xs mt-space-xs max-h-[580px] overflow-y-auto pr-1">
+<!-- Section: HTTP INGRESS -->
+<div class="flex flex-col gap-[3px]">
+<div class="font-label-sm text-label-sm text-outline uppercase tracking-wider flex items-center justify-between px-space-xs py-[2px] bg-surface-container rounded">
+<span>[1] HTTP Endpoint Ingress</span>
+<span class="font-code-sm text-code-sm text-primary">1 Route</span>
+</div>
+<div class="bg-surface-container-high rounded p-space-xs flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs min-w-0">
+<span class="material-symbols-outlined text-[16px] text-primary">http</span>
+<span class="font-code-sm text-code-sm text-primary font-bold">POST</span>
+<span class="font-code-sm text-code-sm text-on-surface truncate">/owners/new</span>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container-lowest text-secondary px-space-xs py-[1px] rounded">100% DETECTED</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant pl-5">
+              Mapped to: <span class="font-code-sm text-code-sm text-on-surface">OwnerController.processCreationForm(Owner, BindingResult)</span>
+</div>
+<div class="font-code-sm text-code-sm text-outline pl-5 flex items-center gap-[4px]">
+<span class="material-symbols-outlined text-[13px]">pin</span>
+              OwnerController.java:88 via @PostMapping("/owners/new")
+            </div>
+</div>
+</div>
+<!-- Section: DIRECT CALLERS -->
+<div class="flex flex-col gap-[3px] mt-space-xs">
+<div class="font-label-sm text-label-sm text-outline uppercase tracking-wider flex items-center justify-between px-space-xs py-[2px] bg-surface-container rounded">
+<span>[2] Direct Callers &amp; Controller Bindings</span>
+<span class="font-code-sm text-code-sm text-outline">4 Callers</span>
+</div>
+<!-- Caller Node 1 -->
+<div class="bg-surface-container rounded p-space-xs flex flex-col gap-[3px] hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between">
+<div class="font-code-sm text-code-sm text-on-surface font-semibold truncate flex items-center gap-[6px]">
+<span class="material-symbols-outlined text-[14px] text-secondary">alt_route</span>
+                OwnerController.processUpdateOwnerForm
+              </div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-lowest px-space-xs py-[1px] rounded">100% DETECTED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant pl-5">Shares model binding validator and redirect path semantics.</p>
+<div class="font-code-sm text-code-sm text-outline pl-5">Evidence: Shared @InitBinder in OwnerController.java:49</div>
+</div>
+<!-- Caller Node 2 -->
+<div class="bg-surface-container rounded p-space-xs flex flex-col gap-[3px] hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between">
+<div class="font-code-sm text-code-sm text-on-surface font-semibold truncate flex items-center gap-[6px]">
+<span class="material-symbols-outlined text-[14px] text-secondary">alt_route</span>
+                DispatcherServlet.doDispatch
+              </div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-lowest px-space-xs py-[1px] rounded">100% DETECTED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant pl-5">Spring Web HandlerMapping invoker path.</p>
+<div class="font-code-sm text-code-sm text-outline pl-5">Evidence: RequestMappingHandlerAdapter AST resolution</div>
+</div>
+</div>
+<!-- Section: INDIRECT DEPENDENTS & DOWNSTREAM -->
+<div class="flex flex-col gap-[3px] mt-space-xs">
+<div class="font-label-sm text-label-sm text-outline uppercase tracking-wider flex items-center justify-between px-space-xs py-[2px] bg-surface-container rounded">
+<span>[3] Downstream Repositories &amp; Entities</span>
+<span class="font-code-sm text-code-sm text-outline">3 Downstream</span>
+</div>
+<!-- Downstream Node 1 -->
+<div class="bg-surface-container rounded p-space-xs flex flex-col gap-[3px] hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between">
+<div class="font-code-sm text-code-sm text-on-surface font-semibold truncate flex items-center gap-[6px]">
+<span class="material-symbols-outlined text-[14px] text-primary">database</span>
+                OwnerRepository.save(Owner)
+              </div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-lowest px-space-xs py-[1px] rounded">100% DETECTED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant pl-5">Invocation at line 99 prior to redirection.</p>
+<div class="font-code-sm text-code-sm text-outline pl-5">Target: org.springframework.data.repository.Repository</div>
+</div>
+<!-- Downstream Node 2 -->
+<div class="bg-surface-container rounded p-space-xs flex flex-col gap-[3px] hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between">
+<div class="font-code-sm text-code-sm text-on-surface font-semibold truncate flex items-center gap-[6px]">
+<span class="material-symbols-outlined text-[14px] text-secondary">category</span>
+                Owner (Entity Validation Specs)
+              </div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-lowest px-space-xs py-[1px] rounded">100% DETECTED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant pl-5">Jakarta Validation constraints: @NotEmpty, @Digits telephone.</p>
+<div class="font-code-sm text-code-sm text-outline pl-5">AST reference in method signature parameter 0</div>
+</div>
+</div>
+<!-- Section: AFFECTED MODULE BOUNDARIES -->
+<div class="flex flex-col gap-[3px] mt-space-xs">
+<div class="font-label-sm text-label-sm text-outline uppercase tracking-wider flex items-center justify-between px-space-xs py-[2px] bg-surface-container rounded">
+<span>[4] Impacted Modules &amp; Subsystems</span>
+<span class="font-code-sm text-code-sm text-outline">2 Modules</span>
+</div>
+<div class="grid grid-cols-2 gap-space-xs">
+<div class="bg-surface-container p-space-xs rounded font-code-sm text-code-sm text-on-surface flex items-center justify-between">
+<span>:petclinic:owner</span>
+<span class="font-label-sm text-label-sm text-primary">Source</span>
+</div>
+<div class="bg-surface-container p-space-xs rounded font-code-sm text-code-sm text-on-surface flex items-center justify-between">
+<span>:petclinic:web</span>
+<span class="font-label-sm text-label-sm text-outline">Routing</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Interactive Dependency Chain Diagram Card (7 Cols) -->
+<div class="xl:col-span-7 bg-surface-container-low rounded-lg p-space-md shadow-sm flex flex-col gap-space-sm justify-between">
+<div>
+<div class="flex items-center justify-between border-b border-surface-container pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-primary">schema</span>
+<span class="font-headline-md text-headline-md text-on-surface">Dependency Ingress &amp; Egress Graph</span>
+</div>
+<!-- Diagram Controls HUD -->
+<div class="flex items-center gap-[4px] bg-surface-container px-space-xs py-[2px] rounded">
+<button class="p-[2px] hover:bg-surface-container-high rounded text-outline hover:text-on-surface" type="button"><span class="material-symbols-outlined text-[16px]">remove</span></button>
+<span class="font-code-sm text-code-sm text-outline px-[4px]">100%</span>
+<button class="p-[2px] hover:bg-surface-container-high rounded text-outline hover:text-on-surface" type="button"><span class="material-symbols-outlined text-[16px]">add</span></button>
+<button class="p-[2px] hover:bg-surface-container-high rounded text-outline hover:text-on-surface ml-1" type="button"><span class="material-symbols-outlined text-[16px]">fit_screen</span></button>
+<button class="p-[2px] hover:bg-surface-container-high rounded text-outline hover:text-on-surface" type="button"><span class="material-symbols-outlined text-[16px]">code</span></button>
+</div>
+</div>
+<!-- Schematic Canvas View -->
+<div class="relative w-full h-[360px] bg-surface-container-lowest rounded-lg my-space-sm p-space-md overflow-hidden flex flex-col justify-center items-center shadow-inner">
+<!-- Background Grid Simulation -->
+<div class="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+<!-- SVG Visual Nodes & Connectors -->
+<div class="relative z-10 w-full max-w-lg flex flex-col gap-space-lg items-center">
+<!-- Level 1: Client Ingress -->
+<div class="w-full flex items-center justify-center">
+<div class="bg-surface-container border border-surface-container-highest px-space-md py-space-xs rounded-lg flex items-center gap-space-sm shadow-md">
+<span class="material-symbols-outlined text-[16px] text-secondary">language</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">HTTP INGRESS</span>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">POST /owners/new</span>
+</div>
+</div>
+</div>
+<!-- Down Arrow with label -->
+<div class="flex items-center justify-center -my-2">
+<div class="flex flex-col items-center">
+<div class="w-[2px] h-6 bg-primary"></div>
+<span class="font-label-sm text-label-sm text-primary bg-surface-container-lowest px-1 uppercase tracking-tight">routes to</span>
+<span class="material-symbols-outlined text-[14px] text-primary -mt-1">arrow_downward</span>
+</div>
+</div>
+<!-- Level 2: Seed Method Node (Highlighted) -->
+<div class="w-full flex items-center justify-center gap-space-md">
+<div class="bg-primary/10 border-2 border-primary px-space-md py-space-sm rounded-lg flex items-center gap-space-sm shadow-xl relative scale-105">
+<span class="w-2.5 h-2.5 rounded-full bg-primary animate-ping absolute -top-1 -right-1"></span>
+<span class="material-symbols-outlined text-[20px] text-primary">code_blocks</span>
+<div class="flex flex-col">
+<div class="flex items-center gap-[4px]">
+<span class="font-label-sm text-label-sm bg-primary text-on-primary px-1 rounded uppercase">TARGET</span>
+<span class="font-code-sm text-code-sm text-on-surface font-bold">OwnerController.processCreationForm</span>
+</div>
+<span class="font-code-sm text-code-sm text-outline">OwnerController.java:88-101 (14 LOC)</span>
+</div>
+</div>
+<!-- Branch: BindingResult -->
+<div class="hidden sm:flex items-center gap-space-xs">
+<div class="w-6 h-[2px] bg-outline"></div>
+<div class="bg-surface-container-high px-space-xs py-[4px] rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">Validates</span>
+<span class="font-code-sm text-code-sm text-on-surface">BindingResult</span>
+</div>
+</div>
+</div>
+<!-- Down Arrow with label -->
+<div class="flex items-center justify-center -my-2">
+<div class="flex flex-col items-center">
+<div class="w-[2px] h-6 bg-secondary"></div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-lowest px-1 uppercase tracking-tight">invokes persist</span>
+<span class="material-symbols-outlined text-[14px] text-secondary -mt-1">arrow_downward</span>
+</div>
+</div>
+<!-- Level 3: Downstream Repositories -->
+<div class="w-full flex items-center justify-center gap-space-md">
+<div class="bg-surface-container-high px-space-md py-space-xs rounded-lg flex items-center gap-space-sm shadow-md">
+<span class="material-symbols-outlined text-[16px] text-secondary">inventory_2</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">PERSISTENCE</span>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">OwnerRepository.save()</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<div class="w-4 h-[2px] bg-outline"></div>
+<div class="bg-surface-container-high px-space-md py-space-xs rounded-lg flex items-center gap-space-sm shadow-md">
+<span class="material-symbols-outlined text-[16px] text-secondary">table_rows</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">ENTITY SCHEMA</span>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">Owner.java</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Node Inspector Callout Footer -->
+<div class="bg-surface-container rounded-lg p-space-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Active Node Telemetry Inspector</span>
+<span class="font-code-sm text-code-sm text-primary font-bold">Selected: processCreationForm</span>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-sm pt-1">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">Symbol Type</span>
+<span class="font-code-sm text-code-sm text-on-surface">Method Declaration</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">Visibility / Modifiers</span>
+<span class="font-code-sm text-code-sm text-on-surface">public (@PostMapping)</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">Complexity</span>
+<span class="font-code-sm text-code-sm text-on-surface">Cyclomatic: 4</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">Source Scope</span>
+<span class="font-code-sm text-code-sm text-on-surface">Lines 88-101 (14 LOC)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- AFFECTED TESTS & SUGGESTED REGRESSION-TEST AREAS -->
+<div class="bg-surface-container-low rounded-lg p-space-md shadow-sm flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[18px] text-primary">task_alt</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Affected Tests &amp; Suggested Regression Scope</h2>
+</div>
+<!-- Summary Badges -->
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-label-sm text-label-sm bg-primary/20 text-primary px-space-xs py-[2px] rounded uppercase font-semibold">
+          3 DETECTED
+        </span>
+<span class="font-label-sm text-label-sm bg-secondary-container text-on-secondary-container px-space-xs py-[2px] rounded uppercase font-semibold">
+          3 LIKELY
+        </span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-outline px-space-xs py-[2px] rounded uppercase font-semibold">
+          0 Untested Codepaths
+        </span>
+</div>
+</div>
+<!-- Test Matrix Table -->
+<div class="overflow-x-auto rounded">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container text-outline font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-space-xs px-space-sm">Test Method / File Location</th>
+<th class="py-space-xs px-space-sm">Classification</th>
+<th class="py-space-xs px-space-sm">Detection Rationale</th>
+<th class="py-space-xs px-space-sm">Status</th>
+<th class="py-space-xs px-space-sm text-right">Execution Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<!-- Test 1 -->
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">OwnerControllerTests.testProcessCreationFormSuccess</span>
+<span class="font-code-sm text-code-sm text-outline">src/test/java/org/springframework/samples/petclinic/owner/OwnerControllerTests.java:62</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm">
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-space-xs py-[2px] rounded font-semibold uppercase">DETECTED</span>
+</td>
+<td class="py-space-xs px-space-sm font-body-sm text-body-sm text-on-surface-variant">
+              Direct MockMvc invocation of <code class="font-code-sm text-code-sm text-secondary">POST /owners/new</code>
+</td>
+<td class="py-space-xs px-space-sm">
+<span class="font-code-sm text-code-sm text-secondary flex items-center gap-[4px]">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Passing (120ms)
+              </span>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<button class="px-space-xs py-[2px] rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-colors" type="button">
+                Run Test
+              </button>
+</td>
+</tr>
+<!-- Test 2 -->
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">OwnerControllerTests.testProcessCreationFormHasErrors</span>
+<span class="font-code-sm text-code-sm text-outline">src/test/java/org/springframework/samples/petclinic/owner/OwnerControllerTests.java:78</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm">
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-space-xs py-[2px] rounded font-semibold uppercase">DETECTED</span>
+</td>
+<td class="py-space-xs px-space-sm font-body-sm text-body-sm text-on-surface-variant">
+              Validates form binding error paths on missing telephone
+            </td>
+<td class="py-space-xs px-space-sm">
+<span class="font-code-sm text-code-sm text-secondary flex items-center gap-[4px]">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Passing (95ms)
+              </span>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<button class="px-space-xs py-[2px] rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-colors" type="button">
+                Run Test
+              </button>
+</td>
+</tr>
+<!-- Test 3 -->
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">OwnerControllerTests.testInitCreationForm</span>
+<span class="font-code-sm text-code-sm text-outline">src/test/java/org/springframework/samples/petclinic/owner/OwnerControllerTests.java:51</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm">
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-space-xs py-[2px] rounded font-semibold uppercase">LIKELY</span>
+</td>
+<td class="py-space-xs px-space-sm font-body-sm text-body-sm text-on-surface-variant">
+              Shared form view template <code class="font-code-sm text-code-sm text-secondary">owners/createOrUpdateOwnerForm</code>
+</td>
+<td class="py-space-xs px-space-sm">
+<span class="font-code-sm text-code-sm text-secondary flex items-center gap-[4px]">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Passing (88ms)
+              </span>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<button class="px-space-xs py-[2px] rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-colors" type="button">
+                Run Test
+              </button>
+</td>
+</tr>
+<!-- Test 4 -->
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">PetclinicIntegrationTests.testFindOwners</span>
+<span class="font-code-sm text-code-sm text-outline">src/test/java/org/springframework/samples/petclinic/PetclinicIntegrationTests.java:34</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm">
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-space-xs py-[2px] rounded font-semibold uppercase">LIKELY</span>
+</td>
+<td class="py-space-xs px-space-sm font-body-sm text-body-sm text-on-surface-variant">
+              End-to-end module smoke test invoking Owner persistence
+            </td>
+<td class="py-space-xs px-space-sm">
+<span class="font-code-sm text-code-sm text-secondary flex items-center gap-[4px]">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Passing (410ms)
+              </span>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<button class="px-space-xs py-[2px] rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-colors" type="button">
+                Run Test
+              </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Suggested CLI Command Box -->
+<div class="bg-surface-container-highest rounded-lg p-space-sm flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm w-full sm:w-auto">
+<span class="material-symbols-outlined text-[18px] text-primary">terminal</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Suggested Verification Target (Maven CLI)</span>
+<code class="font-code-sm text-code-sm text-on-surface truncate font-semibold">./mvnw test -Dtest=OwnerControllerTests#testProcessCreationForm*</code>
+</div>
+</div>
+<button class="w-full sm:w-auto px-space-sm py-[6px] rounded bg-surface-container hover:bg-surface text-on-surface font-body-sm text-body-sm transition-colors flex items-center justify-center gap-[4px] shadow-sm" type="button">
+<span class="material-symbols-outlined text-[15px]">content_copy</span>
+<span>Copy Command</span>
+</button>
+</div>
+</div>
+<!-- STATIC ANALYSIS SOUNDNESS & KNOWN LIMITATIONS BOX -->
+<div class="bg-surface-container-low rounded-lg p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-secondary">verified_user</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Static Analysis Soundness &amp; Known Limitations</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-sm pt-space-xs">
+<!-- Limitation 1 -->
+<div class="bg-surface-container p-space-sm rounded flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[14px] text-outline">help_outline</span>
+<span class="font-label-sm text-label-sm text-outline uppercase">Unresolved Edges</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+          2 dynamic reflection dispatchers in Spring AOP transaction interceptor could not be statically verified.
+        </p>
+</div>
+<!-- Limitation 2 -->
+<div class="bg-surface-container p-space-sm rounded flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[14px] text-outline">hub</span>
+<span class="font-label-sm text-label-sm text-outline uppercase">Reflection &amp; DI</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+          Spring DI bean autowiring resolved via standard @Autowired constructor heuristic; dynamic XML bean factories are unparsed.
+        </p>
+</div>
+<!-- Limitation 3 -->
+<div class="bg-surface-container p-space-sm rounded flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[14px] text-outline">dynamic_feed</span>
+<span class="font-label-sm text-label-sm text-outline uppercase">Dynamic Dispatch</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+          Polymorphic calls to JpaRepository interfaces resolved to generated Spring proxy repository implementation.
+        </p>
+</div>
+<!-- Limitation 4 -->
+<div class="bg-surface-container p-space-sm rounded flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[14px] text-secondary">check</span>
+<span class="font-label-sm text-label-sm text-outline uppercase">Bytecode Mutation</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+          No ByteBuddy, AspectJ LTW, or Lombok bytecode synthetic mutation detected in selected call chain.
+        </p>
+</div>
+</div>
+</div>
+<!-- INLINE SCRIPT FOR CLIENT INTERACTIVITY -->
+<script>
+    (function() {
+      const trigger = document.getElementById('symbol-picker-trigger');
+      const dropdown = document.getElementById('symbol-dropdown');
+      if (trigger && dropdown) {
+        trigger.addEventListener('click', function(e) {
+          e.stopPropagation();
+          dropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', function(e) {
+          if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
+            dropdown.classList.add('hidden');
+          }
+        });
+      }
+
+      const rerunBtn = document.getElementById('rerun-btn');
+      if (rerunBtn) {
+        rerunBtn.addEventListener('click', function() {
+          const original = this.innerHTML;
+          this.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span><span>Analyzing AST...</span>';
+          this.disabled = true;
+          setTimeout(() => {
+            this.innerHTML = original;
+            this.disabled = false;
+          }, 600);
+        });
+      }
+    })();
+  </script>
+</div></main></div></body></html>

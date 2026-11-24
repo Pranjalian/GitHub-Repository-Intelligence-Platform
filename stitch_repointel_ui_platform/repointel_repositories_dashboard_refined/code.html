@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'surface-container-highest': '#31353f', 'error': '#ffb4ab', 'on-tertiary-fixed-variant': '#5516be', 'inverse-on-surface': '#2c303a', 'error-container': '#93000a', 'secondary': '#b7c8e1', 'secondary-fixed': '#d3e4fe', 'on-surface': '#dfe2ef', 'on-secondary-fixed': '#0b1c30', 'tertiary-fixed-dim': '#d0bcff', 'background': '#0f131c', 'on-secondary-fixed-variant': '#38485d', 'surface-container-lowest': '#0a0e17', 'surface-container-high': '#262a34', 'surface': '#0f131c', 'surface-container-low': '#181b25', 'inverse-primary': '#0053db', 'on-tertiary': '#3c0091', 'on-surface-variant': '#c3c6d7', 'on-error-container': '#ffdad6', 'on-error': '#690005', 'on-secondary': '#213145', 'on-tertiary-container': '#f6edff', 'outline-variant': '#434655', 'surface-container': '#1c1f29', 'primary-fixed-dim': '#b4c5ff', 'tertiary': '#d0bcff', 'on-background': '#dfe2ef', 'secondary-container': '#3a4a5f', 'tertiary-fixed': '#e9ddff', 'on-tertiary-fixed': '#23005c', 'outline': '#8d90a0', 'on-primary-fixed': '#00174b', 'secondary-fixed-dim': '#b7c8e1', 'primary-fixed': '#dbe1ff', 'surface-dim': '#0f131c', 'primary-container': '#2563eb', 'on-primary-fixed-variant': '#003ea8', 'on-primary-container': '#eeefff', 'primary': '#b4c5ff', 'surface-tint': '#b4c5ff', 'on-secondary-container': '#a9bad3', 'tertiary-container': '#7d4ce7', 'surface-bright': '#353943', 'inverse-surface': '#dfe2ef', 'on-primary': '#002a78', 'surface-variant': '#31353f' }, borderRadius: { 'DEFAULT': '0.125rem', 'lg': '0.25rem', 'xl': '0.5rem', 'full': '0.75rem' }, spacing: { 'margin': '1.5rem', 'gutter-dense': '0.5rem', 'space-lg': '1.25rem', 'space-md': '0.75rem', 'space-xl': '2rem', 'margin-mobile': '1rem', 'space-xs': '0.25rem', 'gutter': '1rem', 'space-sm': '0.5rem' }, fontFamily: { 'headline-xl-mobile': ['Geist'], 'headline-lg-mobile': ['Geist'], 'code-md': ['JetBrains Mono'], 'code-sm': ['JetBrains Mono'], 'code-lg': ['JetBrains Mono'], 'headline-md': ['Geist'], 'headline-lg': ['Geist'], 'body-md': ['Geist'], 'body-lg': ['Geist'], 'body-sm': ['Geist'], 'label-sm': ['JetBrains Mono'], 'label-md': ['JetBrains Mono'], 'headline-xl': ['Geist'] }, fontSize: { 'headline-xl-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '600' }], 'headline-lg-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.015em', fontWeight: '600' }], 'code-md': ['12px', { lineHeight: '16px', letterSpacing: '0em', fontWeight: '400' }], 'code-sm': ['11px', { lineHeight: '14px', letterSpacing: '0.02em', fontWeight: '500' }], 'code-lg': ['13px', { lineHeight: '20px', letterSpacing: '0em', fontWeight: '400' }], 'headline-md': ['18px', { lineHeight: '24px', letterSpacing: '-0.015em', fontWeight: '600' }], 'headline-lg': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '600' }], 'body-md': ['13px', { lineHeight: '18px', letterSpacing: '-0.002em', fontWeight: '400' }], 'body-lg': ['15px', { lineHeight: '22px', letterSpacing: '-0.005em', fontWeight: '400' }], 'body-sm': ['12px', { lineHeight: '16px', letterSpacing: '0em', fontWeight: '400' }], 'label-sm': ['10px', { lineHeight: '12px', letterSpacing: '0.06em', fontWeight: '500' }], 'label-md': ['11px', { lineHeight: '14px', letterSpacing: '0.04em', fontWeight: '600' }], 'headline-xl': ['32px', { lineHeight: '40px', letterSpacing: '-0.025em', fontWeight: '600' }] } } } };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 bottom-0 w-64 bg-surface-container-lowest z-50 flex flex-col justify-between overflow-y-auto"><div class="flex flex-col"><div class="px-space-md pt-space-md pb-space-sm bg-surface-container-low"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[20px]">terminal</span><span class="font-headline-md text-headline-md text-on-surface tracking-tight font-bold">RepoIntel</span></div><span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-space-xs py-0.5 rounded-DEFAULT">LOCAL</span></div><div class="mt-space-xs"><span class="font-code-sm text-code-sm text-outline block leading-tight">v1.4 Local Single-User • No Auth</span></div></div><div class="px-space-md pt-space-md pb-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Global Workspace</span></div><nav class="px-space-xs flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="font-body-md text-body-md">Dashboard</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="add-repository" href="#"><span class="material-symbols-outlined text-[18px]">add_circle</span><span class="font-body-md text-body-md">Add Repository</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ai-settings" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span class="font-body-md text-body-md">AI Settings</span></a></nav><div class="mt-space-md px-space-md py-space-xs bg-surface-container-low"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Active Context</span><span class="material-symbols-outlined text-primary text-[14px]">lock_open</span></div><div class="mt-space-xs flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-secondary">emoji_symbols</span><span class="font-code-sm text-code-sm text-on-surface font-semibold truncate">spring-petclinic</span></div><div class="mt-0.5 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-outline">commit</span><span class="font-code-sm text-code-sm text-outline">500158f</span><span class="font-label-sm text-label-sm text-outline">•</span><span class="font-code-sm text-code-sm text-outline">snapshot</span></div></div><div class="px-space-xs pt-space-xs flex flex-col gap-0.5"><div class="px-space-sm pt-space-xs pb-0.5"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Diagnostics</span></div><nav class="flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-overview" href="#"><span class="font-body-md text-body-md">Overview</span><span class="material-symbols-outlined text-[14px] text-outline">insights</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-dependencies" href="#"><span class="font-body-md text-body-md">Dependencies</span><span class="font-code-sm text-code-sm text-secondary bg-surface-container-high px-1 rounded-DEFAULT">48</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-code-quality" href="#"><span class="font-body-md text-body-md">Code Quality</span><span class="font-code-sm text-code-sm text-primary">94%</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-security" href="#"><span class="font-body-md text-body-md">Security</span><span class="font-code-sm text-code-sm text-error bg-surface-container-high px-1 rounded-DEFAULT">0 vuln</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-tests-coverage" href="#"><span class="font-body-md text-body-md">Tests &amp; Coverage</span><span class="font-code-sm text-code-sm text-outline">88.2%</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-architecture" href="#"><span class="font-body-md text-body-md">Architecture</span><span class="material-symbols-outlined text-[14px] text-outline">schema</span></a></nav><div class="px-space-sm pt-space-xs pb-0.5 mt-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Analytical Engine</span></div><nav class="flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="code-search" href="#"><span class="material-symbols-outlined text-[18px]">search</span><span class="font-body-md text-body-md">Code Search</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ask-qa" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">chat_paste_go</span><span class="font-body-md text-body-md">Ask (Q&amp;A)</span></div><span class="font-label-sm text-label-sm bg-tertiary-container text-on-tertiary-container px-1 py-0.5 rounded-DEFAULT font-bold">AI</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="impact-analysis" href="#"><span class="material-symbols-outlined text-[18px]">alt_route</span><span class="font-body-md text-body-md">Impact Analysis</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="investigations" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">manage_search</span><span class="font-body-md text-body-md">Investigations</span></div><span class="font-label-sm text-label-sm bg-tertiary-container text-on-tertiary-container px-1 py-0.5 rounded-DEFAULT font-bold">AI</span></a></nav></div></div><div class="p-space-sm bg-surface-container-low m-space-xs rounded-DEFAULT"><div class="flex items-center gap-space-xs"><div class="w-2 h-2 rounded-full bg-primary"></div><span class="font-code-sm text-code-sm text-on-surface font-semibold">Local Engine Idle</span></div><div class="mt-1 font-label-sm text-label-sm text-outline leading-tight">Sandboxed • Host Memory 1.4 GB</div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-14 bg-surface-container-lowest/90 backdrop-blur-md z-40 px-space-lg flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1.5 font-code-md text-code-md text-outline"><span class="hover:text-on-surface transition-colors cursor-pointer">spring-projects</span><span>/</span><span class="text-on-surface font-semibold hover:text-primary transition-colors cursor-pointer">spring-petclinic</span></div><span class="text-outline">:</span><button class="flex items-center gap-1 px-space-xs py-0.5 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-secondary hover:text-on-surface font-code-sm text-code-sm transition-colors"><span class="material-symbols-outlined text-[14px]">commit</span><span>500158f</span><span class="material-symbols-outlined text-[13px] text-outline">content_copy</span></button><div class="hidden xl:flex items-center gap-space-xs text-outline font-label-sm text-label-sm pl-space-xs"><span>•</span><span>2025-02-28</span><span>•</span><span class="text-primary font-medium">Completed</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-2 px-space-sm py-1 bg-surface-container-low rounded-DEFAULT"><div class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></div><span class="font-code-sm text-code-sm text-on-surface">AI: Local Ollama (llama3.2)</span></div><div class="hidden lg:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container-lowest rounded-DEFAULT"><span class="material-symbols-outlined text-primary text-[15px]">shield_lock</span><span class="font-label-sm text-label-sm text-outline">Daemon • Safe read-only</span></div><button class="w-7 h-7 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Toggle Theme"><span class="material-symbols-outlined text-[16px]">dark_mode</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-14 bg-background px-space-lg"><div class="flex flex-col w-full gap-space-xl py-space-lg">
+<section class="flex flex-col gap-space-lg">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider">Workspace</span>
+<span class="text-outline font-code-sm text-code-sm">/</span>
+<span class="font-code-sm text-code-sm text-outline">4 local snapshots</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Repositories</h1>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="relative flex items-center bg-surface-container-low rounded-lg px-space-sm py-1.5 w-64 sm:w-72 shadow-sm">
+<span class="material-symbols-outlined text-outline text-[18px] mr-space-xs">search</span>
+<input class="bg-transparent text-on-surface placeholder-outline font-code-md text-code-md focus:outline-none w-full" id="repo-search" placeholder="Filter repositories..." type="text"/>
+<kbd class="font-label-sm text-label-sm text-outline bg-surface-container-high px-1.5 py-0.5 rounded-DEFAULT ml-space-xs">/</kbd>
+</div>
+<button class="flex items-center gap-space-xs bg-primary-container hover:bg-primary text-on-primary-container hover:text-on-primary px-space-md py-2 rounded-lg font-body-md text-body-md font-medium transition-colors shadow-sm cursor-pointer">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Add Repository</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-space-md">
+<div class="bg-surface-container-low rounded-xl p-space-md flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase">Total Analyzed</span>
+<span class="font-headline-lg text-headline-lg text-on-surface mt-1">4</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">folder_data</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-md flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase">Indexed for Search</span>
+<span class="font-headline-lg text-headline-lg text-on-surface mt-1">3 <span class="font-code-sm text-code-sm text-outline">/ 4</span></span>
+</div>
+<svg class="w-10 h-10 text-primary" viewbox="0 0 36 36">
+<path class="text-surface-container-highest" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="75, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-md flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase">Active Findings</span>
+<span class="font-headline-lg text-headline-lg text-on-surface mt-1">142</span>
+</div>
+<div class="flex items-end gap-1 h-8">
+<div class="w-1.5 bg-error h-3 rounded-t-DEFAULT"></div>
+<div class="w-1.5 bg-tertiary h-5 rounded-t-DEFAULT"></div>
+<div class="w-1.5 bg-primary h-8 rounded-t-DEFAULT"></div>
+<div class="w-1.5 bg-secondary h-4 rounded-t-DEFAULT"></div>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-md flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase">Engine Status</span>
+<span class="font-code-md text-code-md text-primary mt-2 flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            1 Running
+          </span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[20px]">memory</span>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-space-sm" id="repo-list">
+<div class="hidden xl:grid grid-cols-12 gap-space-md px-space-md py-space-xs text-outline font-label-sm text-label-sm uppercase tracking-wider">
+<div class="col-span-4">Repository &amp; Commit</div>
+<div class="col-span-2">Status</div>
+<div class="col-span-4">Findings by Severity</div>
+<div class="col-span-2 text-right">Search Index</div>
+</div>
+<div class="repo-card bg-surface-container hover:bg-surface-container-high transition-colors rounded-xl p-space-md shadow-sm grid grid-cols-1 xl:grid-cols-12 gap-space-md items-center" data-name="spring-projects/spring-petclinic java">
+<div class="xl:col-span-4 flex flex-col gap-1.5 min-w-0">
+<div class="flex items-center gap-space-sm flex-wrap">
+<a class="font-code-lg text-code-lg text-on-surface hover:text-primary transition-colors font-semibold truncate" href="#">
+<span class="text-outline font-normal">spring-projects /</span> spring-petclinic
+          </a>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-2 py-0.5 rounded-DEFAULT">Java</span>
+</div>
+<div class="flex items-center gap-space-sm text-outline font-code-sm text-code-sm">
+<button class="flex items-center gap-1 bg-surface-container-low hover:bg-surface-container-highest text-secondary hover:text-on-surface px-1.5 py-0.5 rounded-DEFAULT transition-colors cursor-pointer" onclick="copySha(this, '500158f')" title="Copy commit SHA">
+<span class="material-symbols-outlined text-[13px]">commit</span>
+<span>500158f</span>
+<span class="material-symbols-outlined text-[12px] copy-icon">content_copy</span>
+</button>
+<span>•</span>
+<span>Analyzed 2 hours ago</span>
+</div>
+</div>
+<div class="xl:col-span-2 flex items-center">
+<span class="inline-flex items-center gap-1.5 font-label-sm text-label-sm uppercase bg-primary/15 text-primary px-2.5 py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+          Completed
+        </span>
+</div>
+<div class="xl:col-span-4 flex items-center gap-space-xs flex-wrap">
+<span class="font-code-sm text-code-sm bg-surface-container-low text-outline px-2 py-0.5 rounded-DEFAULT">0 Crit</span>
+<span class="font-code-sm text-code-sm bg-tertiary/15 text-tertiary px-2 py-0.5 rounded-DEFAULT">2 High</span>
+<span class="font-code-sm text-code-sm bg-primary/15 text-primary px-2 py-0.5 rounded-DEFAULT">8 Med</span>
+<span class="font-code-sm text-code-sm bg-surface-container-highest text-secondary px-2 py-0.5 rounded-DEFAULT">14 Low</span>
+</div>
+<div class="xl:col-span-2 flex items-center xl:justify-end">
+<span class="inline-flex items-center gap-1.5 font-label-sm text-label-sm bg-surface-container-low text-primary px-2.5 py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-[14px]">manage_search</span>
+          Indexed for search
+        </span>
+</div>
+</div>
+<div class="repo-card bg-surface-container hover:bg-surface-container-high transition-colors rounded-xl p-space-md shadow-sm grid grid-cols-1 xl:grid-cols-12 gap-space-md items-center" data-name="pallets/flask python">
+<div class="xl:col-span-4 flex flex-col gap-1.5 min-w-0">
+<div class="flex items-center gap-space-sm flex-wrap">
+<a class="font-code-lg text-code-lg text-on-surface hover:text-primary transition-colors font-semibold truncate" href="#">
+<span class="text-outline font-normal">pallets /</span> flask
+          </a>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-2 py-0.5 rounded-DEFAULT">Python</span>
+</div>
+<div class="flex items-center gap-space-sm text-outline font-code-sm text-code-sm">
+<button class="flex items-center gap-1 bg-surface-container-low hover:bg-surface-container-highest text-secondary hover:text-on-surface px-1.5 py-0.5 rounded-DEFAULT transition-colors cursor-pointer" onclick="copySha(this, '9a4c21e')" title="Copy commit SHA">
+<span class="material-symbols-outlined text-[13px]">commit</span>
+<span>9a4c21e</span>
+<span class="material-symbols-outlined text-[12px] copy-icon">content_copy</span>
+</button>
+<span>•</span>
+<span>Started 18 mins ago</span>
+</div>
+</div>
+<div class="xl:col-span-2 flex items-center">
+<span class="inline-flex items-center gap-1.5 font-label-sm text-label-sm uppercase bg-tertiary/15 text-tertiary px-2.5 py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+          Running
+        </span>
+</div>
+<div class="xl:col-span-4 flex items-center gap-space-xs flex-wrap">
+<span class="font-code-sm text-code-sm bg-surface-container-low text-outline px-2 py-0.5 rounded-DEFAULT">-- Crit</span>
+<span class="font-code-sm text-code-sm bg-surface-container-low text-outline px-2 py-0.5 rounded-DEFAULT">-- High</span>
+<span class="font-code-sm text-code-sm bg-surface-container-low text-outline px-2 py-0.5 rounded-DEFAULT">-- Med</span>
+<span class="font-code-sm text-code-sm bg-surface-container-low text-outline px-2 py-0.5 rounded-DEFAULT">-- Low</span>
+</div>
+<div class="xl:col-span-2 flex items-center xl:justify-end">
+<span class="inline-flex items-center gap-1.5 font-label-sm text-label-sm bg-surface-container-low text-outline px-2.5 py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-[14px]">hourglass_empty</span>
+          Indexing...
+        </span>
+</div>
+</div>
+<div class="repo-card bg-surface-container hover:bg-surface-container-high transition-colors rounded-xl p-space-md shadow-sm grid grid-cols-1 xl:grid-cols-12 gap-space-md items-center" data-name="vercel/next.js typescript">
+<div class="xl:col-span-4 flex flex-col gap-1.5 min-w-0">
+<div class="flex items-center gap-space-sm flex-wrap">
+<a class="font-code-lg text-code-lg text-on-surface hover:text-primary transition-colors font-semibold truncate" href="#">
+<span class="text-outline font-normal">vercel /</span> next.js
+          </a>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-2 py-0.5 rounded-DEFAULT">TypeScript</span>
+</div>
+<div class="flex items-center gap-space-sm text-outline font-code-sm text-code-sm">
+<button class="flex items-center gap-1 bg-surface-container-low hover:bg-surface-container-highest text-secondary hover:text-on-surface px-1.5 py-0.5 rounded-DEFAULT transition-colors cursor-pointer" onclick="copySha(this, 'f81d3b0')" title="Copy commit SHA">
+<span class="material-symbols-outlined text-[13px]">commit</span>
+<span>f81d3b0</span>
+<span class="material-symbols-outlined text-[12px] copy-icon">content_copy</span>
+</button>
+<span>•</span>
+<span>Analyzed Yesterday</span>
+</div>
+</div>
+<div class="xl:col-span-2 flex items-center">
+<span class="inline-flex items-center gap-1.5 font-label-sm text-label-sm uppercase bg-primary/15 text-primary px-2.5 py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+          Completed
+        </span>
+</div>
+<div class="xl:col-span-4 flex items-center gap-space-xs flex-wrap">
+<span class="font-code-sm text-code-sm bg-error/15 text-error px-2 py-0.5 rounded-DEFAULT">1 Crit</span>
+<span class="font-code-sm text-code-sm bg-tertiary/15 text-tertiary px-2 py-0.5 rounded-DEFAULT">5 High</span>
+<span class="font-code-sm text-code-sm bg-primary/15 text-primary px-2 py-0.5 rounded-DEFAULT">21 Med</span>
+<span class="font-code-sm text-code-sm bg-surface-container-highest text-secondary px-2 py-0.5 rounded-DEFAULT">49 Low</span>
+</div>
+<div class="xl:col-span-2 flex items-center xl:justify-end">
+<span class="inline-flex items-center gap-1.5 font-label-sm text-label-sm bg-surface-container-low text-primary px-2.5 py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-[14px]">manage_search</span>
+          Indexed for search
+        </span>
+</div>
+</div>
+<div class="repo-card bg-surface-container hover:bg-surface-container-high transition-colors rounded-xl p-space-md shadow-sm grid grid-cols-1 xl:grid-cols-12 gap-space-md items-center" data-name="facebook/react javascript">
+<div class="xl:col-span-4 flex flex-col gap-1.5 min-w-0">
+<div class="flex items-center gap-space-sm flex-wrap">
+<a class="font-code-lg text-code-lg text-on-surface hover:text-primary transition-colors font-semibold truncate" href="#">
+<span class="text-outline font-normal">facebook /</span> react
+          </a>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-2 py-0.5 rounded-DEFAULT">JavaScript</span>
+</div>
+<div class="flex items-center gap-space-sm text-outline font-code-sm text-code-sm">
+<button class="flex items-center gap-1 bg-surface-container-low hover:bg-surface-container-highest text-secondary hover:text-on-surface px-1.5 py-0.5 rounded-DEFAULT transition-colors cursor-pointer" onclick="copySha(this, '3e77a12')" title="Copy commit SHA">
+<span class="material-symbols-outlined text-[13px]">commit</span>
+<span>3e77a12</span>
+<span class="material-symbols-outlined text-[12px] copy-icon">content_copy</span>
+</button>
+<span>•</span>
+<span>Failed 3 days ago</span>
+</div>
+</div>
+<div class="xl:col-span-2 flex items-center">
+<span class="inline-flex items-center gap-1.5 font-label-sm text-label-sm uppercase bg-error/15 text-error px-2.5 py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-[14px]">error</span>
+          Failed
+        </span>
+</div>
+<div class="xl:col-span-4 flex items-center gap-space-xs flex-wrap">
+<span class="font-code-sm text-code-sm bg-error/15 text-error px-2 py-0.5 rounded-DEFAULT">3 Crit</span>
+<span class="font-code-sm text-code-sm bg-tertiary/15 text-tertiary px-2 py-0.5 rounded-DEFAULT">11 High</span>
+<span class="font-code-sm text-code-sm bg-primary/15 text-primary px-2 py-0.5 rounded-DEFAULT">18 Med</span>
+<span class="font-code-sm text-code-sm bg-surface-container-highest text-secondary px-2 py-0.5 rounded-DEFAULT">10 Low</span>
+</div>
+<div class="xl:col-span-2 flex items-center xl:justify-end">
+<span class="inline-flex items-center gap-1.5 font-label-sm text-label-sm bg-surface-container-low text-primary px-2.5 py-1 rounded-DEFAULT">
+<span class="material-symbols-outlined text-[14px]">manage_search</span>
+          Indexed for search
+        </span>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-space-md pt-space-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Empty State Preview</span>
+<span class="font-code-sm text-code-sm text-outline bg-surface-container-low px-2 py-0.5 rounded-DEFAULT">0 repositories</span>
+</div>
+</div>
+<div class="relative overflow-hidden bg-surface-container-low rounded-xl p-space-xl flex flex-col items-center justify-center text-center shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-tertiary/5 pointer-events-none"></div>
+<div class="relative z-10 w-16 h-16 rounded-xl bg-surface-container flex items-center justify-center text-primary mb-space-md shadow-sm">
+<span class="material-symbols-outlined text-[32px]">terminal</span>
+</div>
+<h2 class="relative z-10 font-headline-md text-headline-md text-on-surface">No repositories analyzed yet</h2>
+<p class="relative z-10 font-body-md text-body-md text-on-surface-variant max-w-md mt-space-xs">
+        Point RepoIntel to a local git directory or clone a repository to run static diagnostics, dependency lineage, and AI-assisted architecture indexing.
+      </p>
+<button class="relative z-10 mt-space-lg flex items-center gap-space-xs bg-primary-container hover:bg-primary text-on-primary-container hover:text-on-primary px-space-lg py-2 rounded-lg font-body-md text-body-md font-medium transition-colors shadow-sm cursor-pointer">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Add Repository</span>
+</button>
+</div>
+</section>
+</div>
+<script>
+  const searchInput = document.getElementById('repo-search');
+  const repoCards = document.querySelectorAll('.repo-card');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      repoCards.forEach((card) => {
+        const name = card.getAttribute('data-name') || '';
+        card.style.display = name.includes(query) ? '' : 'none';
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== searchInput) {
+        e.preventDefault();
+        searchInput.focus();
+      }
+    });
+  }
+
+  function copySha(btn, sha) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(sha);
+    }
+    const icon = btn.querySelector('.copy-icon');
+    if (icon) {
+      icon.textContent = 'check';
+      icon.classList.add('text-primary');
+      setTimeout(() => {
+        icon.textContent = 'content_copy';
+        icon.classList.remove('text-primary');
+      }, 1500);
+    }
+  }
+</script></main></div></body></html>

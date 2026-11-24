@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'surface-container-highest': '#31353f', 'error': '#ffb4ab', 'on-tertiary-fixed-variant': '#5516be', 'inverse-on-surface': '#2c303a', 'error-container': '#93000a', 'secondary': '#b7c8e1', 'secondary-fixed': '#d3e4fe', 'on-surface': '#dfe2ef', 'on-secondary-fixed': '#0b1c30', 'tertiary-fixed-dim': '#d0bcff', 'background': '#0f131c', 'on-secondary-fixed-variant': '#38485d', 'surface-container-lowest': '#0a0e17', 'surface-container-high': '#262a34', 'surface': '#0f131c', 'surface-container-low': '#181b25', 'inverse-primary': '#0053db', 'on-tertiary': '#3c0091', 'on-surface-variant': '#c3c6d7', 'on-error-container': '#ffdad6', 'on-error': '#690005', 'on-secondary': '#213145', 'on-tertiary-container': '#f6edff', 'outline-variant': '#434655', 'surface-container': '#1c1f29', 'primary-fixed-dim': '#b4c5ff', 'tertiary': '#d0bcff', 'on-background': '#dfe2ef', 'secondary-container': '#3a4a5f', 'tertiary-fixed': '#e9ddff', 'on-tertiary-fixed': '#23005c', 'outline': '#8d90a0', 'on-primary-fixed': '#00174b', 'secondary-fixed-dim': '#b7c8e1', 'primary-fixed': '#dbe1ff', 'surface-dim': '#0f131c', 'primary-container': '#2563eb', 'on-primary-fixed-variant': '#003ea8', 'on-primary-container': '#eeefff', 'primary': '#b4c5ff', 'surface-tint': '#b4c5ff', 'on-secondary-container': '#a9bad3', 'tertiary-container': '#7d4ce7', 'surface-bright': '#353943', 'inverse-surface': '#dfe2ef', 'on-primary': '#002a78', 'surface-variant': '#31353f' }, borderRadius: { 'DEFAULT': '0.125rem', 'lg': '0.25rem', 'xl': '0.5rem', 'full': '0.75rem' }, spacing: { 'margin': '1.5rem', 'gutter-dense': '0.5rem', 'space-lg': '1.25rem', 'space-md': '0.75rem', 'space-xl': '2rem', 'margin-mobile': '1rem', 'space-xs': '0.25rem', 'gutter': '1rem', 'space-sm': '0.5rem' }, fontFamily: { 'headline-xl-mobile': ['Geist'], 'headline-lg-mobile': ['Geist'], 'code-md': ['JetBrains Mono'], 'code-sm': ['JetBrains Mono'], 'code-lg': ['JetBrains Mono'], 'headline-md': ['Geist'], 'headline-lg': ['Geist'], 'body-md': ['Geist'], 'body-lg': ['Geist'], 'body-sm': ['Geist'], 'label-sm': ['JetBrains Mono'], 'label-md': ['JetBrains Mono'], 'headline-xl': ['Geist'] }, fontSize: { 'headline-xl-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '600' }], 'headline-lg-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.015em', fontWeight: '600' }], 'code-md': ['12px', { lineHeight: '16px', letterSpacing: '0em', fontWeight: '400' }], 'code-sm': ['11px', { lineHeight: '14px', letterSpacing: '0.02em', fontWeight: '500' }], 'code-lg': ['13px', { lineHeight: '20px', letterSpacing: '0em', fontWeight: '400' }], 'headline-md': ['18px', { lineHeight: '24px', letterSpacing: '-0.015em', fontWeight: '600' }], 'headline-lg': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '600' }], 'body-md': ['13px', { lineHeight: '18px', letterSpacing: '-0.002em', fontWeight: '400' }], 'body-lg': ['15px', { lineHeight: '22px', letterSpacing: '-0.005em', fontWeight: '400' }], 'body-sm': ['12px', { lineHeight: '16px', letterSpacing: '0em', fontWeight: '400' }], 'label-sm': ['10px', { lineHeight: '12px', letterSpacing: '0.06em', fontWeight: '500' }], 'label-md': ['11px', { lineHeight: '14px', letterSpacing: '0.04em', fontWeight: '600' }], 'headline-xl': ['32px', { lineHeight: '40px', letterSpacing: '-0.025em', fontWeight: '600' }] } } } };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 bottom-0 w-64 bg-surface-container-lowest z-50 flex flex-col justify-between overflow-y-auto"><div class="flex flex-col"><div class="px-space-md pt-space-md pb-space-sm bg-surface-container-low"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[20px]">terminal</span><span class="font-headline-md text-headline-md text-on-surface tracking-tight font-bold">RepoIntel</span></div><span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-space-xs py-0.5 rounded-DEFAULT">LOCAL</span></div><div class="mt-space-xs"><span class="font-code-sm text-code-sm text-outline block leading-tight">v1.4 Local Single-User • No Auth</span></div></div><div class="px-space-md pt-space-md pb-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Global Workspace</span></div><nav class="px-space-xs flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="font-body-md text-body-md">Dashboard</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="add-repository" href="#"><span class="material-symbols-outlined text-[18px]">add_circle</span><span class="font-body-md text-body-md">Add Repository</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ai-settings" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span class="font-body-md text-body-md">AI Settings</span></a></nav><div class="mt-space-md px-space-md py-space-xs bg-surface-container-low"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Active Context</span><span class="material-symbols-outlined text-primary text-[14px]">lock_open</span></div><div class="mt-space-xs flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-secondary">emoji_symbols</span><span class="font-code-sm text-code-sm text-on-surface font-semibold truncate">spring-petclinic</span></div><div class="mt-0.5 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-outline">commit</span><span class="font-code-sm text-code-sm text-outline">500158f</span><span class="font-label-sm text-label-sm text-outline">•</span><span class="font-code-sm text-code-sm text-outline">snapshot</span></div></div><div class="px-space-xs pt-space-xs flex flex-col gap-0.5"><div class="px-space-sm pt-space-xs pb-0.5"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Diagnostics</span></div><nav class="flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-overview" href="#"><span class="font-body-md text-body-md">Overview</span><span class="material-symbols-outlined text-[14px] text-outline">insights</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-dependencies" href="#"><span class="font-body-md text-body-md">Dependencies</span><span class="font-code-sm text-code-sm text-secondary bg-surface-container-high px-1 rounded-DEFAULT">48</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-code-quality" href="#"><span class="font-body-md text-body-md">Code Quality</span><span class="font-code-sm text-code-sm text-primary">94%</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-security" href="#"><span class="font-body-md text-body-md">Security</span><span class="font-code-sm text-code-sm text-error bg-surface-container-high px-1 rounded-DEFAULT">0 vuln</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-tests-coverage" href="#"><span class="font-body-md text-body-md">Tests &amp; Coverage</span><span class="font-code-sm text-code-sm text-outline">88.2%</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-architecture" href="#"><span class="font-body-md text-body-md">Architecture</span><span class="material-symbols-outlined text-[14px] text-outline">schema</span></a></nav><div class="px-space-sm pt-space-xs pb-0.5 mt-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Analytical Engine</span></div><nav class="flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="code-search" href="#"><span class="material-symbols-outlined text-[18px]">search</span><span class="font-body-md text-body-md">Code Search</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ask-qa" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">chat_paste_go</span><span class="font-body-md text-body-md">Ask (Q&amp;A)</span></div><span class="font-label-sm text-label-sm bg-tertiary-container text-on-tertiary-container px-1 py-0.5 rounded-DEFAULT font-bold">AI</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="impact-analysis" href="#"><span class="material-symbols-outlined text-[18px]">alt_route</span><span class="font-body-md text-body-md">Impact Analysis</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="investigations" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">manage_search</span><span class="font-body-md text-body-md">Investigations</span></div><span class="font-label-sm text-label-sm bg-tertiary-container text-on-tertiary-container px-1 py-0.5 rounded-DEFAULT font-bold">AI</span></a></nav></div></div><div class="p-space-sm bg-surface-container-low m-space-xs rounded-DEFAULT"><div class="flex items-center gap-space-xs"><div class="w-2 h-2 rounded-full bg-primary"></div><span class="font-code-sm text-code-sm text-on-surface font-semibold">Local Engine Idle</span></div><div class="mt-1 font-label-sm text-label-sm text-outline leading-tight">Sandboxed • Host Memory 1.4 GB</div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-14 bg-surface-container-lowest/90 backdrop-blur-md z-40 px-space-lg flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1.5 font-code-md text-code-md text-outline"><span class="hover:text-on-surface transition-colors cursor-pointer">spring-projects</span><span>/</span><span class="text-on-surface font-semibold hover:text-primary transition-colors cursor-pointer">spring-petclinic</span></div><span class="text-outline">:</span><button class="flex items-center gap-1 px-space-xs py-0.5 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-secondary hover:text-on-surface font-code-sm text-code-sm transition-colors"><span class="material-symbols-outlined text-[14px]">commit</span><span>500158f</span><span class="material-symbols-outlined text-[13px] text-outline">content_copy</span></button><div class="hidden xl:flex items-center gap-space-xs text-outline font-label-sm text-label-sm pl-space-xs"><span>•</span><span>2025-02-28</span><span>•</span><span class="text-primary font-medium">Completed</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-2 px-space-sm py-1 bg-surface-container-low rounded-DEFAULT"><div class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></div><span class="font-code-sm text-code-sm text-on-surface">AI: Local Ollama (llama3.2)</span></div><div class="hidden lg:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container-lowest rounded-DEFAULT"><span class="material-symbols-outlined text-primary text-[15px]">shield_lock</span><span class="font-label-sm text-label-sm text-outline">Daemon • Safe read-only</span></div><button class="w-7 h-7 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Toggle Theme"><span class="material-symbols-outlined text-[16px]">dark_mode</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-14 bg-background px-space-lg"><div class="flex flex-col w-full pb-16">
+<!-- Interactive Viewport Sticky Control Bar -->
+<div class="sticky top-14 z-30 flex flex-wrap items-center justify-between gap-y-space-xs gap-x-space-md py-space-sm px-space-md bg-surface-container-lowest/95 backdrop-blur-md rounded-DEFAULT shadow-sm">
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-1.5 font-code-sm text-code-sm text-outline">
+<span>Component Specs</span>
+<span>/</span>
+<span class="text-tertiary font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+          AI Insight Card (Spec v2.4)
+        </span>
+</div>
+<span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-1.5 py-0.5 rounded-DEFAULT">
+        PROBABILISTIC / INFERRED
+      </span>
+</div>
+<!-- Quick Jump Matrix & Theme Toggle Simulation -->
+<div class="flex items-center gap-space-sm overflow-x-auto py-0.5">
+<nav class="flex items-center gap-1 bg-surface-container p-0.5 rounded-DEFAULT">
+<a class="px-space-xs py-1 text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm rounded-DEFAULT hover:bg-surface-container-high transition-colors" href="#section-principles">Principles</a>
+<a class="px-space-xs py-1 text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm rounded-DEFAULT hover:bg-surface-container-high transition-colors" href="#section-in-flight">In-Flight</a>
+<a class="px-space-xs py-1 text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm rounded-DEFAULT hover:bg-surface-container-high transition-colors" href="#section-canonical">Canonical &amp; Variants</a>
+<a class="px-space-xs py-1 text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm rounded-DEFAULT hover:bg-surface-container-high transition-colors" href="#section-failures">Failures (5)</a>
+<a class="px-space-xs py-1 text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm rounded-DEFAULT hover:bg-surface-container-high transition-colors" href="#section-unavailable">Unavailable</a>
+<a class="px-space-xs py-1 text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm rounded-DEFAULT hover:bg-surface-container-high transition-colors" href="#section-light-duality">Theme Duality</a>
+</nav>
+<button class="flex items-center gap-1 px-space-xs py-1 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" id="toggle-all-diffs" title="Toggle expandable diff sections">
+<span class="material-symbols-outlined text-[14px]">unfold_more</span>
+<span>Toggle Diffs</span>
+</button>
+</div>
+</div>
+<!-- Page Introduction & Design Rationale Bar -->
+<header class="mt-space-lg mb-space-xl p-space-lg rounded-DEFAULT bg-surface-container-low shadow-sm relative overflow-hidden" id="section-principles">
+<div class="absolute -right-12 -top-12 w-64 h-64 bg-tertiary-container/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-space-lg">
+<div class="max-w-3xl">
+<div class="flex items-center gap-2 mb-space-xs">
+<span class="material-symbols-outlined text-tertiary text-[20px]">auto_awesome</span>
+<span class="font-label-md text-label-md text-tertiary uppercase tracking-wider">Provenance Isolation &amp; Architectural Invariance</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">AI Insight Card Specification &amp; State Matrix</h1>
+<p class="mt-space-xs font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+          RepoIntel treats deterministic evidence (AST parses, compiler symbols, git tree walks) as immutable truth. The <span class="font-code-md text-code-md text-tertiary font-semibold">AI Insight Card</span> is deliberately styled with a restrained violet chromatic signature (<span class="font-code-sm text-code-sm text-on-surface">#1e1838</span> surface, sparkle glyph <span class="text-tertiary font-bold">✦</span>) to strictly isolate probabilistic LLM inferences from hard deterministic findings.
+        </p>
+</div>
+<!-- Core Spec Invariants -->
+<div class="grid grid-cols-2 gap-space-sm shrink-0 bg-surface-container p-space-sm rounded-DEFAULT">
+<div class="p-space-xs">
+<span class="font-label-sm text-label-sm text-outline block uppercase tracking-wider">Evidence Rule</span>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-primary text-[14px]">fact_check</span>
+            Strict AST Citations
+          </span>
+</div>
+<div class="p-space-xs">
+<span class="font-label-sm text-label-sm text-outline block uppercase tracking-wider">Data Leaks</span>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-primary text-[14px]">lock</span>
+            Local Ollama 0-Cloud
+          </span>
+</div>
+<div class="p-space-xs">
+<span class="font-label-sm text-label-sm text-outline block uppercase tracking-wider">Schema Policy</span>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-primary text-[14px]">verified</span>
+            Drop Unparseable JSON
+          </span>
+</div>
+<div class="p-space-xs">
+<span class="font-label-sm text-label-sm text-outline block uppercase tracking-wider">Active Commit</span>
+<span class="font-code-sm text-code-sm text-secondary font-semibold flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">commit</span>
+            500158f snapshot
+          </span>
+</div>
+</div>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- SECTION 1: INTERACTION & IN-FLIGHT STATES                                -->
+<!-- ========================================================================= -->
+<section class="mb-space-xl" id="section-in-flight">
+<div class="flex items-center justify-between mb-space-md">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-1.5 py-0.5 rounded-DEFAULT">STAGE 01</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Interaction Triggers &amp; In-Flight Streaming</h2>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">No background calls trigger automatically; actions remain deterministic until user explicit opt-in.</p>
+</div>
+<span class="font-code-sm text-code-sm text-outline">State: Idle / Probe / Stream</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+<!-- State A: Idle (Trigger Buttons Collection) -->
+<div class="bg-surface-container-low p-space-md rounded-DEFAULT flex flex-col justify-between shadow-sm">
+<div>
+<div class="flex items-center justify-between pb-space-sm mb-space-sm bg-surface-container/60 -mx-space-md -mt-space-md px-space-md pt-space-md">
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+              State: Idle (Triggers)
+            </span>
+<span class="font-code-sm text-code-sm text-outline">Opt-in</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md leading-relaxed">
+            Deterministic views remain untouched. Users trigger context-bound model inferences via restrained pill controls:
+          </p>
+<!-- Interactive Trigger Pills Container -->
+<div class="flex flex-col gap-2">
+<button class="w-full flex items-center justify-between px-space-sm py-2 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-on-surface font-body-sm text-body-sm transition-all text-left shadow-sm group">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-tertiary group-hover:scale-110 transition-transform">auto_awesome</span>
+<span class="font-medium">Explain class hierarchy</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-code-sm">⌘E</span>
+</button>
+<button class="w-full flex items-center justify-between px-space-sm py-2 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-on-surface font-body-sm text-body-sm transition-all text-left shadow-sm group">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-tertiary group-hover:scale-110 transition-transform">auto_awesome</span>
+<span class="font-medium">Suggest refactoring (N+1 query)</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-code-sm">⌘R</span>
+</button>
+<button class="w-full flex items-center justify-between px-space-sm py-2 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-on-surface font-body-sm text-body-sm transition-all text-left shadow-sm group">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-tertiary group-hover:scale-110 transition-transform">auto_awesome</span>
+<span class="font-medium">Explain method query cascade</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-code-sm">⌥M</span>
+</button>
+<button class="w-full flex items-center justify-between px-space-sm py-2 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-on-surface font-body-sm text-body-sm transition-all text-left shadow-sm group">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-tertiary group-hover:scale-110 transition-transform">auto_awesome</span>
+<span class="font-medium">Summarize module technical debt</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-code-sm">⌥D</span>
+</button>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs font-label-sm text-label-sm text-outline leading-tight">
+          ✦ Deterministic view remains completely static until one of these actions is invoked.
+        </div>
+</div>
+<!-- State B: Checking Availability Probe -->
+<div class="bg-surface-container-low p-space-md rounded-DEFAULT flex flex-col justify-between shadow-sm">
+<div>
+<div class="flex items-center justify-between pb-space-sm mb-space-sm bg-surface-container/60 -mx-space-md -mt-space-md px-space-md pt-space-md">
+<span class="font-label-md text-label-md text-tertiary uppercase tracking-wider flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+              State: Checking Availability
+            </span>
+<span class="font-code-sm text-code-sm text-outline">Pre-flight</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+            Verifying runtime socket readiness prior to generating AST serialization payloads.
+          </p>
+<div class="p-space-md rounded-DEFAULT bg-surface-container flex flex-col gap-space-sm relative overflow-hidden shadow-sm">
+<div class="flex items-center gap-2.5">
+<div class="w-4 h-4 rounded-full border-2 border-tertiary border-t-transparent animate-spin shrink-0"></div>
+<span class="font-code-sm text-code-sm text-on-surface font-medium">Checking local Ollama daemon...</span>
+</div>
+<div class="font-code-sm text-code-sm text-on-surface-variant pl-6 flex flex-col gap-1">
+<span class="text-outline">GET http://localhost:11434/api/tags</span>
+<span class="text-secondary">Testing model: llama3.2 (latest)</span>
+<span class="text-outline">Socket latency: probing...</span>
+</div>
+<div class="w-full bg-surface-container-high h-1 rounded-full overflow-hidden mt-space-xs">
+<div class="bg-tertiary h-full w-2/3 animate-pulse"></div>
+</div>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>Timeout: 2000ms</span>
+<span class="text-tertiary">Daemon mode</span>
+</div>
+</div>
+<!-- State C: Asking (Skeleton Loading + Streaming HUD) -->
+<div class="bg-surface-container-low p-space-md rounded-DEFAULT flex flex-col justify-between shadow-sm">
+<div>
+<div class="flex items-center justify-between pb-space-sm mb-space-sm bg-surface-container/60 -mx-space-md -mt-space-md px-space-md pt-space-md">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-ping"></span>
+<span class="font-label-md text-label-md text-tertiary uppercase tracking-wider">State: Asking LLM</span>
+</div>
+<button class="font-label-sm text-label-sm px-1.5 py-0.5 bg-surface-container-high hover:bg-surface-container-highest text-error rounded-DEFAULT transition-colors">
+              Cancel request
+            </button>
+</div>
+<div class="flex items-center justify-between text-on-surface mb-space-xs">
+<div class="flex items-center gap-1.5 font-code-sm text-code-sm">
+<span class="text-tertiary">Local: Ollama</span>
+<span class="text-outline">•</span>
+<span class="text-on-surface-variant">llama3.2</span>
+</div>
+<span class="font-code-sm text-code-sm text-secondary font-medium animate-pulse">
+              0.8s elapsed • ~140 tok
+            </span>
+</div>
+<!-- Skeleton representation of streaming token layout -->
+<div class="p-space-sm bg-surface-container rounded-DEFAULT flex flex-col gap-2 shadow-inner">
+<div class="h-3 w-4/5 bg-surface-container-highest rounded-DEFAULT animate-pulse"></div>
+<div class="h-3 w-full bg-surface-container-highest rounded-DEFAULT animate-pulse delay-75"></div>
+<div class="h-3 w-11/12 bg-surface-container-highest rounded-DEFAULT animate-pulse delay-100"></div>
+<div class="mt-2 pt-2 bg-surface-container-low p-2 rounded-DEFAULT flex flex-col gap-1.5">
+<div class="h-2.5 w-1/3 bg-tertiary/20 rounded-DEFAULT animate-pulse"></div>
+<div class="h-2.5 w-3/4 bg-surface-container-highest rounded-DEFAULT animate-pulse"></div>
+</div>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>AST Context: 3 Nodes (182 tokens)</span>
+<span class="text-tertiary">Tokens streaming...</span>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- SECTION 2: CANONICAL SUCCESS STATE & METADATA VARIANTS                   -->
+<!-- ========================================================================= -->
+<section class="mb-space-xl" id="section-canonical">
+<div class="flex items-center justify-between mb-space-md">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-1.5 py-0.5 rounded-DEFAULT">STAGE 02</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Successful Outputs &amp; Metadata Variants</h2>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Anatomy of the full production card, complete with citation telemetry, actionable diffs, and honesty caveats.</p>
+</div>
+<span class="font-code-sm text-code-sm text-tertiary">Prompt v2.4 Certified</span>
+</div>
+<!-- 2.a PRIMARY CANONICAL SUCCESS CARD -->
+<div class="mb-space-lg rounded-DEFAULT bg-[#1a142e] shadow-xl overflow-hidden relative">
+<!-- Glow ambient backdrop inside card -->
+<div class="absolute -right-20 -bottom-20 w-80 h-80 bg-tertiary-container/10 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Card Diagnostic Header -->
+<div class="p-space-md bg-[#221b3d] flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex flex-wrap items-center gap-space-sm">
+<!-- AI Provenance Badge with Tooltip Callout visible reference -->
+<div class="group relative flex items-center gap-1.5 px-2 py-0.5 bg-tertiary-container/40 text-tertiary rounded-DEFAULT font-label-sm text-label-sm cursor-help transition-all">
+<span class="text-[13px] font-bold">✦</span>
+<span class="tracking-wider uppercase font-semibold">AI-Generated</span>
+<span class="material-symbols-outlined text-[13px] text-tertiary-fixed">info</span>
+<!-- Tooltip Hover Card -->
+<div class="absolute left-0 top-full mt-1.5 w-72 p-space-sm bg-surface-container-highest text-on-surface shadow-2xl rounded-DEFAULT z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="font-label-sm text-label-sm text-tertiary font-bold uppercase tracking-wider block mb-1">Inference Notice</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight">
+                Written by an AI model from the evidence listed below. It can be wrong; check the evidence.
+              </p>
+</div>
+</div>
+<!-- Model & Telemetry Pills -->
+<div class="flex items-center gap-1.5 font-code-sm text-code-sm text-on-surface-variant">
+<span class="text-on-surface font-medium">Local: Ollama (llama3.2)</span>
+<span class="text-outline">•</span>
+<span class="text-outline">Prompt v2.4</span>
+<span class="text-outline">•</span>
+<span class="text-secondary font-medium">1.2s (218 tok/s)</span>
+</div>
+</div>
+<!-- Action Toolbar -->
+<div class="flex items-center gap-1">
+<button class="p-1 rounded-DEFAULT hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Copy Markdown representation">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+</button>
+<button class="p-1 rounded-DEFAULT hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Regenerate with seed shift">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+</button>
+<div class="w-px h-3.5 bg-outline-variant mx-1"></div>
+<button class="p-1 rounded-DEFAULT hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Helpful inference">
+<span class="material-symbols-outlined text-[16px]">thumb_up</span>
+</button>
+<button class="p-1 rounded-DEFAULT hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Unhelpful inference">
+<span class="material-symbols-outlined text-[16px]">thumb_down</span>
+</button>
+<button class="p-1 rounded-DEFAULT hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Collapse / Expand card">
+<span class="material-symbols-outlined text-[16px]">keyboard_arrow_up</span>
+</button>
+</div>
+</div>
+<!-- Card Body Content -->
+<div class="p-space-lg flex flex-col gap-space-md">
+<!-- 1. Plain-Language Explanation -->
+<div>
+<span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider font-semibold block mb-1">
+            01. Structural Analysis &amp; Explanation
+          </span>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed">
+            The method <code class="font-code-md text-code-md bg-surface-container px-1 py-0.5 rounded-DEFAULT text-primary">PetRepository.findOwnerPets(Integer ownerId)</code> triggers an unbatched sequential query cascade when iterating through owned pet records under Spring Data JPA. Because <code class="font-code-md text-code-md bg-surface-container px-1 py-0.5 rounded-DEFAULT text-secondary">Owner.pets</code> defaults to <code class="font-code-md text-code-md bg-surface-container px-1 py-0.5 rounded-DEFAULT text-secondary">FetchType.LAZY</code> without an explicit batch fetch size or entity graph declaration, downstream consumers in <code class="font-code-md text-code-md bg-surface-container px-1 py-0.5 rounded-DEFAULT text-on-surface">OwnerController.processFindForm</code> incur an <strong>N+1 query problem</strong> during template rendering.
+          </p>
+</div>
+<!-- 2. Key Points -->
+<div class="bg-surface-container/60 p-space-md rounded-DEFAULT">
+<span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider font-semibold block mb-2">
+            02. Key Architectural Inferences
+          </span>
+<ul class="space-y-1.5 font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-start gap-2">
+<span class="text-tertiary font-bold mt-0.5">•</span>
+<span><strong class="text-on-surface font-medium">Lax Entity Graph:</strong> Missing <code class="font-code-sm text-code-sm bg-surface-container-high px-1 py-0.5 rounded-DEFAULT text-primary">@EntityGraph(attributePaths = {"visits", "type"})</code> causes secondary lazy proxies for pet visit logs to trigger individual SQL selects per item.</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="text-tertiary font-bold mt-0.5">•</span>
+<span><strong class="text-on-surface font-medium">Transaction Scope:</strong> <code class="font-code-sm text-code-sm bg-surface-container-high px-1 py-0.5 rounded-DEFAULT text-secondary">OpenSessionInView</code> is enabled via default Spring Boot profile settings, masking downstream query execution outside DAO boundaries.</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="text-tertiary font-bold mt-0.5">•</span>
+<span><strong class="text-on-surface font-medium">Foreign Key Mapping:</strong> The association <code class="font-code-sm text-code-sm bg-surface-container-high px-1 py-0.5 rounded-DEFAULT text-secondary">@JoinColumn(name = "owner_id")</code> lacks an index definition in MySQL DDL schema generation scripts.</span>
+</li>
+</ul>
+</div>
+<!-- 3. Suggestion & Diff Snippet -->
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider font-semibold">
+              03. Actionable Remediation (Unified AST Diff)
+            </span>
+<button class="font-code-sm text-code-sm text-primary hover:text-primary-fixed flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+              Copy Patch
+            </button>
+</div>
+<div class="bg-surface-container-lowest rounded-DEFAULT overflow-hidden font-code-sm text-code-sm shadow-inner">
+<div class="px-space-sm py-1 bg-surface-container-high/80 text-outline flex items-center justify-between text-[11px]">
+<span>diff --git a/PetRepository.java b/PetRepository.java</span>
+<span>lines 38-46</span>
+</div>
+<div class="p-space-sm flex flex-col font-code-sm">
+<span class="text-outline"> public interface PetRepository extends Repository&lt;Pet, Integer&gt; {</span>
+<span class="bg-error-container/30 text-error px-1 py-0.5 rounded-DEFAULT my-0.5">-    @Query("SELECT p FROM Pet p WHERE p.owner.id = :ownerId")</span>
+<span class="bg-surface-container px-1 py-0.5 rounded-DEFAULT text-primary my-0.5">+    @EntityGraph(attributePaths = {"visits", "type"})</span>
+<span class="bg-surface-container px-1 py-0.5 rounded-DEFAULT text-primary">+    @Query("SELECT p FROM Pet p WHERE p.owner.id = :ownerId")</span>
+<span class="text-outline">     List&lt;Pet&gt; findOwnerPets(@Param("ownerId") Integer ownerId);</span>
+<span class="text-outline"> }</span>
+</div>
+</div>
+</div>
+<!-- 4. Deliberate Honesty Callout Box: Missing Evidence -->
+<div class="p-space-md rounded-DEFAULT bg-surface-container-low flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">help_outline</span>
+<div class="flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold">
+              Honesty Boundary • Missing Evidence Callout
+            </span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              The model could not verify whether second-level cache (L2) is configured in <code class="font-code-sm text-code-sm text-on-surface bg-surface-container px-1 rounded-DEFAULT">ehcache.xml</code> because this file was not included in the deterministic AST evidence payload. L2 cache settings may mitigate or exacerbate this query profile.
+            </p>
+</div>
+</div>
+<!-- 5. Source Evidence Citation Footer -->
+<div class="pt-space-md bg-surface-container/40 -mx-space-lg -mb-space-lg px-space-lg pb-space-md">
+<div class="flex items-center justify-between mb-space-xs">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface font-semibold uppercase tracking-wider">
+<span class="material-symbols-outlined text-primary text-[14px]">link</span>
+<span>Source Evidence Sent (3 AST Fragments • 182 tokens)</span>
+</div>
+<span class="font-code-sm text-code-sm text-outline">Anonymized tokens</span>
+</div>
+<!-- Citation Rows -->
+<div class="flex flex-col gap-1.5">
+<div class="flex flex-wrap items-center justify-between gap-2 p-1.5 bg-surface-container rounded-DEFAULT font-code-sm text-code-sm">
+<div class="flex items-center gap-2 truncate">
+<span class="material-symbols-outlined text-outline text-[14px]">description</span>
+<span class="text-on-surface truncate">src/main/java/org/springframework/samples/petclinic/owner/PetRepository.java</span>
+<span class="text-outline">lines 38–46</span>
+</div>
+<a class="text-primary hover:text-primary-fixed flex items-center gap-1 font-label-sm text-label-sm shrink-0" href="#">
+                View AST Node ↗
+              </a>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-2 p-1.5 bg-surface-container rounded-DEFAULT font-code-sm text-code-sm">
+<div class="flex items-center gap-2 truncate">
+<span class="material-symbols-outlined text-outline text-[14px]">description</span>
+<span class="text-on-surface truncate">src/main/java/org/springframework/samples/petclinic/owner/OwnerController.java</span>
+<span class="text-outline">lines 88–94</span>
+</div>
+<a class="text-primary hover:text-primary-fixed flex items-center gap-1 font-label-sm text-label-sm shrink-0" href="#">
+                View AST Node ↗
+              </a>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-2 p-1.5 bg-surface-container rounded-DEFAULT font-code-sm text-code-sm">
+<div class="flex items-center gap-2 truncate">
+<span class="material-symbols-outlined text-outline text-[14px]">description</span>
+<span class="text-on-surface truncate">src/main/resources/application.properties</span>
+<span class="text-outline">lines 12–16</span>
+</div>
+<a class="text-primary hover:text-primary-fixed flex items-center gap-1 font-label-sm text-label-sm shrink-0" href="#">
+                View AST Node ↗
+              </a>
+</div>
+</div>
+<!-- Integrity badge -->
+<div class="mt-space-sm flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[12px]">verified_user</span>
+              Zero raw codebase files uploaded. Anonymized AST tokens compiled strictly on-device.
+            </span>
+<span class="font-code-sm">sha256:7f08d...9bc4</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 2.b, 2.c, 2.d MODIFIER VARIANTS GRID -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Variant 2.b: Cached Result -->
+<div class="p-space-md rounded-DEFAULT bg-[#19152b] shadow-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-2 mb-space-sm bg-surface-container/40 -mx-space-md -mt-space-md px-space-md pt-space-md">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-1.5 py-0.5 rounded-DEFAULT font-semibold">
+                ✦ AI-GENERATED
+              </span>
+<span class="font-label-sm text-label-sm bg-surface-container-high text-primary px-1.5 py-0.5 rounded-DEFAULT font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">bolt</span>
+                CACHED (12ms)
+              </span>
+</div>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-space-xs">Cached Telemetry Variant</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+            Retrieved from local SQLite cache for exact commit <code class="font-code-sm text-code-sm text-secondary">500158f</code> and prompt hash <code class="font-code-sm text-code-sm text-outline">#c81f9a</code>. Zero LLM tokens consumed.
+          </p>
+<div class="p-space-xs bg-surface-container rounded-DEFAULT font-code-sm text-code-sm text-outline">
+            Cache hit: ~/.repo-intel/cache.db
+          </div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>Cost: 0.0000 USD</span>
+<span class="text-primary font-semibold">Instant Render</span>
+</div>
+</div>
+<!-- Variant 2.c: Fallback Provider Used -->
+<div class="p-space-md rounded-DEFAULT bg-[#19152b] shadow-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-2 mb-space-sm bg-surface-container/40 -mx-space-md -mt-space-md px-space-md pt-space-md">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-1.5 py-0.5 rounded-DEFAULT font-semibold">
+                ✦ AI-GENERATED
+              </span>
+<span class="font-label-sm text-label-sm bg-secondary-container text-on-secondary-container px-1.5 py-0.5 rounded-DEFAULT font-semibold">
+                FALLBACK: OpenRouter
+              </span>
+</div>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-space-xs">Fallback Provider Alert</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+            Primary provider (Ollama local) timed out after 10.0s. Falling back to configured secondary provider: <strong class="text-on-surface">Claude-3.5-Haiku</strong>. Secrets and paths scrubbed according to zero-egress profile.
+          </p>
+<div class="p-space-xs bg-surface-container rounded-DEFAULT font-code-sm text-code-sm text-secondary">
+            TLS 1.3 scrubbed payload • 310ms
+          </div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>Swapped automatically</span>
+<span class="text-secondary font-semibold">Secondary Egress</span>
+</div>
+</div>
+<!-- Variant 2.d: Truncated Input -->
+<div class="p-space-md rounded-DEFAULT bg-[#19152b] shadow-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-2 mb-space-sm bg-surface-container/40 -mx-space-md -mt-space-md px-space-md pt-space-md">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-1.5 py-0.5 rounded-DEFAULT font-semibold">
+                ✦ AI-GENERATED
+              </span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-1.5 py-0.5 rounded-DEFAULT font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-error">warning</span>
+                TRUNCATED (4,096 max)
+              </span>
+</div>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-space-xs">Window Truncation Notice</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+            The AST evidence payload exceeded the active window limit. 4 methods in <code class="font-code-sm text-code-sm text-on-surface">VetRepository.java</code> were omitted from context. Findings may omit transitive callers.
+          </p>
+<div class="p-space-xs bg-surface-container rounded-DEFAULT font-code-sm text-code-sm text-error">
+            Context window: 4,096 / 4,096 tokens
+          </div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>Omitted: 4 AST Nodes</span>
+<span class="text-error font-semibold">Partial Analysis</span>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- SECTION 3: FAILURE & RESILIENCE STATES                                   -->
+<!-- ========================================================================= -->
+<section class="mb-space-xl" id="section-failures">
+<div class="flex items-center justify-between mb-space-md">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-error-container/40 text-error px-1.5 py-0.5 rounded-DEFAULT">STAGE 03</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Failure &amp; Resilience States (Honest &amp; Actionable)</h2>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">When models or networks fail, RepoIntel displays transparent technical remediations—never vague error cards.</p>
+</div>
+<span class="font-code-sm text-code-sm text-error">Resilience Matrix: 5 Scenarios</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md">
+<!-- Failure 1: Timeout -->
+<div class="p-space-md rounded-DEFAULT bg-surface-container-low flex flex-col justify-between shadow-sm">
+<div>
+<div class="flex items-center justify-between pb-space-xs mb-space-sm bg-surface-container/60 -mx-space-md -mt-space-md px-space-md pt-space-sm">
+<span class="font-label-sm text-label-sm bg-surface-container-high text-error px-1.5 py-0.5 rounded-DEFAULT font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">timer_off</span>
+              TIMEOUT (15.0s)
+            </span>
+<span class="font-code-sm text-code-sm text-outline">HTTP 504</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">AI Provider Did Not Answer in Time</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-md">
+            Local Ollama engine at <code class="font-code-sm text-code-sm text-on-surface bg-surface-container px-1 py-0.5 rounded-DEFAULT">localhost:11434</code> exceeded the configured 15.0s per-call execution limit. Model <code class="font-code-sm text-code-sm text-on-surface">llama3.2</code> may be swapping or host memory is constrained.
+          </p>
+</div>
+<div class="flex flex-col gap-2 pt-space-xs">
+<div class="flex items-center gap-2">
+<button class="flex-1 py-1.5 px-space-sm bg-surface-container hover:bg-surface-container-high text-on-surface rounded-DEFAULT font-body-sm text-body-sm transition-colors text-center">
+              Retry with 30s timeout
+            </button>
+<button class="py-1.5 px-space-sm bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-DEFAULT font-body-sm text-body-sm transition-colors" title="AI Settings">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+</button>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Fallback to OpenRouter available</span>
+</div>
+</div>
+<!-- Failure 2: Rate Limited -->
+<div class="p-space-md rounded-DEFAULT bg-surface-container-low flex flex-col justify-between shadow-sm">
+<div>
+<div class="flex items-center justify-between pb-space-xs mb-space-sm bg-surface-container/60 -mx-space-md -mt-space-md px-space-md pt-space-sm">
+<span class="font-label-sm text-label-sm bg-surface-container-high text-secondary px-1.5 py-0.5 rounded-DEFAULT font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">speed</span>
+              RATE LIMITED (HTTP 429)
+            </span>
+<span class="font-code-sm text-code-sm text-outline">OpenRouter</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Rate Limit Quota Exhausted</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-md">
+            Hosted provider OpenRouter returned rate limit quota exhaustion. Reset in <span class="font-code-sm text-code-sm text-primary font-semibold">00:04:12</span>. Upstream concurrency quota exceeded for organization key.
+          </p>
+</div>
+<div class="flex flex-col gap-2 pt-space-xs">
+<button class="w-full py-1.5 px-space-sm bg-surface-container hover:bg-surface-container-high text-on-surface rounded-DEFAULT font-body-sm text-body-sm transition-colors text-center">
+            Switch to local Ollama (unlimited)
+          </button>
+<span class="font-label-sm text-label-sm text-outline">Auto-retry timer armed (252s)</span>
+</div>
+</div>
+<!-- Failure 3: Provider Failed (Daemon not running) -->
+<div class="p-space-md rounded-DEFAULT bg-surface-container-low flex flex-col justify-between shadow-sm">
+<div>
+<div class="flex items-center justify-between pb-space-xs mb-space-sm bg-surface-container/60 -mx-space-md -mt-space-md px-space-md pt-space-sm">
+<span class="font-label-sm text-label-sm bg-error-container/40 text-error px-1.5 py-0.5 rounded-DEFAULT font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">power_off</span>
+              CONNECTION REFUSED
+            </span>
+<span class="font-code-sm text-code-sm text-outline">ECONNREFUSED</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Local Ollama Engine Not Running</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-sm">
+            Unable to connect to Ollama daemon on <code class="font-code-sm text-code-sm text-on-surface bg-surface-container px-1 py-0.5 rounded-DEFAULT">127.0.0.1:11434</code>. Daemon process is offline.
+          </p>
+<div class="p-space-xs bg-surface-container rounded-DEFAULT font-code-sm text-code-sm text-on-surface flex items-center justify-between my-2">
+<span>$ ollama serve</span>
+<button class="text-primary hover:text-primary-fixed" title="Copy CLI command">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-2 pt-space-xs">
+<button class="w-full py-1.5 px-space-sm bg-primary-container text-on-primary-container hover:bg-inverse-primary rounded-DEFAULT font-body-sm text-body-sm transition-colors text-center font-medium">
+            Test Local Connection Again
+          </button>
+<span class="font-label-sm text-label-sm text-outline">Homebrew: brew services start ollama</span>
+</div>
+</div>
+<!-- Failure 4: Malformed Answer Discarded -->
+<div class="p-space-md rounded-DEFAULT bg-surface-container-low flex flex-col justify-between shadow-sm">
+<div>
+<div class="flex items-center justify-between pb-space-xs mb-space-sm bg-surface-container/60 -mx-space-md -mt-space-md px-space-md pt-space-sm">
+<span class="font-label-sm text-label-sm bg-surface-container-high text-error px-1.5 py-0.5 rounded-DEFAULT font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">code_blocks</span>
+              SCHEMA REJECTED
+            </span>
+<span class="font-code-sm text-code-sm text-outline">Invalid AST Refs</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Malformed Output Discarded</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-md">
+            The model returned unparseable JSON and hallucinated AST references outside the snapshot manifest. The raw response was discarded to prevent false technical advice.
+          </p>
+</div>
+<div class="flex flex-col gap-2 pt-space-xs">
+<div class="flex items-center gap-2">
+<button class="flex-1 py-1.5 px-space-sm bg-surface-container hover:bg-surface-container-high text-on-surface rounded-DEFAULT font-body-sm text-body-sm transition-colors text-center">
+              Re-ask with strict prompt
+            </button>
+<button class="py-1.5 px-space-sm bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-DEFAULT font-body-sm text-body-sm transition-colors" title="Inspect raw unvalidated payload">
+<span class="material-symbols-outlined text-[16px]">bug_report</span>
+</button>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Deterministic evidence intact</span>
+</div>
+</div>
+<!-- Failure 5: Safety Budget Exceeded -->
+<div class="p-space-md rounded-DEFAULT bg-surface-container-low flex flex-col justify-between shadow-sm md:col-span-2 lg:col-span-2">
+<div>
+<div class="flex items-center justify-between pb-space-xs mb-space-sm bg-surface-container/60 -mx-space-md -mt-space-md px-space-md pt-space-sm">
+<span class="font-label-sm text-label-sm bg-surface-container-high text-secondary px-1.5 py-0.5 rounded-DEFAULT font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">savings</span>
+              BUDGET EXCEEDED (50 / 50 calls)
+            </span>
+<span class="font-code-sm text-code-sm text-outline">Local Safety Cap</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Call Safety Budget Reached for Snapshot</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-sm">
+            Analysis hit the configured safety budget of 50 AI calls per commit snapshot (<code class="font-code-sm text-code-sm text-secondary">500158f</code>). Automatic inferences are halted to prevent runaway GPU compute or cost overruns. Deterministic AST metrics, dependency graphs, and code quality reports remain 100% complete.
+          </p>
+<!-- Budget Bar -->
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden mt-2 mb-space-sm">
+<div class="bg-secondary h-full w-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<a class="py-1.5 px-space-md bg-surface-container hover:bg-surface-container-high text-on-surface rounded-DEFAULT font-body-sm text-body-sm transition-colors text-center inline-block" href="#">
+            Increase call budget in AI Settings →
+          </a>
+<span class="font-label-sm text-label-sm text-outline">100% deterministic analysis available</span>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- SECTION 4: AI UNAVAILABLE STATES                                         -->
+<!-- ========================================================================= -->
+<section class="mb-space-xl" id="section-unavailable">
+<div class="flex items-center justify-between mb-space-md">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-1.5 py-0.5 rounded-DEFAULT">STAGE 04</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">AI Globally Disabled &amp; Unconfigured States</h2>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">RepoIntel functions as a full-featured offline static analysis suite even with zero AI providers configured.</p>
+</div>
+<span class="font-code-sm text-code-sm text-outline">Read-Only Safety</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+<!-- Trigger Button in Disabled State -->
+<div class="p-space-md bg-surface-container-low rounded-DEFAULT flex flex-col justify-between shadow-sm">
+<div>
+<span class="font-label-md text-label-md text-outline uppercase tracking-wider block mb-space-sm">Disabled Trigger Representation</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+            When AI is disabled via config or environment flags, all AI triggers show a muted state with explanatory tooltips:
+          </p>
+<div class="flex items-center gap-space-sm">
+<button class="flex items-center gap-2 px-space-md py-2 bg-surface-container opacity-50 cursor-not-allowed rounded-DEFAULT text-outline font-body-sm text-body-sm" disabled="">
+<span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+<span>Explain class (AI disabled)</span>
+</button>
+<span class="font-label-sm text-label-sm text-outline">Flag: `REPOINTEL_AI_ENABLE=false`</span>
+</div>
+</div>
+<div class="mt-space-md font-label-sm text-label-sm text-outline">
+          No background network requests or socket calls are emitted.
+        </div>
+</div>
+<!-- Inline Unconfigured Explanatory Card -->
+<div class="p-space-md bg-surface-container-low rounded-DEFAULT flex flex-col justify-between shadow-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-outline text-[22px] shrink-0 mt-0.5">info</span>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">AI Insights Unavailable</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              No local Ollama daemon or remote API keys are configured for this installation. Repository analysis, AST symbol maps, test coverage, and security scanners are <strong>fully functional</strong> in deterministic mode.
+            </p>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm bg-surface-container/40 -mx-space-md -mb-space-md px-space-md pb-space-md flex flex-wrap items-center justify-between gap-space-xs">
+<a class="font-code-sm text-code-sm text-primary hover:text-primary-fixed flex items-center gap-1 transition-colors" href="#">
+            Configure AI in AI Settings →
+          </a>
+<span class="font-label-sm text-label-sm text-outline">Local Ollama has 0 cloud data leakage</span>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- SECTION 5: LIGHT THEME DUALITY COMPARISON                                -->
+<!-- ========================================================================= -->
+<section class="mb-space-lg" id="section-light-duality">
+<div class="flex items-center justify-between mb-space-md">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-primary-container text-on-primary-container px-1.5 py-0.5 rounded-DEFAULT">STAGE 05</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Light Theme Duality Reference</h2>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Demonstrating visual distinction when the application shell toggles to light mode (WCAG AAA contrast).</p>
+</div>
+<span class="font-code-sm text-code-sm text-tertiary">Light Surface Matrix</span>
+</div>
+<!-- Side-by-side Dark vs Light Simulation Container -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+<!-- Dark Mode Card (Reference) -->
+<div class="p-space-md rounded-DEFAULT bg-[#1e1838] shadow-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-xs mb-space-sm bg-[#28214b] -mx-space-md -mt-space-md px-space-md pt-space-sm">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm text-tertiary">
+<span>✦ AI-GENERATED</span>
+<span class="text-outline">•</span>
+<span class="text-on-surface-variant font-code-sm">Dark Surface (#1e1838)</span>
+</div>
+<span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-1 py-0.5 rounded-DEFAULT">DARK THEME</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-space-xs">Lazy Initialization Risk</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Dark theme employs a violet-tinted Tier 1 canvas (<code class="font-code-sm text-code-sm text-on-surface">#1e1838</code>) to visually detach probabilistic findings from cold neutral slate deterministic cards.
+          </p>
+</div>
+<div class="mt-space-md pt-space-xs font-code-sm text-code-sm text-outline flex items-center justify-between">
+<span>Border: rgba(168, 85, 247, 0.25)</span>
+<span class="text-tertiary">Engine: llama3.2</span>
+</div>
+</div>
+<!-- Light Mode Card Representation (Rendered in high-contrast light style) -->
+<div class="p-space-md rounded-DEFAULT bg-[#f5f3ff] shadow-md flex flex-col justify-between text-[#1e1b4b]">
+<div>
+<div class="flex items-center justify-between pb-space-xs mb-space-sm bg-[#ede9fe] -mx-space-md -mt-space-md px-space-md pt-space-sm">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm text-[#6d28d9]">
+<span class="font-bold">✦ AI-GENERATED</span>
+<span class="text-[#8b5cf6]">•</span>
+<span class="text-[#4338ca] font-code-sm">Lavender Canvas (#f5f3ff)</span>
+</div>
+<span class="font-label-sm text-label-sm bg-[#ddd6fe] text-[#5b21b6] px-1 py-0.5 rounded-DEFAULT font-bold">LIGHT THEME DUALITY</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-[#1e1b4b] mb-space-xs font-semibold">Lazy Initialization Risk</h4>
+<p class="font-body-sm text-body-sm text-[#374151] leading-relaxed">
+            In light theme, the AI card transforms to a distinct soft lavender background with crisp violet borders and deep slate typography, maintaining 8.2:1 contrast ratio against deterministic pure white cards.
+          </p>
+</div>
+<div class="mt-space-md pt-space-xs font-code-sm text-code-sm text-[#6b7280] flex items-center justify-between">
+<span>Border: #c4b5fd (WCAG AAA)</span>
+<span class="text-[#6d28d9] font-semibold">Engine: llama3.2</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive Client-side Script for Micro-interactions -->
+<script>
+    (function initSpecInteractions() {
+      const toggleBtn = document.getElementById('toggle-all-diffs');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          const diffSnippets = document.querySelectorAll('pre, .font-code-sm');
+          diffSnippets.forEach(el => {
+            el.classList.toggle('opacity-90');
+          });
+        });
+      }
+    })();
+  </script>
+</div></main></div></body></html>

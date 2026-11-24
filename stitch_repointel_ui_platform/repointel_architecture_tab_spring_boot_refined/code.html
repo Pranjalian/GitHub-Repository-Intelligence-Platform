@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'surface-container-highest': '#31353f', 'error': '#ffb4ab', 'on-tertiary-fixed-variant': '#5516be', 'inverse-on-surface': '#2c303a', 'error-container': '#93000a', 'secondary': '#b7c8e1', 'secondary-fixed': '#d3e4fe', 'on-surface': '#dfe2ef', 'on-secondary-fixed': '#0b1c30', 'tertiary-fixed-dim': '#d0bcff', 'background': '#0f131c', 'on-secondary-fixed-variant': '#38485d', 'surface-container-lowest': '#0a0e17', 'surface-container-high': '#262a34', 'surface': '#0f131c', 'surface-container-low': '#181b25', 'inverse-primary': '#0053db', 'on-tertiary': '#3c0091', 'on-surface-variant': '#c3c6d7', 'on-error-container': '#ffdad6', 'on-error': '#690005', 'on-secondary': '#213145', 'on-tertiary-container': '#f6edff', 'outline-variant': '#434655', 'surface-container': '#1c1f29', 'primary-fixed-dim': '#b4c5ff', 'tertiary': '#d0bcff', 'on-background': '#dfe2ef', 'secondary-container': '#3a4a5f', 'tertiary-fixed': '#e9ddff', 'on-tertiary-fixed': '#23005c', 'outline': '#8d90a0', 'on-primary-fixed': '#00174b', 'secondary-fixed-dim': '#b7c8e1', 'primary-fixed': '#dbe1ff', 'surface-dim': '#0f131c', 'primary-container': '#2563eb', 'on-primary-fixed-variant': '#003ea8', 'on-primary-container': '#eeefff', 'primary': '#b4c5ff', 'surface-tint': '#b4c5ff', 'on-secondary-container': '#a9bad3', 'tertiary-container': '#7d4ce7', 'surface-bright': '#353943', 'inverse-surface': '#dfe2ef', 'on-primary': '#002a78', 'surface-variant': '#31353f' }, borderRadius: { 'DEFAULT': '0.125rem', 'lg': '0.25rem', 'xl': '0.5rem', 'full': '0.75rem' }, spacing: { 'margin': '1.5rem', 'gutter-dense': '0.5rem', 'space-lg': '1.25rem', 'space-md': '0.75rem', 'space-xl': '2rem', 'margin-mobile': '1rem', 'space-xs': '0.25rem', 'gutter': '1rem', 'space-sm': '0.5rem' }, fontFamily: { 'headline-xl-mobile': ['Geist'], 'headline-lg-mobile': ['Geist'], 'code-md': ['JetBrains Mono'], 'code-sm': ['JetBrains Mono'], 'code-lg': ['JetBrains Mono'], 'headline-md': ['Geist'], 'headline-lg': ['Geist'], 'body-md': ['Geist'], 'body-lg': ['Geist'], 'body-sm': ['Geist'], 'label-sm': ['JetBrains Mono'], 'label-md': ['JetBrains Mono'], 'headline-xl': ['Geist'] }, fontSize: { 'headline-xl-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '600' }], 'headline-lg-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.015em', fontWeight: '600' }], 'code-md': ['12px', { lineHeight: '16px', letterSpacing: '0em', fontWeight: '400' }], 'code-sm': ['11px', { lineHeight: '14px', letterSpacing: '0.02em', fontWeight: '500' }], 'code-lg': ['13px', { lineHeight: '20px', letterSpacing: '0em', fontWeight: '400' }], 'headline-md': ['18px', { lineHeight: '24px', letterSpacing: '-0.015em', fontWeight: '600' }], 'headline-lg': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '600' }], 'body-md': ['13px', { lineHeight: '18px', letterSpacing: '-0.002em', fontWeight: '400' }], 'body-lg': ['15px', { lineHeight: '22px', letterSpacing: '-0.005em', fontWeight: '400' }], 'body-sm': ['12px', { lineHeight: '16px', letterSpacing: '0em', fontWeight: '400' }], 'label-sm': ['10px', { lineHeight: '12px', letterSpacing: '0.06em', fontWeight: '500' }], 'label-md': ['11px', { lineHeight: '14px', letterSpacing: '0.04em', fontWeight: '600' }], 'headline-xl': ['32px', { lineHeight: '40px', letterSpacing: '-0.025em', fontWeight: '600' }] } } } };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 bottom-0 w-64 bg-surface-container-lowest z-50 flex flex-col justify-between overflow-y-auto"><div class="flex flex-col"><div class="px-space-md pt-space-md pb-space-sm bg-surface-container-low"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[20px]">terminal</span><span class="font-headline-md text-headline-md text-on-surface tracking-tight font-bold">RepoIntel</span></div><span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-space-xs py-0.5 rounded-DEFAULT">LOCAL</span></div><div class="mt-space-xs"><span class="font-code-sm text-code-sm text-outline block leading-tight">v1.4 Local Single-User • No Auth</span></div></div><div class="px-space-md pt-space-md pb-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Global Workspace</span></div><nav class="px-space-xs flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="font-body-md text-body-md">Dashboard</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="add-repository" href="#"><span class="material-symbols-outlined text-[18px]">add_circle</span><span class="font-body-md text-body-md">Add Repository</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ai-settings" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span class="font-body-md text-body-md">AI Settings</span></a></nav><div class="mt-space-md px-space-md py-space-xs bg-surface-container-low"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Active Context</span><span class="material-symbols-outlined text-primary text-[14px]">lock_open</span></div><div class="mt-space-xs flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-secondary">emoji_symbols</span><span class="font-code-sm text-code-sm text-on-surface font-semibold truncate">spring-petclinic</span></div><div class="mt-0.5 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-outline">commit</span><span class="font-code-sm text-code-sm text-outline">500158f</span><span class="font-label-sm text-label-sm text-outline">•</span><span class="font-code-sm text-code-sm text-outline">snapshot</span></div></div><div class="px-space-xs pt-space-xs flex flex-col gap-0.5"><div class="px-space-sm pt-space-xs pb-0.5"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Diagnostics</span></div><nav class="flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-overview" href="#"><span class="font-body-md text-body-md">Overview</span><span class="material-symbols-outlined text-[14px] text-outline">insights</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-dependencies" href="#"><span class="font-body-md text-body-md">Dependencies</span><span class="font-code-sm text-code-sm text-secondary bg-surface-container-high px-1 rounded-DEFAULT">48</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-code-quality" href="#"><span class="font-body-md text-body-md">Code Quality</span><span class="font-code-sm text-code-sm text-primary">94%</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-security" href="#"><span class="font-body-md text-body-md">Security</span><span class="font-code-sm text-code-sm text-error bg-surface-container-high px-1 rounded-DEFAULT">0 vuln</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-tests-coverage" href="#"><span class="font-body-md text-body-md">Tests &amp; Coverage</span><span class="font-code-sm text-code-sm text-outline">88.2%</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-architecture" href="#"><span class="font-body-md text-body-md">Architecture</span><span class="material-symbols-outlined text-[14px] text-outline">schema</span></a></nav><div class="px-space-sm pt-space-xs pb-0.5 mt-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Analytical Engine</span></div><nav class="flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="code-search" href="#"><span class="material-symbols-outlined text-[18px]">search</span><span class="font-body-md text-body-md">Code Search</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ask-qa" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">chat_paste_go</span><span class="font-body-md text-body-md">Ask (Q&amp;A)</span></div><span class="font-label-sm text-label-sm bg-tertiary-container text-on-tertiary-container px-1 py-0.5 rounded-DEFAULT font-bold">AI</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="impact-analysis" href="#"><span class="material-symbols-outlined text-[18px]">alt_route</span><span class="font-body-md text-body-md">Impact Analysis</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="investigations" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">manage_search</span><span class="font-body-md text-body-md">Investigations</span></div><span class="font-label-sm text-label-sm bg-tertiary-container text-on-tertiary-container px-1 py-0.5 rounded-DEFAULT font-bold">AI</span></a></nav></div></div><div class="p-space-sm bg-surface-container-low m-space-xs rounded-DEFAULT"><div class="flex items-center gap-space-xs"><div class="w-2 h-2 rounded-full bg-primary"></div><span class="font-code-sm text-code-sm text-on-surface font-semibold">Local Engine Idle</span></div><div class="mt-1 font-label-sm text-label-sm text-outline leading-tight">Sandboxed • Host Memory 1.4 GB</div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-14 bg-surface-container-lowest/90 backdrop-blur-md z-40 px-space-lg flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1.5 font-code-md text-code-md text-outline"><span class="hover:text-on-surface transition-colors cursor-pointer">spring-projects</span><span>/</span><span class="text-on-surface font-semibold hover:text-primary transition-colors cursor-pointer">spring-petclinic</span></div><span class="text-outline">:</span><button class="flex items-center gap-1 px-space-xs py-0.5 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-secondary hover:text-on-surface font-code-sm text-code-sm transition-colors"><span class="material-symbols-outlined text-[14px]">commit</span><span>500158f</span><span class="material-symbols-outlined text-[13px] text-outline">content_copy</span></button><div class="hidden xl:flex items-center gap-space-xs text-outline font-label-sm text-label-sm pl-space-xs"><span>•</span><span>2025-02-28</span><span>•</span><span class="text-primary font-medium">Completed</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-2 px-space-sm py-1 bg-surface-container-low rounded-DEFAULT"><div class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></div><span class="font-code-sm text-code-sm text-on-surface">AI: Local Ollama (llama3.2)</span></div><div class="hidden lg:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container-lowest rounded-DEFAULT"><span class="material-symbols-outlined text-primary text-[15px]">shield_lock</span><span class="font-label-sm text-label-sm text-outline">Daemon • Safe read-only</span></div><button class="w-7 h-7 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Toggle Theme"><span class="material-symbols-outlined text-[16px]">dark_mode</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-14 bg-background px-space-lg"><div class="flex flex-col w-full">
+<!-- 1. Page Header & Top Summary Chips -->
+<section class="py-space-lg flex flex-col gap-space-md">
+<div class="flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex flex-wrap items-center gap-space-sm">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Application Architecture</h1>
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-DEFAULT bg-tertiary-container/25 text-tertiary font-label-sm text-label-sm uppercase">
+<span class="material-symbols-outlined text-[13px]">hub</span>
+          AST + GRAPH INFERENCE
+        </span>
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-DEFAULT bg-surface-container-high text-secondary font-code-sm text-code-sm">
+          Java / Spring Boot
+        </span>
+</div>
+<div class="flex items-center gap-space-xs font-code-sm text-code-sm text-outline">
+<span>Java 17</span>
+<span>•</span>
+<span>Spring Boot 3.2.4</span>
+<span>•</span>
+<span class="text-secondary">500158f</span>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<div class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-DEFAULT bg-surface-container text-on-surface font-code-sm text-code-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span>6 Controllers</span>
+</div>
+<div class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-DEFAULT bg-surface-container text-on-surface font-code-sm text-code-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span>3 Repositories</span>
+</div>
+<div class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-DEFAULT bg-surface-container text-on-surface font-code-sm text-code-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>9 Entities</span>
+</div>
+<div class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-DEFAULT bg-surface-container text-on-surface font-code-sm text-code-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span>17 Endpoints</span>
+</div>
+<div class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-DEFAULT bg-surface-container-high text-outline font-code-sm text-code-sm">
+<span class="material-symbols-outlined text-[14px] text-error">warning</span>
+<span>2 Unresolved Edges</span>
+</div>
+</div>
+</section>
+<!-- 2. 2-Column Grid of Mermaid Diagram Cards -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-gutter pb-space-xl">
+<!-- Card 1: Layers -->
+<div class="bg-surface-container rounded-lg shadow-sm flex flex-col overflow-hidden">
+<div class="px-space-md py-space-sm bg-surface-container-low flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-primary text-[16px]">layers</span>
+<span class="font-headline-md text-headline-md text-on-surface truncate">Layers</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" title="Zoom Out" type="button">-</button>
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" title="Zoom In" type="button">+</button>
+<button class="px-1.5 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors" type="button">Fit</button>
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Full Screen" type="button">
+<span class="material-symbols-outlined text-[14px]">fullscreen</span>
+</button>
+<button class="px-2 h-6 flex items-center gap-1 rounded-DEFAULT bg-surface-container-high hover:bg-surface-bright text-secondary hover:text-on-surface font-label-sm text-label-sm transition-colors" onclick="copyMermaid(this)" type="button">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+<span>Copy Source</span>
+</button>
+</div>
+</div>
+<div class="p-space-md bg-surface-container-lowest flex items-center justify-center min-h-[210px]">
+<svg class="w-full max-w-[440px] h-auto text-on-surface" viewbox="0 0 440 170">
+<defs>
+<marker id="arrow-layers" markerheight="6" markerwidth="6" orient="auto-start-reverse" refx="8" refy="5" viewbox="0 0 10 10">
+<path class="text-outline" d="M 0 1 L 10 5 L 0 9 z" fill="currentColor"></path>
+</marker>
+</defs>
+<!-- Web / Controller Layer -->
+<rect fill="#1c1f29" height="36" rx="4" width="180" x="130" y="10"></rect>
+<text fill="#b4c5ff" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="220" y="26">WEB / CONTROLLERS (6)</text>
+<text fill="#8d90a0" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="220" y="39">OwnerController, PetController...</text>
+<line marker-end="url(#arrow-layers)" stroke="#8d90a0" stroke-width="1.5" x1="220" x2="220" y1="46" y2="68"></line>
+<!-- Repository Layer -->
+<rect fill="#1c1f29" height="36" rx="4" width="180" x="130" y="70"></rect>
+<text fill="#b7c8e1" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="220" y="86">REPOSITORIES (3)</text>
+<text fill="#8d90a0" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="220" y="99">OwnerRepository, VetRepository</text>
+<line marker-end="url(#arrow-layers)" stroke="#8d90a0" stroke-width="1.5" x1="220" x2="220" y1="106" y2="128"></line>
+<!-- Entity / Domain Layer -->
+<rect fill="#1c1f29" height="34" rx="4" width="180" x="130" y="130"></rect>
+<text fill="#d0bcff" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="220" y="146">DOMAIN ENTITIES (9)</text>
+<text fill="#8d90a0" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="220" y="158">Owner, Pet, Visit, Vet, Specialty</text>
+</svg>
+</div>
+<div class="bg-surface-container-low">
+<button class="w-full px-space-md py-space-xs flex items-center justify-between text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" onclick="toggleSource('mermaid-layers', this)" type="button">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px]">code</span>
+<span>Mermaid Source</span>
+</span>
+<span class="material-symbols-outlined text-[16px]">expand_less</span>
+</button>
+<div class="px-space-md pb-space-md" id="mermaid-layers">
+<pre class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-secondary font-code-sm text-code-sm overflow-x-auto leading-relaxed">graph TD;
+  Controllers["Web / Controllers (6)"] --&gt; Repositories["Spring Data Repositories (3)"];
+  Repositories --&gt; Entities["JPA Domain Entities (9)"];</pre>
+</div>
+</div>
+</div>
+<!-- Card 2: API Flow -->
+<div class="bg-surface-container rounded-lg shadow-sm flex flex-col overflow-hidden">
+<div class="px-space-md py-space-sm bg-surface-container-low flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-primary text-[16px]">alt_route</span>
+<span class="font-headline-md text-headline-md text-on-surface truncate">API Flow</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high text-outline font-label-sm text-label-sm whitespace-nowrap">Capped at 45 nodes</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" title="Zoom Out" type="button">-</button>
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" title="Zoom In" type="button">+</button>
+<button class="px-1.5 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors" type="button">Fit</button>
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Full Screen" type="button">
+<span class="material-symbols-outlined text-[14px]">fullscreen</span>
+</button>
+<button class="px-2 h-6 flex items-center gap-1 rounded-DEFAULT bg-surface-container-high hover:bg-surface-bright text-secondary hover:text-on-surface font-label-sm text-label-sm transition-colors" onclick="copyMermaid(this)" type="button">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+<span>Copy Source</span>
+</button>
+</div>
+</div>
+<div class="p-space-md bg-surface-container-lowest flex items-center justify-center min-h-[210px]">
+<svg class="w-full max-w-[440px] h-auto" viewbox="0 0 440 170">
+<defs>
+<marker id="arrow-api" markerheight="6" markerwidth="6" orient="auto-start-reverse" refx="8" refy="5" viewbox="0 0 10 10">
+<path d="M 0 1 L 10 5 L 0 9 z" fill="#8d90a0"></path>
+</marker>
+</defs>
+<rect fill="#1c1f29" height="28" rx="4" width="120" x="12" y="24"></rect>
+<text fill="#b4c5ff" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="72" y="42">GET /owners/{id}</text>
+<rect fill="#1c1f29" height="28" rx="4" width="120" x="12" y="72"></rect>
+<text fill="#d0bcff" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="72" y="90">POST /owners/new</text>
+<rect fill="#1c1f29" height="28" rx="4" width="120" x="12" y="120"></rect>
+<text fill="#b4c5ff" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="72" y="138">GET .../pets/new</text>
+<line marker-end="url(#arrow-api)" stroke="#8d90a0" stroke-width="1.2" x1="132" x2="178" y1="38" y2="55"></line>
+<line marker-end="url(#arrow-api)" stroke="#8d90a0" stroke-width="1.2" x1="132" x2="178" y1="86" y2="68"></line>
+<line marker-end="url(#arrow-api)" stroke="#8d90a0" stroke-width="1.2" x1="132" x2="178" y1="134" y2="134"></line>
+<rect fill="#262a34" height="36" rx="4" width="120" x="180" y="42"></rect>
+<text fill="#dfe2ef" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="240" y="64">OwnerController</text>
+<rect fill="#262a34" height="36" rx="4" width="120" x="180" y="116"></rect>
+<text fill="#dfe2ef" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="240" y="138">PetController</text>
+<line marker-end="url(#arrow-api)" stroke="#8d90a0" stroke-width="1.2" x1="300" x2="338" y1="60" y2="85"></line>
+<line marker-end="url(#arrow-api)" stroke="#8d90a0" stroke-width="1.2" x1="300" x2="338" y1="134" y2="105"></line>
+<rect fill="#1c1f29" height="38" rx="4" width="90" x="340" y="75"></rect>
+<text fill="#b7c8e1" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="385" y="98">OwnerRepo</text>
+</svg>
+</div>
+<div class="bg-surface-container-low">
+<button class="w-full px-space-md py-space-xs flex items-center justify-between text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" onclick="toggleSource('mermaid-api', this)" type="button">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px]">code</span>
+<span>Mermaid Source</span>
+</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+<div class="hidden px-space-md pb-space-md" id="mermaid-api">
+<pre class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-secondary font-code-sm text-code-sm overflow-x-auto leading-relaxed">graph LR;
+  GET_Owner["GET /owners/{ownerId}"] --&gt; OwnerController;
+  POST_Owner["POST /owners/new"] --&gt; OwnerController;
+  OwnerController --&gt; OwnerRepository;</pre>
+</div>
+</div>
+</div>
+<!-- Card 3: Entity Relationships -->
+<div class="bg-surface-container rounded-lg shadow-sm flex flex-col overflow-hidden">
+<div class="px-space-md py-space-sm bg-surface-container-low flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-tertiary text-[16px]">schema</span>
+<span class="font-headline-md text-headline-md text-on-surface truncate">Entity Relationships</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" title="Zoom Out" type="button">-</button>
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" title="Zoom In" type="button">+</button>
+<button class="px-1.5 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors" type="button">Fit</button>
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Full Screen" type="button">
+<span class="material-symbols-outlined text-[14px]">fullscreen</span>
+</button>
+<button class="px-2 h-6 flex items-center gap-1 rounded-DEFAULT bg-surface-container-high hover:bg-surface-bright text-secondary hover:text-on-surface font-label-sm text-label-sm transition-colors" onclick="copyMermaid(this)" type="button">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+<span>Copy Source</span>
+</button>
+</div>
+</div>
+<div class="p-space-md bg-surface-container-lowest flex items-center justify-center min-h-[210px]">
+<svg class="w-full max-w-[440px] h-auto" viewbox="0 0 440 170">
+<defs>
+<marker id="arrow-er" markerheight="6" markerwidth="6" orient="auto-start-reverse" refx="8" refy="5" viewbox="0 0 10 10">
+<path d="M 0 1 L 10 5 L 0 9 z" fill="#8d90a0"></path>
+</marker>
+</defs>
+<rect fill="#1c1f29" height="36" rx="4" width="84" x="20" y="65"></rect>
+<text fill="#d0bcff" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="62" y="87">Owner</text>
+<line marker-end="url(#arrow-er)" stroke="#8d90a0" stroke-width="1.2" x1="104" x2="162" y1="83" y2="83"></line>
+<text fill="#8d90a0" font-family="JetBrains Mono" font-size="8" text-anchor="middle" x="133" y="76">1:N</text>
+<rect fill="#262a34" height="36" rx="4" width="84" x="164" y="65"></rect>
+<text fill="#dfe2ef" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="206" y="87">Pet</text>
+<line marker-end="url(#arrow-er)" stroke="#8d90a0" stroke-width="1.2" x1="248" x2="318" y1="75" y2="42"></line>
+<text fill="#8d90a0" font-family="JetBrains Mono" font-size="8" text-anchor="middle" x="282" y="50">N:1</text>
+<line marker-end="url(#arrow-er)" stroke="#8d90a0" stroke-width="1.2" x1="248" x2="318" y1="92" y2="124"></line>
+<text fill="#8d90a0" font-family="JetBrains Mono" font-size="8" text-anchor="middle" x="282" y="118">1:N</text>
+<rect fill="#1c1f29" height="34" rx="4" width="96" x="320" y="24"></rect>
+<text fill="#b7c8e1" font-family="JetBrains Mono" font-size="10" text-anchor="middle" x="368" y="45">PetType</text>
+<rect fill="#1c1f29" height="34" rx="4" width="96" x="320" y="108"></rect>
+<text fill="#b7c8e1" font-family="JetBrains Mono" font-size="10" text-anchor="middle" x="368" y="129">Visit</text>
+</svg>
+</div>
+<div class="bg-surface-container-low">
+<button class="w-full px-space-md py-space-xs flex items-center justify-between text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" onclick="toggleSource('mermaid-er', this)" type="button">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px]">code</span>
+<span>Mermaid Source</span>
+</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+<div class="hidden px-space-md pb-space-md" id="mermaid-er">
+<pre class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-secondary font-code-sm text-code-sm overflow-x-auto leading-relaxed">erDiagram
+  OWNER ||--o{ PET : owns
+  PET }o--|| PET_TYPE : has
+  PET ||--o{ VISIT : records</pre>
+</div>
+</div>
+</div>
+<!-- Card 4: Modules -->
+<div class="bg-surface-container rounded-lg shadow-sm flex flex-col overflow-hidden">
+<div class="px-space-md py-space-sm bg-surface-container-low flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-secondary text-[16px]">view_module</span>
+<span class="font-headline-md text-headline-md text-on-surface truncate">Modules</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" title="Zoom Out" type="button">-</button>
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" title="Zoom In" type="button">+</button>
+<button class="px-1.5 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors" type="button">Fit</button>
+<button class="w-6 h-6 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Full Screen" type="button">
+<span class="material-symbols-outlined text-[14px]">fullscreen</span>
+</button>
+<button class="px-2 h-6 flex items-center gap-1 rounded-DEFAULT bg-surface-container-high hover:bg-surface-bright text-secondary hover:text-on-surface font-label-sm text-label-sm transition-colors" onclick="copyMermaid(this)" type="button">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+<span>Copy Source</span>
+</button>
+</div>
+</div>
+<div class="p-space-md bg-surface-container-lowest flex items-center justify-center min-h-[210px]">
+<svg class="w-full max-w-[440px] h-auto" viewbox="0 0 440 170">
+<defs>
+<marker id="arrow-mod" markerheight="6" markerwidth="6" orient="auto-start-reverse" refx="8" refy="5" viewbox="0 0 10 10">
+<path d="M 0 1 L 10 5 L 0 9 z" fill="#8d90a0"></path>
+</marker>
+</defs>
+<rect fill="#1c1f29" height="44" rx="4" width="110" x="30" y="25"></rect>
+<text fill="#b4c5ff" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="85" y="45">owner</text>
+<text fill="#8d90a0" font-family="JetBrains Mono" font-size="8" text-anchor="middle" x="85" y="58">7 classes</text>
+<rect fill="#1c1f29" height="44" rx="4" width="110" x="165" y="25"></rect>
+<text fill="#b7c8e1" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="220" y="45">vet</text>
+<text fill="#8d90a0" font-family="JetBrains Mono" font-size="8" text-anchor="middle" x="220" y="58">5 classes</text>
+<rect fill="#1c1f29" height="44" rx="4" width="110" x="300" y="25"></rect>
+<text fill="#d0bcff" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="355" y="45">system</text>
+<text fill="#8d90a0" font-family="JetBrains Mono" font-size="8" text-anchor="middle" x="355" y="58">4 classes</text>
+<line marker-end="url(#arrow-mod)" stroke="#8d90a0" stroke-width="1.2" x1="85" x2="180" y1="69" y2="112"></line>
+<line marker-end="url(#arrow-mod)" stroke="#8d90a0" stroke-width="1.2" x1="220" x2="220" y1="69" y2="112"></line>
+<line marker-end="url(#arrow-mod)" stroke="#8d90a0" stroke-width="1.2" x1="355" x2="260" y1="69" y2="112"></line>
+<rect fill="#262a34" height="36" rx="4" width="150" x="145" y="114"></rect>
+<text fill="#dfe2ef" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="220" y="136">model (BaseEntity)</text>
+</svg>
+</div>
+<div class="bg-surface-container-low">
+<button class="w-full px-space-md py-space-xs flex items-center justify-between text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm transition-colors" onclick="toggleSource('mermaid-mod', this)" type="button">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px]">code</span>
+<span>Mermaid Source</span>
+</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+<div class="hidden px-space-md pb-space-md" id="mermaid-mod">
+<pre class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-secondary font-code-sm text-code-sm overflow-x-auto leading-relaxed">graph TD;
+  owner --&gt; model;
+  vet --&gt; model;
+  system --&gt; model;</pre>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Layered Types Section -->
+<section class="pb-space-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-md text-headline-md text-on-surface">Layered Types</h2>
+<span class="font-label-sm text-label-sm text-outline uppercase">AST Symbol Resolution</span>
+</div>
+<!-- Group: Controllers (6) -->
+<div class="bg-surface-container rounded-lg shadow-sm overflow-hidden flex flex-col gap-0.5">
+<div class="px-space-md py-space-sm bg-surface-container-low flex items-center justify-between">
+<span class="font-label-md text-label-md text-secondary uppercase">Controllers (6)</span>
+<span class="font-code-sm text-code-sm text-outline">org.springframework.stereotype.Controller</span>
+</div>
+<!-- Expanded Row: OwnerController -->
+<div class="p-space-md bg-surface-container flex flex-col gap-space-md">
+<div class="flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[16px]">expand_more</span>
+<span class="font-code-lg text-code-lg text-on-surface font-semibold">OwnerController</span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-DEFAULT bg-primary/15 text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+              DETECTED
+            </span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high text-secondary font-code-sm text-code-sm">@Controller</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="inline-flex items-center gap-1 px-space-sm py-1 rounded-DEFAULT bg-tertiary-container/20 hover:bg-tertiary-container/35 text-tertiary font-code-sm text-code-sm transition-colors" type="button">
+<span>✧</span>
+<span>Explain class</span>
+</button>
+<button class="inline-flex items-center gap-1 px-space-sm py-1 rounded-DEFAULT bg-tertiary-container/20 hover:bg-tertiary-container/35 text-tertiary font-code-sm text-code-sm transition-colors" type="button">
+<span>✧</span>
+<span>Suggest refactoring</span>
+</button>
+</div>
+</div>
+<div class="pl-space-lg flex flex-wrap items-center gap-space-sm text-code-sm font-code-sm">
+<span class="text-outline">Injected dependencies:</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-low text-secondary">OwnerRepository</span>
+</div>
+<!-- Expandable Methods (6) -->
+<div class="pl-space-lg flex flex-col gap-space-xs">
+<div class="flex items-center gap-1.5 text-on-surface-variant font-label-sm text-label-sm uppercase">
+<span class="material-symbols-outlined text-[14px]">subdirectory_arrow_right</span>
+<span>Methods (6)</span>
+</div>
+<div class="bg-surface-container-low rounded-DEFAULT p-space-sm flex flex-col gap-space-xs">
+<div class="flex flex-wrap items-center justify-between gap-space-sm py-1">
+<span class="font-code-md text-code-md text-on-surface">processCreationForm(Owner, BindingResult)</span>
+<button class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-DEFAULT bg-tertiary-container/20 hover:bg-tertiary-container/35 text-tertiary font-code-sm text-code-sm transition-colors" type="button">
+<span>✧</span>
+<span>Explain method</span>
+</button>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-space-sm py-1">
+<span class="font-code-md text-code-md text-on-surface">showOwner(int)</span>
+<button class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-DEFAULT bg-tertiary-container/20 hover:bg-tertiary-container/35 text-tertiary font-code-sm text-code-sm transition-colors" type="button">
+<span>✧</span>
+<span>Explain method</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Collapsed Row: PetController -->
+<div class="px-space-md py-space-sm bg-surface-container-low/60 hover:bg-surface-container-high flex items-center justify-between gap-space-sm transition-colors cursor-pointer">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-outline text-[16px]">chevron_right</span>
+<span class="font-code-md text-code-md text-on-surface">PetController</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-primary/15 text-primary font-label-sm text-label-sm">DETECTED</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high text-secondary font-code-sm text-code-sm">@Controller</span>
+</div>
+<span class="font-code-sm text-code-sm text-outline">5 methods</span>
+</div>
+</div>
+<!-- Group: Repositories (3) -->
+<div class="bg-surface-container rounded-lg shadow-sm overflow-hidden flex flex-col">
+<div class="px-space-md py-space-sm bg-surface-container-low flex items-center justify-between">
+<span class="font-label-md text-label-md text-secondary uppercase">Repositories (3)</span>
+<span class="font-code-sm text-code-sm text-outline">org.springframework.data.repository.Repository</span>
+</div>
+<div class="px-space-md py-space-sm hover:bg-surface-container-high flex items-center justify-between gap-space-sm transition-colors cursor-pointer">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-outline text-[16px]">chevron_right</span>
+<span class="font-code-md text-code-md text-on-surface">OwnerRepository</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-primary/15 text-primary font-label-sm text-label-sm">DETECTED</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high text-secondary font-code-sm text-code-sm">Spring Data interface</span>
+</div>
+<span class="font-code-sm text-code-sm text-outline">4 query methods</span>
+</div>
+</div>
+</section>
+<!-- 4. Endpoints Table -->
+<section class="pb-space-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-md text-headline-md text-on-surface">Endpoints</h2>
+<span class="font-code-sm text-code-sm text-outline">17 mapped routes</span>
+</div>
+<div class="bg-surface-container rounded-lg shadow-sm overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-outline font-label-sm text-label-sm uppercase">
+<th class="px-space-md py-space-sm">Method</th>
+<th class="px-space-md py-space-sm">Route</th>
+<th class="px-space-md py-space-sm">Handler</th>
+<th class="px-space-md py-space-sm">Request / Response</th>
+</tr>
+</thead>
+<tbody class="font-code-sm text-code-sm">
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-space-md py-space-sm">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-primary/20 text-primary font-label-sm text-label-sm">GET</span>
+</td>
+<td class="px-space-md py-space-sm text-on-surface font-semibold">/owners/{ownerId}</td>
+<td class="px-space-md py-space-sm text-secondary">OwnerController.showOwner</td>
+<td class="px-space-md py-space-sm text-outline">PathVariable(int) → ModelAndView</td>
+</tr>
+<tr class="bg-surface-container-low/40 hover:bg-surface-container-high transition-colors">
+<td class="px-space-md py-space-sm">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-tertiary-container/30 text-tertiary font-label-sm text-label-sm">POST</span>
+</td>
+<td class="px-space-md py-space-sm text-on-surface font-semibold">/owners/new</td>
+<td class="px-space-md py-space-sm text-secondary">OwnerController.processCreationForm</td>
+<td class="px-space-md py-space-sm text-outline">Owner, BindingResult → redirect:/owners/{id}</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-space-md py-space-sm">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-primary/20 text-primary font-label-sm text-label-sm">GET</span>
+</td>
+<td class="px-space-md py-space-sm text-on-surface font-semibold">/owners/{ownerId}/pets/new</td>
+<td class="px-space-md py-space-sm text-secondary">PetController.initCreationForm</td>
+<td class="px-space-md py-space-sm text-outline">Owner, ModelMap → pets/createOrUpdatePetForm</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- 5. JPA Entities & Relationships -->
+<section class="pb-space-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-md text-headline-md text-on-surface">JPA Entities &amp; Relationships</h2>
+<span class="font-code-sm text-code-sm text-outline">9 entities • Hibernate ORM</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="bg-surface-container rounded-lg p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-code-lg text-code-lg text-on-surface font-semibold">Owner</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high text-outline font-code-sm text-code-sm">table: owners</span>
+</div>
+<div class="font-code-sm text-code-sm text-outline">Managed by <span class="text-secondary">OwnerRepository</span></div>
+<div class="pt-space-xs flex flex-wrap gap-1.5">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-low text-tertiary font-code-sm text-code-sm">OneToMany Owner.pets → Pet</span>
+</div>
+</div>
+<div class="bg-surface-container rounded-lg p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-code-lg text-code-lg text-on-surface font-semibold">Pet</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high text-outline font-code-sm text-code-sm">table: pets</span>
+</div>
+<div class="font-code-sm text-code-sm text-outline">Managed by <span class="text-secondary">OwnerRepository</span></div>
+<div class="pt-space-xs flex flex-wrap gap-1.5">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-low text-tertiary font-code-sm text-code-sm">ManyToOne Pet.type → PetType</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-low text-tertiary font-code-sm text-code-sm">OneToMany Pet.visits → Visit</span>
+</div>
+</div>
+<div class="bg-surface-container rounded-lg p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-code-lg text-code-lg text-on-surface font-semibold">Vet</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high text-outline font-code-sm text-code-sm">table: vets</span>
+</div>
+<div class="font-code-sm text-code-sm text-outline">Managed by <span class="text-secondary">VetRepository</span></div>
+<div class="pt-space-xs flex flex-wrap gap-1.5">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-low text-tertiary font-code-sm text-code-sm">ManyToMany Vet.specialties → Specialty</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. DI Chains, Dependency Cycles & Design-Pattern Candidates -->
+<section class="pb-space-xl grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- DI Chains -->
+<div class="bg-surface-container rounded-lg p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[16px]">linear_scale</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">DI Chains</h3>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-low flex flex-wrap items-center gap-1.5 font-code-sm text-code-sm">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high text-primary">OwnerController</span>
+<span class="text-outline">→</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high text-secondary">OwnerRepository</span>
+<span class="text-outline">→</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high text-tertiary">Owner (Entity)</span>
+</div>
+</div>
+<!-- Dependency Cycles -->
+<div class="bg-surface-container rounded-lg p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-error text-[16px]">cycle</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Dependency Cycles</h3>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-error-container/20 flex flex-col gap-1">
+<div class="flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-code-sm text-error font-semibold">VisitController ↔ PetRepository (field cycle)</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-error-container/40 text-on-error-container font-label-sm text-label-sm">WARN</span>
+</div>
+<span class="font-code-sm text-code-sm text-outline">Evidence: VisitController.java:42</span>
+</div>
+</div>
+<!-- Design-Pattern Candidates -->
+<div class="bg-surface-container rounded-lg p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-tertiary text-[16px]">psychology</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Design-Pattern Candidates</h3>
+</div>
+<div class="flex flex-col gap-space-xs font-code-sm text-code-sm">
+<div class="flex items-center justify-between p-space-xs rounded-DEFAULT bg-surface-container-low">
+<span class="text-on-surface">Repository <span class="text-outline">(Spring Data JPA)</span></span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-primary/15 text-primary font-label-sm text-label-sm">DETECTED</span>
+</div>
+<div class="flex items-center justify-between p-space-xs rounded-DEFAULT bg-surface-container-low">
+<span class="text-on-surface">Strategy <span class="text-outline">(PetTypeFormatter)</span></span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-tertiary-container/25 text-tertiary font-label-sm text-label-sm">LIKELY</span>
+</div>
+<div class="flex items-center justify-between p-space-xs rounded-DEFAULT bg-surface-container-low">
+<span class="text-on-surface">Adapter <span class="text-outline">(WebMvcConfigurer)</span></span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high text-outline font-label-sm text-label-sm">POSSIBLE</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 7. Edge-Case Reference: Unsupported Technology State (Python) -->
+<section class="pb-space-xl flex flex-col gap-space-sm">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">UNSUPPORTED STATE REFERENCE • PYTHON REPOSITORY</span>
+<div class="bg-surface-container-low rounded-lg p-space-lg flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-9 h-9 rounded-DEFAULT bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-outline text-[20px]">info</span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<h3 class="font-headline-md text-headline-md text-on-surface">Architecture analysis is not supported for this technology</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Detected technologies:
+            <span class="font-code-sm text-code-sm text-secondary px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high">Python 3.12</span>
+<span class="font-code-sm text-code-sm text-secondary px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high">Flask</span>
+<span class="font-code-sm text-code-sm text-secondary px-1.5 py-0.5 rounded-DEFAULT bg-surface-container-high">CSS</span>
+</p>
+<p class="font-body-sm text-body-sm text-outline">
+            Available diagnostics instead:
+            <span class="text-on-surface">Overview</span>,
+            <span class="text-on-surface">Dependencies</span>,
+            <span class="text-on-surface">Code Quality</span>,
+            <span class="text-on-surface">Security</span>,
+            <span class="text-on-surface">Code Search</span>.
+          </p>
+</div>
+</div>
+</div>
+</section>
+</div>
+<script>
+  (function () {
+    const archLink = document.querySelector('aside a[data-path="report-architecture"]');
+    if (archLink) {
+      archLink.classList.add('bg-surface-container-high', 'text-on-surface', 'font-semibold');
+      archLink.classList.remove('text-on-surface-variant');
+    }
+  })();
+
+  function toggleSource(id, btn) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isHidden = el.classList.contains('hidden');
+    el.classList.toggle('hidden');
+    const icon = btn.querySelector('span.material-symbols-outlined:last-child');
+    if (icon) icon.textContent = isHidden ? 'expand_less' : 'expand_more';
+  }
+
+  function copyMermaid(btn) {
+    const label = btn.querySelector('span:last-child');
+    if (label) {
+      const original = label.textContent;
+      label.textContent = 'Copied';
+      setTimeout(() => { label.textContent = original; }, 1200);
+    }
+  }
+</script></main></div></body></html>

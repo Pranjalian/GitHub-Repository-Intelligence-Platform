@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'surface-container-highest': '#31353f', 'error': '#ffb4ab', 'on-tertiary-fixed-variant': '#5516be', 'inverse-on-surface': '#2c303a', 'error-container': '#93000a', 'secondary': '#b7c8e1', 'secondary-fixed': '#d3e4fe', 'on-surface': '#dfe2ef', 'on-secondary-fixed': '#0b1c30', 'tertiary-fixed-dim': '#d0bcff', 'background': '#0f131c', 'on-secondary-fixed-variant': '#38485d', 'surface-container-lowest': '#0a0e17', 'surface-container-high': '#262a34', 'surface': '#0f131c', 'surface-container-low': '#181b25', 'inverse-primary': '#0053db', 'on-tertiary': '#3c0091', 'on-surface-variant': '#c3c6d7', 'on-error-container': '#ffdad6', 'on-error': '#690005', 'on-secondary': '#213145', 'on-tertiary-container': '#f6edff', 'outline-variant': '#434655', 'surface-container': '#1c1f29', 'primary-fixed-dim': '#b4c5ff', 'tertiary': '#d0bcff', 'on-background': '#dfe2ef', 'secondary-container': '#3a4a5f', 'tertiary-fixed': '#e9ddff', 'on-tertiary-fixed': '#23005c', 'outline': '#8d90a0', 'on-primary-fixed': '#00174b', 'secondary-fixed-dim': '#b7c8e1', 'primary-fixed': '#dbe1ff', 'surface-dim': '#0f131c', 'primary-container': '#2563eb', 'on-primary-fixed-variant': '#003ea8', 'on-primary-container': '#eeefff', 'primary': '#b4c5ff', 'surface-tint': '#b4c5ff', 'on-secondary-container': '#a9bad3', 'tertiary-container': '#7d4ce7', 'surface-bright': '#353943', 'inverse-surface': '#dfe2ef', 'on-primary': '#002a78', 'surface-variant': '#31353f' }, borderRadius: { 'DEFAULT': '0.125rem', 'lg': '0.25rem', 'xl': '0.5rem', 'full': '0.75rem' }, spacing: { 'margin': '1.5rem', 'gutter-dense': '0.5rem', 'space-lg': '1.25rem', 'space-md': '0.75rem', 'space-xl': '2rem', 'margin-mobile': '1rem', 'space-xs': '0.25rem', 'gutter': '1rem', 'space-sm': '0.5rem' }, fontFamily: { 'headline-xl-mobile': ['Geist'], 'headline-lg-mobile': ['Geist'], 'code-md': ['JetBrains Mono'], 'code-sm': ['JetBrains Mono'], 'code-lg': ['JetBrains Mono'], 'headline-md': ['Geist'], 'headline-lg': ['Geist'], 'body-md': ['Geist'], 'body-lg': ['Geist'], 'body-sm': ['Geist'], 'label-sm': ['JetBrains Mono'], 'label-md': ['JetBrains Mono'], 'headline-xl': ['Geist'] }, fontSize: { 'headline-xl-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '600' }], 'headline-lg-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.015em', fontWeight: '600' }], 'code-md': ['12px', { lineHeight: '16px', letterSpacing: '0em', fontWeight: '400' }], 'code-sm': ['11px', { lineHeight: '14px', letterSpacing: '0.02em', fontWeight: '500' }], 'code-lg': ['13px', { lineHeight: '20px', letterSpacing: '0em', fontWeight: '400' }], 'headline-md': ['18px', { lineHeight: '24px', letterSpacing: '-0.015em', fontWeight: '600' }], 'headline-lg': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '600' }], 'body-md': ['13px', { lineHeight: '18px', letterSpacing: '-0.002em', fontWeight: '400' }], 'body-lg': ['15px', { lineHeight: '22px', letterSpacing: '-0.005em', fontWeight: '400' }], 'body-sm': ['12px', { lineHeight: '16px', letterSpacing: '0em', fontWeight: '400' }], 'label-sm': ['10px', { lineHeight: '12px', letterSpacing: '0.06em', fontWeight: '500' }], 'label-md': ['11px', { lineHeight: '14px', letterSpacing: '0.04em', fontWeight: '600' }], 'headline-xl': ['32px', { lineHeight: '40px', letterSpacing: '-0.025em', fontWeight: '600' }] } } } };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 bottom-0 w-64 bg-surface-container-lowest z-50 flex flex-col justify-between overflow-y-auto"><div class="flex flex-col"><div class="px-space-md pt-space-md pb-space-sm bg-surface-container-low"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[20px]">terminal</span><span class="font-headline-md text-headline-md text-on-surface tracking-tight font-bold">RepoIntel</span></div><span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-space-xs py-0.5 rounded-DEFAULT">LOCAL</span></div><div class="mt-space-xs"><span class="font-code-sm text-code-sm text-outline block leading-tight">v1.4 Local Single-User • No Auth</span></div></div><div class="px-space-md pt-space-md pb-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Global Workspace</span></div><nav class="px-space-xs flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="font-body-md text-body-md">Dashboard</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="add-repository" href="#"><span class="material-symbols-outlined text-[18px]">add_circle</span><span class="font-body-md text-body-md">Add Repository</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ai-settings" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span class="font-body-md text-body-md">AI Settings</span></a></nav><div class="mt-space-md px-space-md py-space-xs bg-surface-container-low"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Active Context</span><span class="material-symbols-outlined text-primary text-[14px]">lock_open</span></div><div class="mt-space-xs flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-secondary">emoji_symbols</span><span class="font-code-sm text-code-sm text-on-surface font-semibold truncate">spring-petclinic</span></div><div class="mt-0.5 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-outline">commit</span><span class="font-code-sm text-code-sm text-outline">500158f</span><span class="font-label-sm text-label-sm text-outline">•</span><span class="font-code-sm text-code-sm text-outline">snapshot</span></div></div><div class="px-space-xs pt-space-xs flex flex-col gap-0.5"><div class="px-space-sm pt-space-xs pb-0.5"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Diagnostics</span></div><nav class="flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-overview" href="#"><span class="font-body-md text-body-md">Overview</span><span class="material-symbols-outlined text-[14px] text-outline">insights</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-dependencies" href="#"><span class="font-body-md text-body-md">Dependencies</span><span class="font-code-sm text-code-sm text-secondary bg-surface-container-high px-1 rounded-DEFAULT">48</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-code-quality" href="#"><span class="font-body-md text-body-md">Code Quality</span><span class="font-code-sm text-code-sm text-primary">94%</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-security" href="#"><span class="font-body-md text-body-md">Security</span><span class="font-code-sm text-code-sm text-error bg-surface-container-high px-1 rounded-DEFAULT">0 vuln</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-tests-coverage" href="#"><span class="font-body-md text-body-md">Tests &amp; Coverage</span><span class="font-code-sm text-code-sm text-outline">88.2%</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors pl-space-md" data-path="report-architecture" href="#"><span class="font-body-md text-body-md">Architecture</span><span class="material-symbols-outlined text-[14px] text-outline">schema</span></a></nav><div class="px-space-sm pt-space-xs pb-0.5 mt-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Analytical Engine</span></div><nav class="flex flex-col gap-0.5" data-active-classes="bg-surface-container-high text-on-surface font-semibold"><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="code-search" href="#"><span class="material-symbols-outlined text-[18px]">search</span><span class="font-body-md text-body-md">Code Search</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ask-qa" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">chat_paste_go</span><span class="font-body-md text-body-md">Ask (Q&amp;A)</span></div><span class="font-label-sm text-label-sm bg-tertiary-container text-on-tertiary-container px-1 py-0.5 rounded-DEFAULT font-bold">AI</span></a><a class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="impact-analysis" href="#"><span class="material-symbols-outlined text-[18px]">alt_route</span><span class="font-body-md text-body-md">Impact Analysis</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="investigations" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">manage_search</span><span class="font-body-md text-body-md">Investigations</span></div><span class="font-label-sm text-label-sm bg-tertiary-container text-on-tertiary-container px-1 py-0.5 rounded-DEFAULT font-bold">AI</span></a></nav></div></div><div class="p-space-sm bg-surface-container-low m-space-xs rounded-DEFAULT"><div class="flex items-center gap-space-xs"><div class="w-2 h-2 rounded-full bg-primary"></div><span class="font-code-sm text-code-sm text-on-surface font-semibold">Local Engine Idle</span></div><div class="mt-1 font-label-sm text-label-sm text-outline leading-tight">Sandboxed • Host Memory 1.4 GB</div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-14 bg-surface-container-lowest/90 backdrop-blur-md z-40 px-space-lg flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1.5 font-code-md text-code-md text-outline"><span class="hover:text-on-surface transition-colors cursor-pointer">spring-projects</span><span>/</span><span class="text-on-surface font-semibold hover:text-primary transition-colors cursor-pointer">spring-petclinic</span></div><span class="text-outline">:</span><button class="flex items-center gap-1 px-space-xs py-0.5 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-secondary hover:text-on-surface font-code-sm text-code-sm transition-colors"><span class="material-symbols-outlined text-[14px]">commit</span><span>500158f</span><span class="material-symbols-outlined text-[13px] text-outline">content_copy</span></button><div class="hidden xl:flex items-center gap-space-xs text-outline font-label-sm text-label-sm pl-space-xs"><span>•</span><span>2025-02-28</span><span>•</span><span class="text-primary font-medium">Completed</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-2 px-space-sm py-1 bg-surface-container-low rounded-DEFAULT"><div class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></div><span class="font-code-sm text-code-sm text-on-surface">AI: Local Ollama (llama3.2)</span></div><div class="hidden lg:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container-lowest rounded-DEFAULT"><span class="material-symbols-outlined text-primary text-[15px]">shield_lock</span><span class="font-label-sm text-label-sm text-outline">Daemon • Safe read-only</span></div><button class="w-7 h-7 flex items-center justify-center rounded-DEFAULT bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Toggle Theme"><span class="material-symbols-outlined text-[16px]">dark_mode</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-14 bg-background px-space-lg"><div class="flex flex-col w-full pb-space-xl">
+<!-- Top Level Meta & View Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm mb-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Code Quality &amp; Security Findings</span>
+<span class="font-code-sm text-code-sm bg-surface-container-high text-secondary px-2 py-0.5 rounded-DEFAULT">22 issues</span>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-primary/10 text-primary px-2 py-0.5 rounded-DEFAULT">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+          AST PARSED
+        </span>
+</div>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-code-sm text-code-sm text-outline">Target:</span>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">spring-petclinic</span>
+<span class="font-code-sm text-code-sm text-outline">@</span>
+<span class="font-code-sm text-code-sm text-primary">500158f</span>
+<span class="font-label-sm text-label-sm text-outline">•</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Deterministic scan across 48 source files • 4 active analyzers</span>
+</div>
+</div>
+<!-- Quick Action Toolbelt -->
+<div class="flex items-center gap-space-xs flex-wrap">
+<button class="flex items-center gap-1.5 px-space-sm py-1.5 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-on-surface font-body-sm text-body-sm transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-outline">download</span>
+<span>Export SARIF</span>
+</button>
+<button class="flex items-center gap-1.5 px-space-sm py-1.5 bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-on-surface font-body-sm text-body-sm transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-outline">tune</span>
+<span>Configure Rules</span>
+</button>
+<button class="flex items-center gap-1.5 px-space-sm py-1.5 bg-primary-container text-on-primary-container hover:brightness-110 rounded-DEFAULT font-body-sm text-body-sm font-medium transition-all shadow-sm">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+<span>Re-analyze Snapshot</span>
+</button>
+</div>
+</div>
+<!-- SECTION 1: AI Technical Debt Summary Card -->
+<div class="mb-space-lg bg-surface-container-low rounded-DEFAULT p-space-md shadow-sm relative overflow-hidden">
+<!-- Subtle gradient background sheen -->
+<div class="absolute inset-0 bg-gradient-to-r from-tertiary-container/10 via-transparent to-primary-container/5 pointer-events-none"></div>
+<div class="relative z-10 flex flex-col gap-space-sm">
+<!-- Badge + Meta Bar -->
+<div class="flex flex-wrap items-center justify-between gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-tertiary-container/20 text-tertiary px-2 py-0.5 rounded-DEFAULT font-semibold">
+<span class="material-symbols-outlined text-[13px]">auto_awesome</span>
+            AI SYNTHESIZED • OPTIONAL LAYER
+          </span>
+<span class="font-code-sm text-code-sm text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-DEFAULT">
+            Local Ollama (llama3.2)
+          </span>
+<span class="font-code-sm text-code-sm text-outline hidden sm:inline">
+            Synthesized in 1.4s via AST tokens
+          </span>
+</div>
+<button class="flex items-center gap-1 px-2 py-1 text-tertiary hover:text-on-surface hover:bg-surface-container rounded-DEFAULT font-code-sm text-code-sm transition-colors" id="regen-btn">
+<span class="material-symbols-outlined text-[14px]">refresh</span>
+<span>Regenerate Summary</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+        Deterministic telemetry abstracted: zero source code leaves your local environment. 22 raw static rule violations deduplicated into 3 architectural debt vectors.
+      </p>
+<!-- 3 Priority Insights Columns -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm mt-1">
+<!-- Priority 1 -->
+<div class="bg-surface-container p-space-sm rounded-DEFAULT flex flex-col justify-between hover:bg-surface-container-high transition-colors">
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-label-sm text-label-sm text-error font-bold tracking-wider">PRIORITY 01 • HIGH IMPACT</span>
+<span class="font-code-sm text-code-sm bg-error-container/30 text-error px-1.5 py-0.2 rounded-DEFAULT">Data Tier</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface font-semibold leading-snug">
+              N+1 Query Cascades in PetRepository
+            </h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+              `findOwnerPets` fetches pet entities without eagerly joining lazy visit collections, compounding roundtrips.
+            </p>
+</div>
+<div class="flex items-center justify-between pt-space-xs mt-space-xs font-code-sm text-code-sm text-outline">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-secondary">timer</span>
+              ~20m remediation
+            </span>
+<span class="text-on-surface font-medium">1 file affected</span>
+</div>
+</div>
+<!-- Priority 2 -->
+<div class="bg-surface-container p-space-sm rounded-DEFAULT flex flex-col justify-between hover:bg-surface-container-high transition-colors">
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-label-sm text-label-sm text-tertiary font-bold tracking-wider">PRIORITY 02 • SECURITY PERIMETER</span>
+<span class="font-code-sm text-code-sm bg-tertiary-container/30 text-tertiary px-1.5 py-0.2 rounded-DEFAULT">Sec Risk</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface font-semibold leading-snug">
+              Static Asset Path Escape in ResourceHandler
+            </h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+              Unsanitized resource lookup allows relative directory traversal in local WebMvc asset handler registration.
+            </p>
+</div>
+<div class="flex items-center justify-between pt-space-xs mt-space-xs font-code-sm text-code-sm text-outline">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-secondary">timer</span>
+              ~1h remediation
+            </span>
+<span class="text-on-surface font-medium">2 rules flagged</span>
+</div>
+</div>
+<!-- Priority 3 -->
+<div class="bg-surface-container p-space-sm rounded-DEFAULT flex flex-col justify-between hover:bg-surface-container-high transition-colors">
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-label-sm text-label-sm text-secondary font-bold tracking-wider">PRIORITY 03 • MAINTAINABILITY</span>
+<span class="font-code-sm text-code-sm bg-secondary-container text-on-secondary-container px-1.5 py-0.2 rounded-DEFAULT">Structural</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface font-semibold leading-snug">
+              Legacy Field Injections (12 occurrences)
+            </h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+              Controllers rely on `@Autowired` on private members rather than immutable constructor injection patterns.
+            </p>
+</div>
+<div class="flex items-center justify-between pt-space-xs mt-space-xs font-code-sm text-code-sm text-outline">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-secondary">timer</span>
+              ~45m total
+            </span>
+<span class="text-on-surface font-medium">4 controllers</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION 2: Comprehensive Findings Filter & Toolbar -->
+<div class="bg-surface-container-low p-space-sm rounded-DEFAULT mb-space-sm flex flex-col gap-space-sm">
+<!-- Top Row: Search + Severity Pill Filters -->
+<div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-sm">
+<!-- Search Input with Keyboard Indicator -->
+<div class="relative flex-1 max-w-2xl">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[18px]">search</span>
+<input class="w-full pl-9 pr-12 py-1.5 bg-surface-container-lowest text-on-surface font-code-sm text-code-sm rounded-DEFAULT placeholder-outline focus:outline-none focus:bg-surface-container" id="finding-search" placeholder="Filter findings by rule, message, path, or CVE... (⌘F)" type="text"/>
+<span class="absolute right-2.5 top-2 font-label-sm text-label-sm text-outline bg-surface-container px-1.5 py-0.5 rounded-DEFAULT">⌘F</span>
+</div>
+<!-- Severity Filter Buttons -->
+<div class="flex items-center gap-1 overflow-x-auto pb-1 lg:pb-0">
+<button class="px-2.5 py-1 bg-surface-container-high text-on-surface font-label-md text-label-md rounded-DEFAULT flex items-center gap-1.5">
+<span>All</span>
+<span class="bg-surface-container-lowest text-outline px-1 rounded-DEFAULT">22</span>
+</button>
+<button class="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md rounded-DEFAULT flex items-center gap-1.5 transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<span>Critical</span>
+<span class="text-outline">0</span>
+</button>
+<button class="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-DEFAULT flex items-center gap-1.5 transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<span>High</span>
+<span class="bg-error-container/40 text-error px-1 rounded-DEFAULT font-bold">3</span>
+</button>
+<button class="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md rounded-DEFAULT flex items-center gap-1.5 transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Medium</span>
+<span class="text-outline">12</span>
+</button>
+<button class="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md rounded-DEFAULT flex items-center gap-1.5 transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span>Low</span>
+<span class="text-outline">7</span>
+</button>
+<button class="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md rounded-DEFAULT flex items-center gap-1.5 transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+<span>Info</span>
+<span class="text-outline">0</span>
+</button>
+</div>
+</div>
+<!-- Bottom Row: Granular Dropdowns & Grouping -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs bg-surface-container-lowest/40 p-2 rounded-DEFAULT">
+<div class="flex flex-wrap items-center gap-space-xs font-code-sm text-code-sm">
+<!-- Analyzer Select -->
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded-DEFAULT">
+<span class="text-outline font-label-sm text-label-sm uppercase">Analyzer:</span>
+<select class="bg-transparent text-on-surface font-code-sm text-code-sm focus:outline-none cursor-pointer">
+<option>All Analyzers (4)</option>
+<option>PMD 7.0 AST (14)</option>
+<option>Semgrep OSS 1.186 (5)</option>
+<option>Checkstyle (2)</option>
+<option>Secret Scanner (1)</option>
+</select>
+</div>
+<!-- Module Select -->
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded-DEFAULT">
+<span class="text-outline font-label-sm text-label-sm uppercase">Module:</span>
+<select class="bg-transparent text-on-surface font-code-sm text-code-sm focus:outline-none cursor-pointer">
+<option>All Modules</option>
+<option>spring-petclinic (root)</option>
+</select>
+</div>
+<!-- File Select -->
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded-DEFAULT">
+<span class="text-outline font-label-sm text-label-sm uppercase">File:</span>
+<select class="bg-transparent text-on-surface font-code-sm text-code-sm focus:outline-none cursor-pointer">
+<option>All Files (18)</option>
+<option>PetRepository.java</option>
+<option>ResourceHandler.java</option>
+<option>OwnerController.java</option>
+<option>WebConfig.java</option>
+</select>
+</div>
+<!-- Quick Presets -->
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded-DEFAULT text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[15px] text-tertiary">bookmark</span>
+<span>OWASP Top 10</span>
+</div>
+</div>
+<!-- Group & Sort controls -->
+<div class="flex items-center gap-space-xs font-code-sm text-code-sm">
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded-DEFAULT">
+<span class="text-outline font-label-sm text-label-sm uppercase">Group:</span>
+<span class="text-primary font-medium">Severity</span>
+<span class="material-symbols-outlined text-[14px] text-outline">unfold_more</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded-DEFAULT">
+<span class="text-outline font-label-sm text-label-sm uppercase">Sort:</span>
+<span class="text-on-surface">Severity (Desc)</span>
+<span class="material-symbols-outlined text-[14px] text-outline">arrow_downward</span>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION 3 & 4: Main Diagnostic Stage + Inspector Drawer (Side-by-Side Flex Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md items-start">
+<!-- LEFT: Dense Findings List (7 Cols) -->
+<div class="lg:col-span-7 flex flex-col gap-space-md">
+<!-- GROUP 1: HIGH SEVERITY -->
+<div class="flex flex-col bg-surface-container-low rounded-DEFAULT overflow-hidden shadow-sm">
+<!-- Group Header -->
+<div class="px-space-md py-2 bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-bold">High Severity</span>
+<span class="font-code-sm text-code-sm bg-error-container text-error px-1.5 py-0.2 rounded-DEFAULT font-bold">3 findings</span>
+</div>
+<span class="font-code-sm text-code-sm text-outline">Requires immediate patch</span>
+</div>
+<!-- Row 1: Selected / Active -->
+<div class="p-space-sm bg-surface-container-high transition-colors cursor-pointer flex flex-col gap-1.5 relative">
+<!-- Active Indicator Bar -->
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="flex items-start justify-between gap-2 pl-2">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-error-container/40 text-error px-1.5 py-0.5 rounded-DEFAULT font-bold">HIGH</span>
+<span class="font-headline-md text-headline-md text-on-surface font-semibold hover:text-primary transition-colors">
+                Potential N+1 Query in PetRepository.findOwnerPets
+              </span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-primary/10 text-primary px-1.5 py-0.5 rounded-DEFAULT whitespace-nowrap">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+              100% DETECTED
+            </span>
+</div>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 pl-2 font-code-sm text-code-sm text-outline">
+<span class="text-secondary font-medium">spring.data.jpa.nplusone</span>
+<span>•</span>
+<span class="text-on-surface-variant">PMD 7.0 AST</span>
+<span>•</span>
+<span class="text-on-surface font-mono">src/.../owner/PetRepository.java:42</span>
+</div>
+<p class="pl-2 font-body-sm text-body-sm text-on-surface-variant">
+            `findOwnerPets` query returns entity hierarchy without fetching lazy child collection `visits`. Iterating will trigger cascading roundtrips.
+          </p>
+</div>
+<!-- Row 2 -->
+<div class="p-space-sm bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer flex flex-col gap-1.5">
+<div class="flex items-start justify-between gap-2 pl-2">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-error-container/40 text-error px-1.5 py-0.5 rounded-DEFAULT font-bold">HIGH</span>
+<span class="font-headline-md text-headline-md text-on-surface font-semibold hover:text-primary transition-colors">
+                Unvalidated path traversal in ResourceHandler
+              </span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-primary/10 text-primary px-1.5 py-0.5 rounded-DEFAULT whitespace-nowrap">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+              98% DETECTED
+            </span>
+</div>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 pl-2 font-code-sm text-code-sm text-outline">
+<span class="text-secondary font-medium">security.path.traversal</span>
+<span>•</span>
+<span class="text-on-surface-variant">Semgrep OSS</span>
+<span>•</span>
+<span class="text-on-surface font-mono">src/.../config/WebConfig.java:88</span>
+</div>
+<p class="pl-2 font-body-sm text-body-sm text-on-surface-variant">
+            External path input directly concatenated to classloader resource path without canonicalization validation.
+          </p>
+</div>
+<!-- Row 3: Secret Finding Example -->
+<div class="p-space-sm bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer flex flex-col gap-1.5">
+<div class="flex items-start justify-between gap-2 pl-2">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-error-container/40 text-error px-1.5 py-0.5 rounded-DEFAULT font-bold">HIGH</span>
+<span class="font-headline-md text-headline-md text-on-surface font-semibold hover:text-primary transition-colors">
+                Hardcoded JWT secret fallback in test configuration
+              </span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-primary/10 text-primary px-1.5 py-0.5 rounded-DEFAULT whitespace-nowrap">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+              95% DETECTED
+            </span>
+</div>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 pl-2 font-code-sm text-code-sm text-outline">
+<span class="text-secondary font-medium">security.hardcoded.secret</span>
+<span>•</span>
+<span class="text-on-surface-variant">Secret Scanner (Entropy)</span>
+<span>•</span>
+<span class="text-on-surface font-mono">SecurityTestConfig.java:24</span>
+</div>
+<!-- Secret Redaction Demonstration -->
+<div class="ml-2 px-2 py-1 bg-surface-container-lowest rounded-DEFAULT font-code-sm text-code-sm flex items-center justify-between text-outline">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-error">key</span>
+<code>jwt_secret = "eyJhGci...****************"</code>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container px-1 py-0.5 rounded-DEFAULT text-secondary">REDACTED</span>
+</div>
+</div>
+</div>
+<!-- GROUP 2: MEDIUM SEVERITY -->
+<div class="flex flex-col bg-surface-container-low rounded-DEFAULT overflow-hidden shadow-sm">
+<!-- Group Header -->
+<div class="px-space-md py-2 bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-bold">Medium Severity</span>
+<span class="font-code-sm text-code-sm bg-surface-container-high text-tertiary px-1.5 py-0.2 rounded-DEFAULT font-bold">12 findings</span>
+</div>
+<span class="font-code-sm text-code-sm text-outline">Code health &amp; standard adherence</span>
+</div>
+<!-- Row 4 -->
+<div class="p-space-sm bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer flex flex-col gap-1.5">
+<div class="flex items-start justify-between gap-2 pl-2">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-1.5 py-0.5 rounded-DEFAULT font-bold">MED</span>
+<span class="font-headline-md text-headline-md text-on-surface font-semibold hover:text-primary transition-colors">
+                Field injection should be avoided: use constructor injection
+              </span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-primary/10 text-primary px-1.5 py-0.5 rounded-DEFAULT whitespace-nowrap">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+              100% DETECTED
+            </span>
+</div>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 pl-2 font-code-sm text-code-sm text-outline">
+<span class="text-secondary font-medium">spring.injection.field</span>
+<span>•</span>
+<span class="text-on-surface-variant">PMD 7.0</span>
+<span>•</span>
+<span class="text-on-surface font-mono">OwnerController.java:36</span>
+</div>
+</div>
+<!-- Row 5 -->
+<div class="p-space-sm bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer flex flex-col gap-1.5">
+<div class="flex items-start justify-between gap-2 pl-2">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-1.5 py-0.5 rounded-DEFAULT font-bold">MED</span>
+<span class="font-headline-md text-headline-md text-on-surface font-semibold hover:text-primary transition-colors">
+                Overly permissive CORS configuration allows wildcard origins
+              </span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-primary/10 text-primary px-1.5 py-0.5 rounded-DEFAULT whitespace-nowrap">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+              92% DETECTED
+            </span>
+</div>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 pl-2 font-code-sm text-code-sm text-outline">
+<span class="text-secondary font-medium">web.cors.permissive</span>
+<span>•</span>
+<span class="text-on-surface-variant">Semgrep OSS</span>
+<span>•</span>
+<span class="text-on-surface font-mono">WebMvcConfig.java:19</span>
+</div>
+</div>
+<!-- Row 6 -->
+<div class="p-space-sm bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer flex flex-col gap-1.5">
+<div class="flex items-start justify-between gap-2 pl-2">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-1.5 py-0.5 rounded-DEFAULT font-bold">MED</span>
+<span class="font-headline-md text-headline-md text-on-surface font-semibold hover:text-primary transition-colors">
+                Direct SQL query concatenation vulnerability
+              </span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-primary/10 text-primary px-1.5 py-0.5 rounded-DEFAULT whitespace-nowrap">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+              89% DETECTED
+            </span>
+</div>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 pl-2 font-code-sm text-code-sm text-outline">
+<span class="text-secondary font-medium">sql.injection.concatenation</span>
+<span>•</span>
+<span class="text-on-surface-variant">PMD 7.0</span>
+<span>•</span>
+<span class="text-on-surface font-mono">NamedEntity.java:55</span>
+</div>
+</div>
+</div>
+<!-- GROUP 3: LOW SEVERITY (COLLAPSIBLE / PREVIEW) -->
+<div class="flex flex-col bg-surface-container-low rounded-DEFAULT overflow-hidden shadow-sm">
+<button class="px-space-md py-2.5 bg-surface-container flex items-center justify-between text-left hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-outline">expand_more</span>
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-bold">Low Severity</span>
+<span class="font-code-sm text-code-sm bg-surface-container-high text-secondary px-1.5 py-0.2 rounded-DEFAULT">7 findings</span>
+</div>
+<span class="font-code-sm text-code-sm text-outline">Style guidelines, minor warnings • Click to expand</span>
+</button>
+</div>
+<!-- SECTION 5: Visual Reference Showcase for Empty States (Documentation / Comparison Drawer) -->
+<div class="bg-surface-container-low rounded-DEFAULT p-space-md flex flex-col gap-space-sm mt-space-sm shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">visibility</span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-bold">Edge-Case View Modes Reference</span>
+</div>
+<span class="font-code-sm text-code-sm text-outline">Simulated Engine States</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm mt-1">
+<!-- State A: Clean Bill of Health -->
+<div class="p-space-sm bg-surface-container-lowest rounded-DEFAULT flex flex-col items-center text-center justify-center py-6">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
+<span class="material-symbols-outlined text-[22px]">verified</span>
+</div>
+<h5 class="font-headline-md text-headline-md text-on-surface font-semibold">Zero Deterministic Findings</h5>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-xs mt-1">
+              All 48 files analyzed across PMD, Semgrep &amp; Secret Scanners returned a clean bill of health.
+            </p>
+<span class="font-code-sm text-code-sm text-outline mt-2 bg-surface-container px-2 py-0.5 rounded-DEFAULT">Snapshot 500158f verified</span>
+</div>
+<!-- State B: Filter Yields No Match -->
+<div class="p-space-sm bg-surface-container-lowest rounded-DEFAULT flex flex-col items-center text-center justify-center py-6">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-outline mb-2">
+<span class="material-symbols-outlined text-[22px]">filter_list_off</span>
+</div>
+<h5 class="font-headline-md text-headline-md text-on-surface font-semibold">No Findings Match Filter</h5>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-xs mt-1">
+              Zero findings for query with severity <code class="text-error font-mono">CRITICAL</code> and analyzer <code class="text-secondary font-mono">Semgrep</code>.
+            </p>
+<button class="font-code-sm text-code-sm text-primary hover:underline mt-2 bg-surface-container px-2.5 py-1 rounded-DEFAULT">
+              Reset Active Filters
+            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT: Finding Detail Drawer (5 Cols) -->
+<div class="lg:col-span-5 bg-surface-container-low rounded-DEFAULT p-space-md flex flex-col gap-space-md shadow-sm sticky top-16">
+<!-- Drawer Navigation Header -->
+<div class="flex items-center justify-between pb-2 bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="font-code-sm text-code-sm text-on-surface font-bold">#FINDING-0941</span>
+<span class="font-label-sm text-label-sm text-outline">• PMD 7.0 AST</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-7 h-7 flex items-center justify-center bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-outline hover:text-on-surface transition-colors" title="Previous Finding">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+</button>
+<button class="w-7 h-7 flex items-center justify-center bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-outline hover:text-on-surface transition-colors" title="Next Finding">
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</button>
+<button class="w-7 h-7 flex items-center justify-center bg-surface-container hover:bg-surface-container-high rounded-DEFAULT text-outline hover:text-on-surface transition-colors" title="Close Panel">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+<!-- Severity & Title -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm bg-error-container text-error px-2 py-0.5 rounded-DEFAULT font-bold">HIGH SEVERITY</span>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-primary/10 text-primary px-2 py-0.5 rounded-DEFAULT font-semibold">
+<span class="material-symbols-outlined text-[13px]">check_circle</span>
+            100% DETECTED
+          </span>
+<span class="font-label-sm text-label-sm text-outline">PMD-AST-JPQL</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface font-bold leading-tight">
+          Potential N+1 Query in PetRepository.findOwnerPets
+        </h3>
+</div>
+<!-- Finding Metadata Grid -->
+<div class="bg-surface-container p-space-sm rounded-DEFAULT flex flex-col gap-2 font-code-sm text-code-sm">
+<div class="flex flex-col">
+<span class="text-outline font-label-sm text-label-sm uppercase">File &amp; AST Anchor:</span>
+<div class="flex items-center justify-between mt-0.5">
+<span class="text-on-surface font-mono break-all text-xs">src/main/java/.../owner/PetRepository.java:42</span>
+<a class="text-primary hover:underline flex items-center gap-0.5 text-xs whitespace-nowrap ml-2" href="#">
+<span>GitHub (500158f)</span>
+<span class="material-symbols-outlined text-[12px]">open_in_new</span>
+</a>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-1">
+<div>
+<span class="text-outline font-label-sm text-label-sm uppercase">Rule ID:</span>
+<div class="text-secondary font-mono text-xs flex items-center gap-1 mt-0.5">
+<span>spring.data.jpa.nplusone</span>
+<span class="material-symbols-outlined text-[12px] text-outline cursor-pointer">help_outline</span>
+</div>
+</div>
+<div>
+<span class="text-outline font-label-sm text-label-sm uppercase">Module Target:</span>
+<div class="text-on-surface font-mono text-xs mt-0.5">spring-petclinic (root)</div>
+</div>
+</div>
+<div class="pt-1">
+<span class="text-outline font-label-sm text-label-sm uppercase">Analyzer &amp; Method:</span>
+<div class="text-on-surface-variant text-xs mt-0.5">PMD 7.0 • Deterministic AST Parser (Zero-Execution)</div>
+</div>
+</div>
+<!-- Evidence Excerpt Code Block -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">Evidence Excerpt (Lines 38 - 46)</span>
+<button class="font-code-sm text-code-sm text-outline hover:text-on-surface flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+<span>Copy</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest p-space-sm rounded-DEFAULT overflow-x-auto font-code-sm text-code-sm text-on-surface leading-relaxed">
+<div class="text-outline/70 select-none">38  public interface PetRepository extends Repository&lt;Pet, Integer&gt; {</div>
+<div class="text-outline/70 select-none">39</div>
+<div class="text-outline/70 select-none">40      /** Returns all pets owned by the specified owner */</div>
+<div class="text-outline/70 select-none">41      @Transactional(readOnly = true)</div>
+<div class="bg-error-container/20 text-error font-medium flex items-center px-1 -mx-1 rounded-DEFAULT">
+<span class="select-none font-bold mr-2">42 &gt;&gt;&gt;</span>
+<code>@Query("SELECT p FROM Pet p WHERE p.owner.id = :ownerId")</code>
+</div>
+<div class="text-outline/70 select-none">43      List&lt;Pet&gt; findOwnerPets(@Param("ownerId") Integer ownerId);</div>
+<div class="text-outline/70 select-none">44</div>
+<div class="text-outline/70 select-none">45      @Transactional(readOnly = true)</div>
+<div class="text-outline/70 select-none">46      Pet findById(Integer id);</div>
+</div>
+</div>
+<!-- Suggested Next Step Actionable Box -->
+<div class="bg-surface-container p-space-sm rounded-DEFAULT flex items-start gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5">tips_and_updates</span>
+<div class="flex flex-col gap-0.5">
+<span class="font-label-md text-label-md text-on-surface font-bold uppercase tracking-wider">Suggested Deterministic Step</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Add <code class="text-primary font-mono font-medium">@EntityGraph(attributePaths = {"visits"})</code> or rewrite query with <code class="text-primary font-mono font-medium">JOIN FETCH p.visits</code> to eliminate child entity lazy loading cascades.
+          </p>
+</div>
+</div>
+<!-- AI Insight Section Inside Drawer (Distinct, Tinted, Opt-In) -->
+<div class="bg-surface-container-lowest rounded-DEFAULT p-space-sm relative overflow-hidden flex flex-col gap-space-xs shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-br from-tertiary-container/10 via-transparent to-transparent pointer-events-none"></div>
+<div class="relative z-10 flex items-center justify-between pb-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-tertiary">auto_awesome</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold tracking-wider uppercase">AI Explanation &amp; Refactor</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline bg-surface-container px-1.5 py-0.5 rounded-DEFAULT">OPTIONAL LAYER</span>
+</div>
+<div class="relative z-10 font-code-sm text-code-sm text-outline">
+          Local Ollama (llama3.2) • cached 12ms • prompt v2.4 • evidence: lines 38-46
+        </div>
+<p class="relative z-10 font-body-sm text-body-sm text-on-surface-variant mt-1 leading-snug">
+          When <code class="text-on-surface font-mono">findOwnerPets</code> is invoked, Spring Data JPA returns <code class="text-on-surface font-mono">Pet</code> entities whose associated <code class="text-on-surface font-mono">visits</code> collection is configured as <code class="text-tertiary font-mono">FetchType.LAZY</code>. Iterating over these pets in downstream view templates triggers 1 additional SQL query per pet, multiplying database latency.
+        </p>
+<!-- Suggested Refactor Diff Block -->
+<div class="relative z-10 mt-2 flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline uppercase">
+<span>Suggested Refactor Diff</span>
+<button class="text-tertiary hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">content_copy</span>
+<span>Copy Diff</span>
+</button>
+</div>
+<div class="bg-surface-container-high p-space-xs rounded-DEFAULT font-code-sm text-code-sm overflow-x-auto leading-relaxed">
+<div class="text-error bg-error-container/20 px-1 -mx-0.5 rounded-DEFAULT">
+              - @Query("SELECT p FROM Pet p WHERE p.owner.id = :ownerId")
+            </div>
+<div class="text-primary bg-primary-container/20 px-1 -mx-0.5 rounded-DEFAULT mt-0.5">
+              + @EntityGraph(attributePaths = {"visits", "type"})
+            </div>
+<div class="text-primary bg-primary-container/20 px-1 -mx-0.5 rounded-DEFAULT">
+              + @Query("SELECT p FROM Pet p WHERE p.owner.id = :ownerId")
+            </div>
+</div>
+</div>
+<!-- Privacy & Limitation Footnote -->
+<div class="relative z-10 pt-2 font-code-sm text-code-sm text-outline flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[13px] text-outline">shield</span>
+<span>Analysis performed strictly on local AST context. No source leaves host.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Lightweight client-side micro-interactions
+  document.getElementById('regen-btn')?.addEventListener('click', function() {
+    const icon = this.querySelector('.material-symbols-outlined');
+    if (icon) {
+      icon.classList.add('animate-spin');
+      setTimeout(() => {
+        icon.classList.remove('animate-spin');
+      }, 750);
+    }
+  });
+
+  const searchInput = document.getElementById('finding-search');
+  window.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+      e.preventDefault();
+      searchInput?.focus();
+    }
+  });
+</script></main></div></body></html>
