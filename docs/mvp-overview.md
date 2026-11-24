@@ -1,6 +1,6 @@
-# MVP 1 and MVP 2 Overview: Steps and Flow
+# MVP Overview (MVP 1 to MVP 4): Steps, Flow and Decisions
 
-A short guide to what was built in MVP 1 (repository analysis) and MVP 2 (architecture intelligence), and how a repository flows through the platform. For full detail see [implementationPlan.md](implementationPlan.md), [architecture.md](architecture.md) and the completion reports for [MVP 1](mvp1-completion-report.md) and [MVP 2](mvp2-completion-report.md).
+A short guide to what was built in MVP 1 (repository analysis), MVP 2 (architecture intelligence), MVP 3 (optional AI insights) and MVP 4 (search and Q&A), and how a repository flows through the platform. This file was called `mvp1-mvp2-overview.md` until MVP 4 and is now `mvp-overview.md`, so one name covers every MVP. For full detail see [implementationPlan.md](implementationPlan.md), [architecture.md](architecture.md) and the completion reports for [MVP 1](mvp1-completion-report.md) and [MVP 2](mvp2-completion-report.md).
 
 **In one sentence:** you give the platform a public GitHub URL; it downloads that exact commit, reads the code without ever running it, and produces an evidence-backed report of technologies, structure, dependencies, code quality, security, tests and (from MVP 2) architecture with diagrams.
 
@@ -260,6 +260,82 @@ flowchart TD
 ```
 
 Search always works without AI: symbol search right after the analysis, text search once the snapshot is indexed. Every query is bound to one snapshot of one repository in the storage layer, so no answer can draw on another commit or repository. A Q&A answer is shown as grounded only when it cites at least one retrieved chunk that was actually sent; every citation links to GitHub at the exact commit.
+
+### 4b.1 MVP 4 explained with an example (spring-petclinic)
+
+Full detail: [mvp4-completion-report.md](mvp4-completion-report.md). Numbers marked "run" come from the Docker run in that report; the rest is illustrative.
+
+**What is stored where**
+
+| Thing | Table | Created by | Example |
+|---|---|---|---|
+| Java classes, methods, fields | `code_symbol` (V5) | MVP 2 analysis | `symbol_type=CLASS`, `fully_qualified_name=org.springframework.samples.petclinic.owner.OwnerController`, `file_path`, `start_line`/`end_line`, `annotations=[{"name":"Controller"}]`, `parent_symbol_id` (the class, for a method) |
+| Searchable pieces of code | `code_chunk` (V7) | The index job | One row per class header, method, config or Markdown section, or line window: path, lines, `class_name`, `method_name`, `chunk_type`, scrubbed `content`, `content_hash`, and a generated `tsv` column for full-text search |
+| Vectors (optional) | `chunk_embedding` (V7) | The index job, if an embedding model is set | Keyed by `content_hash` + model + model version; empty until a model is configured |
+| Index state | `snapshot_index` (V7) | The index job | `status` (QUEUED, INDEXING, COMPLETED, ...), `embedding_status`, `chunk_count` |
+| Conversations | `conversation`, `conversation_message` (V8) | Q&A | Question and answer history per snapshot |
+
+**The words used**
+
+- **Index this snapshot:** a button (`POST .../index`) that reads one commit's files, cuts them into chunks, and stores them so text search and Q&A work. It is not part of the analysis and never runs by itself.
+- **Leasing the workspace:** a "do not delete" tag on the extracted files. An hourly sweeper removes old workspaces; the lease keeps it away while indexing reads them. If the workspace is already gone, it is rebuilt from the stored tarball.
+- **Which job runs, and when:** the index job (`SnapshotIndexService`) runs on its own thread from a bounded queue, only after the button is pressed. It scrubs secrets, chunks the files, writes `code_chunk`, and embeds new content hashes if a model is configured.
+- **Embedding:** a list of numbers that represents the meaning of a chunk, so search can match on meaning, not only on words. The text embedded is a short header (path, kind, names) plus the scrubbed chunk. Only chunks are embedded, never raw files or `code_symbol`.
+
+**Example flow**
+
+1. **Analyze** `spring-petclinic`. `code_symbol` now has a row for `OwnerController`.
+2. **Symbol search (no index needed):** `GET .../search?q=OwnerController&type=symbol` reads `code_symbol` and returns the file, lines and a GitHub link at the commit. Java only.
+3. **Text search before indexing:** `type=text` returns `NOT_INDEXED` with a reason, not an empty list.
+4. **Index:** press the button. The job splits `OwnerController.java` into a class-header chunk and one chunk per method, for example `processFindForm`. Run: 382 chunks from 117 files.
+5. **Text search:** `findByLastName` is cut into identifier words (camelCase split), every word must match, and symbol names rank above path above content. It finds the `processFindForm` chunk.
+6. **Question:** "How does the app look up owners by last name?" Retrieval merges keyword, symbol and (if vectors exist) semantic matches by reciprocal rank fusion and keeps the top 8 chunks. They go through the AI gateway; every citation is then checked against the chunks that were actually sent. Run: a grounded answer cited `OwnerController.java` lines 94 to 130, which is `processFindForm`.
+7. **No model:** the same question returns `UNAVAILABLE` plus plain search results. Nothing is lost except the written answer.
+
+**Where each search is used:** symbol and text search are both on the Search page (toggle) and both feed Q&A retrieval. Text search runs when you search with `type=text` and inside every question, and only after indexing.
+
+**Strategies**
+
+| | Choice | Review |
+|---|---|---|
+| Chunking | Java: class header plus one chunk per method (JavaParser). YAML/properties by section, Markdown by heading, everything else 60-line windows with 10 overlap. Long units split at `max-chunk-lines`. | Good fit for code questions. Gaps: non-Java code gets blind line windows (a function can be cut in half), and method chunks do not carry their class context. Both are cheap to improve later |
+| Retrieval | Keyword + symbol + semantic lists merged with reciprocal rank fusion (`rrf-k` 60), top 8 | Standard and robust, and it still works when one list is empty. Semantic quality is unproven (see below) |
+
+### 4b.2 Embedding model: discussion, considerations and decision
+
+**Starting point.** The code supports an optional embedding model, separate from the chat model, chosen by `AI_EMBEDDING_PROVIDER` (`ollama` default, or `gemini`) and `OLLAMA_EMBEDDING_MODEL` / `GEMINI_EMBEDDING_MODEL`. Nothing is built in. With none set, `embeddingStatus` is `NOT_CONFIGURED`, the `chunk_embedding` table stays empty, and search and Q&A run on keyword plus symbol retrieval only. That is allowed by design, but it means the semantic half of the hybrid design is not active.
+
+**Options considered**
+
+| Option | For | Against |
+|---|---|---|
+| Ollama (`nomic-embed-text`) | Free, local, code never leaves the machine | A server you must host. Cannot run on Vercel; on Railway it would be a separate service and its host has to be added to the Ollama `allowed-hosts` list in `application.yml` |
+| `gemini-embedding-001` | Free tier, hosted, same provider and key as the chat model, nothing to run. Paid rate $0.15 per 1M tokens | Free-tier limits are only known from a year-old forum reply: 100 requests/min, 1,000/day, 30,000 tokens/min. Chunks leave the machine (needs the data-handling acknowledgement) |
+| `gemini-embedding-2` | Free tier per the pricing page | No rate-limit numbers found for it; paid rate $0.20 per 1M tokens (batch $0.10, not free) |
+| Groq `gpt-oss-120b` | Free tier: 30 requests/min, 1,000/day, 8,000 tokens/min, 200,000 tokens/day | It is a chat model, not an embedding model, so it cannot replace one. No Groq embedding model was found, and the app has no Groq adapter (only Ollama, Gemini, OpenRouter) |
+
+**Considerations**
+
+- **Hosting:** the app is meant to run beyond localhost (Vercel for the frontend, Railway or similar for the backend). A hosted embedding API avoids running a model server.
+- **Privacy:** sending code is acceptable for this project, so the hosted-provider cost is accepted; the scrubber still removes secrets before anything is embedded or sent.
+- **Quota:** the binding limit is tokens per minute, not requests. A 382-chunk index is about 24 requests (16 chunks each) but a few hundred tokens per chunk, so indexing may take minutes on the free tier. If the limit is hit the status becomes `PARTIAL` or `UNAVAILABLE` and search falls back to keyword. How the app reacts to a rate-limit error from Google has not been tested.
+- **Cost:** negligible if it ever becomes paid: indexing spring-petclinic is roughly 100k to 200k tokens, about $0.02 to $0.04 at $0.15 per 1M. Unchanged chunks are never re-embedded because vectors are keyed by content hash, model and version.
+- **Evidence so far:** the retrieval evaluation (12 questions) used a stand-in embedder: keyword+symbol recall@5 0.833, MRR 0.722; semantic 0.528 / 0.461; hybrid 0.750 / 0.597. This proves the plumbing, not the quality of a real model. Twelve questions is also a small set.
+
+**Decision (2026-11-22)**
+
+| Decision | Reason |
+|---|---|
+| Embeddings: Gemini, `gemini-embedding-001`, set in `.env` as `AI_EMBEDDING_PROVIDER=gemini` and `GEMINI_EMBEDDING_MODEL=gemini-embedding-001` | Free, hosted so it works when deployed, no new provider or key, code sharing accepted. Preferred over `gemini-embedding-2` because its limits are better documented and its paid rate is lower |
+| Chat: stay on Gemini (`gemini-3.5-flash-lite`) | Already working and free. A Groq chat adapter would be new code and its 8,000 tokens/min cap allows only a few questions a minute |
+| Ollama kept as a supported option, not used now | Better if code must stay local, but needs hosting |
+
+**Status and what is still unverified**
+
+- The two settings are in the local `.env` (git-ignored). The backend had not been restarted with them and no snapshot had been re-indexed, because Docker was not running when this was written.
+- To verify: start Docker, `docker compose up -d` (never `-v`), re-index a snapshot, and expect `embeddingStatus: COMPLETED` (`PARTIAL` means the free quota ran out; re-run later). Then ask a question phrased differently from the code and compare the answer with keyword-only.
+- Still open: whether a real model improves on keyword+symbol (the stand-in made hybrid worse), the pgvector query path against the Docker database (`PgVectorStoreTests` is skipped without `PGVECTOR_TEST_DB_URL`), and the free-tier limits, which should be read from AI Studio for the project.
+- Revisit if indexing keeps hitting `PARTIAL`, or if answers do not improve: try `gemini-embedding-2` or Ollama `nomic-embed-text`, then re-run the retrieval evaluation with a larger question set.
 
 ---
 
