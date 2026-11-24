@@ -1,6 +1,6 @@
-# MVP Overview (MVP 1 to MVP 4): Steps, Flow and Decisions
+# MVP Overview (MVP 1 to MVP 5): Steps, Flow and Decisions
 
-A short guide to what was built in MVP 1 (repository analysis), MVP 2 (architecture intelligence), MVP 3 (optional AI insights) and MVP 4 (search and Q&A), and how a repository flows through the platform. This file was called `mvp1-mvp2-overview.md` until MVP 4 and is now `mvp-overview.md`, so one name covers every MVP. For full detail see [implementationPlan.md](implementationPlan.md), [architecture.md](architecture.md) and the completion reports for [MVP 1](mvp1-completion-report.md) and [MVP 2](mvp2-completion-report.md).
+A short guide to what was built in MVP 1 (repository analysis), MVP 2 (architecture intelligence), MVP 3 (optional AI insights) MVP 4 (search and Q&A) and MVP 5 (change-impact analysis), and how a repository flows through the platform. This file was called `mvp1-mvp2-overview.md` until MVP 4 and is now `mvp-overview.md`, so one name covers every MVP. For full detail see [implementationPlan.md](implementationPlan.md), [architecture.md](architecture.md) and the completion reports for [MVP 1](mvp1-completion-report.md) and [MVP 2](mvp2-completion-report.md).
 
 **In one sentence:** you give the platform a public GitHub URL; it downloads that exact commit, reads the code without ever running it, and produces an evidence-backed report of technologies, structure, dependencies, code quality, security, tests and (from MVP 2) architecture with diagrams.
 
@@ -337,6 +337,31 @@ Full detail: [mvp4-completion-report.md](mvp4-completion-report.md). Numbers mar
 - Still open: whether a real model improves on keyword+symbol (the stand-in made hybrid worse), the pgvector query path against the Docker database (`PgVectorStoreTests` is skipped without `PGVECTOR_TEST_DB_URL`), and the free-tier limits, which should be read from AI Studio for the project.
 - Revisit if indexing keeps hitting `PARTIAL`, or if answers do not improve: try `gemini-embedding-2` or Ollama `nomic-embed-text`, then re-run the retrieval evaluation with a larger question set.
 
+
+## 4c. MVP 5 steps: Change-impact analysis (needs no AI)
+
+| Step | Title | One-liner |
+|---|---|---|
+| 5.1 | Dependency graph | Relational, snapshot-scoped graph queries over the MVP 2 symbols and edges (breadth-first recursive queries with depth and row caps, at method and at type level); module dependents, endpoint, entity and layer lookups; and a new `test_reference` table filled by the Java test analyzer, so tests are linked to production types and methods by what their source names. |
+| 5.2 | Impact engine | The `ImpactAnalyzer` SPI with `JavaImpactAnalyzer` (callers, dispatch, ambiguous calls, endpoints, repositories and entities, modules, tests), the heuristic risk score with visible factors, regression areas, limitations, a Mermaid chain, and an optional AI summary and symbol suggestions through the AI gateway; `POST .../impact-analysis`. |
+| 5.3 | Impact page | A symbol picker, depth, an affected-components tree with confidence and evidence links, risk factors, endpoints, tests, limitations, the dependency chain diagram and, only when AI is available, a description box and a marked summary. |
+
+```mermaid
+flowchart TD
+    A["Analysis (MVP 1/2)"] --> G[("code_symbol, dependency_edge,<br/>api_endpoint, layers, modules")]
+    A --> T[("test_reference, test_record<br/>(Java test analyzer)")]
+    P["Impact page: pick a symbol"] --> S["ImpactAnalysisService"]
+    S --> GR["SnapshotImpactGraph<br/>bounded recursive queries"]
+    GR --> G
+    GR --> T
+    S --> JA["JavaImpactAnalyzer<br/>callers, dispatch, endpoints, tests"]
+    JA --> R["Result: components with confidence,<br/>endpoints, tests, modules, limitations"]
+    S --> RS["RiskScorer: 6 visible factors"]
+    S -.->|"only when asked"| AI["AI gateway: summary / symbol suggestions"]
+```
+
+The graph result never depends on AI. A path is only as strong as its weakest link: Detected (resolved call, injection or inheritance edges), Likely (type use only, naming convention), Possible (dynamic dispatch, ambiguous overloads, tests that only name the type). Full detail: [mvp5-completion-report.md](mvp5-completion-report.md).
+
 ---
 
 ## 5. Tools
@@ -366,6 +391,7 @@ Full detail: [mvp4-completion-report.md](mvp4-completion-report.md). Numbers mar
 | Search | PostgreSQL full-text search (`tsvector`, `simple` configuration) | Keyword index of code chunks | MVP 4 |
 | Search (optional) | pgvector 0.8.7 (in the Docker database image) | Semantic search; without it vectors are ranked in the application | MVP 4 |
 | AI (optional) | Ollama `/api/embed`, Gemini `batchEmbedContents` | Embeddings, separate from the chat model; off by default | MVP 4 |
+| Impact (no new library) | PostgreSQL recursive queries, JavaParser (test references), Mermaid (chain) | Dependency graph, impact analysis | MVP 5 |
 | Frontend | react-markdown 10.1.0 | AI text as Markdown, without raw HTML, images or links | MVP 3 |
 | CI | GitHub Actions | Backend, frontend and Docker image jobs on every push to `main` | MVP 1 |
 

@@ -1279,8 +1279,8 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 5. Keep everything relational; introduce a graph database only if measured query latency on realistic repositories justifies it (record measurements)
 
 **Tests:**
-- [ ] Unit: traversal returns expected callers/dependents to depth N on a fixture; cycles do not loop
-- [ ] Performance: traversal on a medium fixture within an agreed latency budget
+- [x] Unit: traversal returns expected callers/dependents to depth N on a fixture; cycles do not loop (`SnapshotImpactGraphTests`)
+- [x] Performance: traversal on a medium fixture within an agreed latency budget (`ImpactGraphPerformanceTests`: 22,000 symbols and 64,000 edges; worst-case hub 0.7 to 1.7 s, typical method 71 ms; budgets 12 s and 2 s)
 
 ---
 
@@ -1295,10 +1295,10 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 2. `ImpactController`: `POST /api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/impact-analysis` with `{targetSymbolId, changeDescription?, depth?}` → affected components with evidence and confidence, tests, suggested regression-test areas, risk factors, limitations, optional AI summary (via `AIGateway`, clearly marked)
 
 **Tests:**
-- [ ] Unit: fixture `PaymentService.calculatePayment()` → expected callers, endpoints, tests
-- [ ] Unit: risk factors computed and explained; score not presented as a probability
-- [ ] Unit: unresolved/polymorphic edges appear in limitations
-- [ ] Unit: works with AI disabled (no summary, full graph results)
+- [x] Unit: fixture `PaymentService.calculatePayment()` → expected callers, endpoints, tests (`JavaImpactAnalyzerTests`, `ImpactE2eTests` on `spring-boot-payments`)
+- [x] Unit: risk factors computed and explained; score not presented as a probability (`ImpactE2eTests`, `RiskScorer`)
+- [x] Unit: unresolved/polymorphic edges appear in limitations (`JavaImpactAnalyzerTests`, `ImpactE2eTests`)
+- [x] Unit: works with AI disabled (no summary, full graph results) (`ImpactE2eTests`)
 
 ---
 
@@ -1308,18 +1308,18 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 1. `ImpactAnalysisPage`: symbol picker (search-backed), optional description (AI-only), affected-components tree with confidence and evidence links, risk-factor breakdown, suggested test areas, limitations, Mermaid flowchart of the dependency chain (size-capped, strict mode)
 
 **Tests:**
-- [ ] Unit: picker → request; results tree and factors render; AI-unavailable hides only the description input
+- [x] Unit: picker → request; results tree and factors render; AI-unavailable hides only the description input (`ImpactAnalysisPage.test.tsx`)
 
 ---
 
 ### MVP 5: Exit Criteria Checklist
 
-- [ ] Dependency graph built from AST data, not from an LLM
-- [ ] Impact query returns affected components and tests with evidence and confidence
-- [ ] Risk score is explainable via visible factors and not presented as a probability
-- [ ] Limitations (reflection, dynamic dispatch, unresolved edges, runtime wiring) explicitly stated
-- [ ] Works fully without AI
-- [ ] All previous MVP features still work
+- [x] Dependency graph built from AST data, not from an LLM (`SnapshotImpactGraph` over `dependency_edge`; no model involved)
+- [x] Impact query returns affected components and tests with evidence and confidence (`ImpactE2eTests`; live run on spring-petclinic)
+- [x] Risk score is explainable via visible factors and not presented as a probability (six visible factors, labelled heuristic; `ImpactE2eTests`, page test)
+- [x] Limitations (reflection, dynamic dispatch, unresolved edges, runtime wiring) explicitly stated (`JavaImpactAnalyzerTests`, `ImpactE2eTests`)
+- [x] Works fully without AI (`ImpactE2eTests` result identical with AI off; summary and suggestions only `UNAVAILABLE`)
+- [x] All previous MVP features still work (800 backend and 147 frontend tests green; Docker stack rebuilt, spring-petclinic re-analysed through nginx, report, architecture, dependencies, tests, search and AI endpoints answer 200)
 
 ---
 
@@ -1509,3 +1509,14 @@ After each MVP, verify that **all prior exit criteria still pass**:
 - Symbol extraction for other languages (C.2) so symbol search and symbol-based retrieval cover more than Java.
 - Server-side conversation list and reload (`GET .../conversations/{id}`); conversations are stored but the UI keeps them in memory only.
 
+
+### C.6 MVP 5 follow-ups (impact analysis)
+
+**Status:** recommended, not scheduled.
+- Link tests that reach code only through HTTP (`MockMvc`, `TestRestTemplate`, `WebTestClient`): map the request path to an endpoint (`api_endpoint`) and from there to its handler.
+- Resolve calls with unknown receiver types (chained calls, lambdas, static imports) with a symbol solver or by recording the call's method name and argument count so they can be listed as POSSIBLE callers; today they are only counted (`callsNotResolvable`).
+- Model Spring runtime wiring that changes dispatch (`@Bean` factory methods, `@Qualifier`/`@Primary`, profiles, conditional beans) so a changed implementation is not just "possible" behind its interface.
+- Persist or cache graph results per snapshot and target if repositories grow far beyond the measured 22,000 symbols; consider an index on `dependency_edge (target_symbol_id, relationship_type)` if profiling shows it.
+- Calibrate the risk weights on real change history (for example files that later needed fixes), keeping the factor-by-factor display.
+- Tests from earlier runs: runs made before V9 need a forced rescan to get test references; offer a "refresh test links" action that does not repeat the whole analysis.
+- A Playwright check of the impact page and its Mermaid chain behind nginx (see C.3).
