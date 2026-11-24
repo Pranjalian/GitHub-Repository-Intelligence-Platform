@@ -22,6 +22,7 @@ describe('backend-generated Mermaid', () => {
         'spring-boot-architecture/apiFlow.mmd',
         'spring-boot-architecture/entities.mmd',
         'spring-boot-architecture/layers.mmd',
+        'spring-boot-payments/impactChain.mmd',
         'spring-multi-module/modules.mmd',
       ]),
     )

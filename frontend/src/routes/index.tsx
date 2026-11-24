@@ -4,6 +4,7 @@ import AddRepositoryPage from '../pages/AddRepositoryPage'
 import AISettingsPage from '../pages/AISettingsPage'
 import ArchitecturePage from '../pages/ArchitecturePage'
 import DashboardPage from '../pages/DashboardPage'
+import ImpactAnalysisPage from '../pages/ImpactAnalysisPage'
 import QAPage from '../pages/QAPage'
 import RepositoryOverviewPage from '../pages/RepositoryOverviewPage'
 import SearchPage from '../pages/SearchPage'
@@ -19,6 +20,7 @@ export const routes = [
       { path: 'repositories/:repositoryId/arch', element: <ArchitecturePage /> },
       { path: 'repositories/:repositoryId/search', element: <SearchPage /> },
       { path: 'repositories/:repositoryId/qa', element: <QAPage /> },
+      { path: 'repositories/:repositoryId/impact', element: <ImpactAnalysisPage /> },
       { path: 'settings/ai', element: <AISettingsPage /> },
     ],
   },

@@ -102,6 +102,9 @@ export default function RepositoryOverviewPage({ pollIntervalMs }: { pollInterva
                 <Link to={`/repositories/${repositoryId}/qa?snapshot=${selected.id}`} className="text-blue-700 hover:underline">
                   Ask a question
                 </Link>
+                <Link to={`/repositories/${repositoryId}/impact?snapshot=${selected.id}`} className="text-blue-700 hover:underline">
+                  Impact analysis
+                </Link>
               </nav>
             )}
           </div>

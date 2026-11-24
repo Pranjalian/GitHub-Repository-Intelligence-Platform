@@ -3,6 +3,8 @@ import type {
   AIUsageRecord,
   AnalysisRun,
   CodeSymbol,
+  ImpactAnalysis,
+  ImpactRequest,
   IndexStatus,
   Insight,
   InsightRequest,
@@ -10,6 +12,8 @@ import type {
   QuestionRequest,
   SearchParams,
   SearchResponse,
+  SymbolPickerResponse,
+  TargetSuggestions,
   ArchitectureReport,
   AnalyzeRepositoryResponse,
   ConsolidatedReport,
@@ -112,4 +116,23 @@ export const askQuestion = (repositoryId: string, snapshotId: string, request: Q
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
+  })
+
+// ── MVP 5: impact analysis ─────────────────────────────────────────────────────────────────────
+
+export const getImpactSymbols = (repositoryId: string, snapshotId: string, q: string) =>
+  apiFetch<SymbolPickerResponse>(`${snapshotBase(repositoryId, snapshotId)}/impact-analysis/symbols${query({ q })}`)
+
+export const analyzeImpact = (repositoryId: string, snapshotId: string, request: ImpactRequest) =>
+  apiFetch<ImpactAnalysis>(`${snapshotBase(repositoryId, snapshotId)}/impact-analysis`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  })
+
+export const suggestImpactTargets = (repositoryId: string, snapshotId: string, changeDescription: string) =>
+  apiFetch<TargetSuggestions>(`${snapshotBase(repositoryId, snapshotId)}/impact-analysis/suggestions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ changeDescription }),
   })

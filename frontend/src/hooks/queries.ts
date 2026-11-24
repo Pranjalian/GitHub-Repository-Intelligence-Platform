@@ -1,5 +1,8 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  analyzeImpact,
+  getImpactSymbols,
+  suggestImpactTargets,
   askQuestion,
   getIndexStatus,
   requestIndex,
@@ -24,6 +27,7 @@ import {
   isIndexInFlight,
   isTerminal,
   type FindingFilters,
+  type ImpactRequest,
   type InsightRequest,
   type QuestionRequest,
   type SearchParams,
@@ -158,5 +162,30 @@ export function useAskQuestion(repositoryId: string, snapshotId: string) {
   return useMutation({
     mutationFn: (request: QuestionRequest) => askQuestion(repositoryId, snapshotId, request),
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['ai-usage'] }),
+  })
+}
+
+// ── MVP 5: impact analysis ─────────────────────────────────────────────────────────────────────
+
+/** The symbol picker: a deterministic, model-free search over the snapshot's classes and methods. */
+export const useImpactSymbols = (repositoryId: string, snapshotId: string | undefined, q: string) =>
+  useQuery({
+    queryKey: ['impact-symbols', repositoryId, snapshotId, q],
+    queryFn: () => getImpactSymbols(repositoryId, snapshotId as string, q),
+    enabled: !!snapshotId,
+    placeholderData: keepPreviousData,
+  })
+
+export function useAnalyzeImpact(repositoryId: string, snapshotId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (request: ImpactRequest) => analyzeImpact(repositoryId, snapshotId, request),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['ai-usage'] }),
+  })
+}
+
+export function useSuggestImpactTargets(repositoryId: string, snapshotId: string) {
+  return useMutation({
+    mutationFn: (changeDescription: string) => suggestImpactTargets(repositoryId, snapshotId, changeDescription),
   })
 }

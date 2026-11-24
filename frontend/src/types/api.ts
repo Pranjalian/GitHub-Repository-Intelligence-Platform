@@ -680,3 +680,189 @@ export interface QuestionRequest {
   conversationId?: string | null
   provider?: string | null
 }
+
+// ── MVP 5: impact analysis ─────────────────────────────────────────────────────────────────────
+
+export interface PickerSymbol {
+  id: string
+  kind: string
+  name: string
+  qualifiedName: string
+  filePath: string
+  line: number | null
+  layer: string | null
+}
+
+export interface SymbolPickerResponse {
+  status: 'OK' | 'NOT_SUPPORTED'
+  reason: string | null
+  query: string
+  symbols: PickerSymbol[]
+}
+
+export interface ImpactTarget {
+  id: string
+  kind: 'TYPE' | 'METHOD'
+  name: string
+  qualifiedName: string
+  layer: string | null
+  filePath: string | null
+  startLine: number | null
+  endLine: number | null
+  sourceUrl: string | null
+  modulePath: string | null
+}
+
+export interface ImpactComponent {
+  id: string
+  kind: 'TYPE' | 'METHOD'
+  name: string
+  qualifiedName: string
+  layer: string | null
+  depth: number
+  viaId: string | null
+  relationships: string[]
+  confidence: Confidence
+  reason: string
+  filePath: string | null
+  line: number | null
+  sourceUrl: string | null
+  modulePath: string | null
+}
+
+export interface ImpactEndpoint {
+  httpMethod: string
+  route: string
+  routeResolved: boolean
+  controller: string | null
+  handler: string | null
+  confidence: Confidence
+  filePath: string | null
+  line: number | null
+  sourceUrl: string | null
+  viaId: string | null
+}
+
+export interface ImpactRelatedData {
+  kind: 'ENTITY' | 'REPOSITORY'
+  id: string
+  qualifiedName: string
+  relationship: string
+  via: string | null
+  confidence: Confidence
+  filePath: string | null
+  line: number | null
+  sourceUrl: string | null
+}
+
+export interface ImpactModule {
+  modulePath: string
+  reason: 'CONTAINS_AFFECTED' | 'DEPENDS_ON_TARGET_MODULE'
+  depth: number
+  affectedSymbols: number
+  evidencePaths: string[]
+  confidence: Confidence
+}
+
+export interface ImpactTest {
+  testSymbol: string
+  filePath: string
+  methods: string[]
+  relation: 'DIRECT_CALL' | 'NAMING_CONVENTION' | 'TYPE_REFERENCE' | 'AFFECTED_COMPONENT'
+  confidence: Confidence
+  line: number | null
+  sourceUrl: string | null
+  via: string | null
+}
+
+export interface RegressionArea {
+  kind: 'ENDPOINT' | 'TEST' | 'COMPONENT' | 'MODULE' | 'GAP'
+  area: string
+  reason: string
+  confidence: Confidence
+}
+
+export interface RiskFactor {
+  id: string
+  label: string
+  value: string
+  points: number
+  maxPoints: number
+  explanation: string
+}
+
+export interface ImpactRisk {
+  label: string
+  score: number
+  maxScore: number
+  level: 'LOW' | 'MEDIUM' | 'HIGH'
+  factors: RiskFactor[]
+  note: string
+}
+
+export interface ImpactAiSummary {
+  status: AIStatus
+  aiGenerated: boolean
+  summary: string | null
+  keyPoints: string[]
+  regressionFocus: string[]
+  provider: string | null
+  model: string | null
+  promptVersion: string | null
+  fromCache: boolean
+  detail: string | null
+  warnings: string[]
+  generatedAt: string | null
+}
+
+export interface ImpactAnalysis {
+  repositoryId: string
+  snapshotId: string
+  runId: string
+  commitSha: string
+  status: 'OK' | 'NOT_SUPPORTED'
+  reason: string | null
+  target: ImpactTarget
+  depth: number
+  components: ImpactComponent[]
+  endpoints: ImpactEndpoint[]
+  relatedData: ImpactRelatedData[]
+  modules: ImpactModule[]
+  tests: ImpactTest[]
+  regressionAreas: RegressionArea[]
+  risk: ImpactRisk | null
+  limitations: string[]
+  truncated: boolean
+  totalDependents: number
+  diagram: { chain: string | null; note: string | null }
+  aiSummary: ImpactAiSummary | null
+}
+
+export interface ImpactRequest {
+  targetSymbolId: string
+  changeDescription?: string | null
+  depth?: number
+  includeAiSummary?: boolean
+  provider?: string | null
+}
+
+export interface TargetSuggestion {
+  symbolId: string
+  kind: string
+  name: string
+  qualifiedName: string
+  filePath: string
+  line: number | null
+  reason: string | null
+}
+
+export interface TargetSuggestions {
+  status: AIStatus
+  aiGenerated: boolean
+  detail: string | null
+  provider: string | null
+  model: string | null
+  promptVersion: string | null
+  suggestions: TargetSuggestion[]
+  warnings: string[]
+}

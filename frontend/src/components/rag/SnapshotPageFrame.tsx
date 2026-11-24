@@ -62,6 +62,9 @@ export default function SnapshotPageFrame({
             <Link to={`/repositories/${repositoryId}/qa${query}`} className="text-blue-700 hover:underline">
               Q&amp;A
             </Link>
+            <Link to={`/repositories/${repositoryId}/impact${query}`} className="text-blue-700 hover:underline">
+              Impact
+            </Link>
           </nav>
         </div>
       </header>
