@@ -72,6 +72,9 @@ services:
       # Search index and Q&A (MVP 4); keyword and symbol search need no AI.
       RAG_VECTOR_STORE: ${RAG_VECTOR_STORE:-auto}
       RAG_MAX_QUESTIONS_PER_SNAPSHOT: ${RAG_MAX_QUESTIONS_PER_SNAPSHOT:-50}
+      # Change-impact analysis (MVP 5); it reads the stored dependency graph and needs no AI.
+      IMPACT_DEFAULT_DEPTH: ${IMPACT_DEFAULT_DEPTH:-3}
+      IMPACT_MAX_DEPTH: ${IMPACT_MAX_DEPTH:-6}
     extra_hosts:
       # lets the backend reach an Ollama on the host on Linux too (Docker Desktop has this built in)
       - "host.docker.internal:host-gateway"

@@ -242,3 +242,18 @@ rag:
     history-answer-chars: 400
     # Provider calls for Q&A per snapshot (cache hits are free); separate from the insight budget.
     max-questions-per-snapshot: ${RAG_MAX_QUESTIONS_PER_SNAPSHOT:50}
+
+# Change-impact analysis (MVP 5). The analysis itself reads the stored dependency graph and needs no AI.
+impact:
+  # Hops of indirect dependents followed when a request names no depth, and the most it may ask for.
+  default-depth: ${IMPACT_DEFAULT_DEPTH:3}
+  max-depth: ${IMPACT_MAX_DEPTH:6}
+  # Affected components returned (the rest are counted and the result is marked truncated).
+  max-components: 300
+  # Rows one graph traversal may return before it is cut off and reported.
+  max-graph-rows: 20000
+  max-picker-results: 25
+  # Candidate symbols sent to a model when it maps a change description to symbols.
+  suggestion-candidates: 40
+  # Components drawn in the Mermaid dependency chain.
+  diagram-nodes: 30

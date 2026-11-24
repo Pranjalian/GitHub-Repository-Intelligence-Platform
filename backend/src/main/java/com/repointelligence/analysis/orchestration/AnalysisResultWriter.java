@@ -10,6 +10,7 @@ import com.repointelligence.analysis.domain.DependencyRecord;
 import com.repointelligence.analysis.domain.ModuleRecord;
 import com.repointelligence.analysis.domain.TechnologyFinding;
 import com.repointelligence.analysis.domain.TestRecord;
+import com.repointelligence.analysis.domain.TestReference;
 import com.repointelligence.analysis.infrastructure.persistence.AnalyzerCapabilityRepository;
 import com.repointelligence.analysis.infrastructure.persistence.AnalyzerExecutionRepository;
 import com.repointelligence.analysis.spi.AnalyzerDescriptor;
@@ -154,6 +155,10 @@ public class AnalysisResultWriter {
 			record.setConfidence(test.confidence());
 			record.setEvidence(test.evidence());
 			entityManager.persist(record);
+			test.references().forEach(reference -> entityManager.persist(new TestReference(snapshot, run, test.testSymbol(),
+					test.testFilePath(), truncate(reference.testMethod(), 255), truncate(reference.referencedType(), PATH_MAX),
+					truncate(reference.member(), 255), reference.argumentCount(), reference.kind(), reference.line(),
+					reference.confidence())));
 		});
 		result.coverageRecords().forEach(coverage -> {
 			CoverageRecord record = new CoverageRecord(snapshot, run, coverage.reportPath(), coverage.scope(),

@@ -18,6 +18,7 @@ import com.repointelligence.analysis.spi.CoverageResult;
 import com.repointelligence.analysis.spi.FileInfo;
 import com.repointelligence.analysis.spi.FindingResult;
 import com.repointelligence.analysis.spi.TestAnalyzer;
+import com.repointelligence.analysis.spi.TestReferenceResult;
 import com.repointelligence.analysis.spi.TestResult;
 import com.repointelligence.common.model.AnalysisCategory;
 import com.repointelligence.common.model.AnalysisMethod;
@@ -64,20 +65,30 @@ public class JavaTestAnalyzer implements TestAnalyzer {
 
 	private static final Pattern TEST_CLASS_PREFIX = Pattern.compile("^Test(.+)$");
 
+	private static final int MAX_REFERENCES = 20_000;
+
 	private static final Pattern REPORT_PATH = Pattern.compile("(?:^|.*/)jacoco[^/]*\\.xml$|.*/jacoco/[^/]*\\.xml$");
 
 	private static final Set<String> ALWAYS_JUNIT5 = Set.of("ParameterizedTest", "RepeatedTest", "TestFactory", "TestTemplate");
 
 	private static final AnalyzerDescriptor DESCRIPTOR = AnalyzerDescriptor
-		.builder(ID, "Java Test Analyzer", "1.0.0", AnalysisCategory.TESTS, CapabilityLevel.BASIC)
+		.builder(ID, "Java Test Analyzer", "1.1.0", AnalysisCategory.TESTS, CapabilityLevel.BASIC)
 		.languages("Java")
 		.description("Counts test classes and methods (JUnit 4/5, TestNG) from the syntax tree, maps tests to "
-				+ "production classes by naming convention, and reads coverage from a committed JaCoCo report.")
+				+ "production classes by naming convention, records which production types and methods each test "
+				+ "names, and reads coverage from a committed JaCoCo report.")
 		.limitations("Tests are not executed; there is no measured pass/fail result.",
-				"Test-to-code mapping uses naming conventions only (FooTest, FooTests, FooIT map to Foo).",
+				"The test-to-code mapping shown in the report uses naming conventions only (FooTest, FooTests, FooIT map to Foo).",
+				"Test references (used by impact analysis) are read from type names, fields, variables, constructor "
+						+ "calls and static calls in the test; calls on chained expressions (for example MockMvc requests) "
+						+ "have no known receiver type and are not linked.",
 				"Coverage appears only when a JaCoCo report is committed to the repository, and such a report may be "
 						+ "stale relative to the analysed commit.")
 		.build();
+
+	private record PendingTest(String path, String packageName, String simpleName, int count, String framework, int line,
+			CompilationUnit unit, TypeDeclaration<?> type) {
+	}
 
 	private record TypeInfo(String packageName, String simpleName, String path, int line) {
 
@@ -108,7 +119,8 @@ public class JavaTestAnalyzer implements TestAnalyzer {
 		List<TestResult> tests = new ArrayList<>();
 		Map<String, int[]> byFramework = new LinkedHashMap<>(); // framework -> {classes, methods}
 		Map<String, TypeInfo> productionByQualified = new HashMap<>();
-		List<Object[]> pendingTests = new ArrayList<>(); // {path, packageName, simpleName, count, framework, line}
+		List<PendingTest> pendingTests = new ArrayList<>();
+		Set<String> productionTypeNames = new java.util.TreeSet<>();
 
 		for (FileInfo file : context.files()) {
 			if (!file.extracted() || !file.path().endsWith(".java")) {
@@ -127,13 +139,16 @@ public class JavaTestAnalyzer implements TestAnalyzer {
 					int total = counts.values().stream().mapToInt(Integer::intValue).sum();
 					if (total > 0) {
 						String framework = counts.entrySet().stream().max(Map.Entry.comparingByValue()).orElseThrow().getKey();
-						pendingTests.add(new Object[] { file.path(), packageName, type.getNameAsString(), total, framework,
-								type.getBegin().map(p -> p.line).orElse(1) });
+						pendingTests.add(new PendingTest(file.path(), packageName, type.getNameAsString(), total, framework,
+								type.getBegin().map(p -> p.line).orElse(1), unit.get(), type));
 						byFramework.computeIfAbsent(framework, k -> new int[2])[0]++;
 						byFramework.get(framework)[1] += total;
 					}
 				}
-				else if (type instanceof ClassOrInterfaceDeclaration cls && !cls.isInterface()) {
+				else {
+					collectTypeNames(type, packageName, productionTypeNames);
+				}
+				if (!testFile && type instanceof ClassOrInterfaceDeclaration cls && !cls.isInterface()) {
 					TypeInfo info = new TypeInfo(packageName, type.getNameAsString(), file.path(),
 							type.getBegin().map(p -> p.line).orElse(1));
 					production.add(info);
@@ -143,21 +158,32 @@ public class JavaTestAnalyzer implements TestAnalyzer {
 		}
 
 		Set<String> testedProduction = new java.util.HashSet<>();
-		for (Object[] pending : pendingTests) {
-			String path = (String) pending[0];
-			String packageName = (String) pending[1];
-			String simpleName = (String) pending[2];
-			String target = productionNameFor(simpleName);
+		TestReferenceExtractor extractor = new TestReferenceExtractor(productionTypeNames);
+		int referenceCount = 0;
+		boolean referencesCapped = false;
+		for (PendingTest pending : pendingTests) {
+			context.cancellation().throwIfCancelled();
+			String target = productionNameFor(pending.simpleName());
 			TypeInfo mapped = target == null ? null
-					: productionByQualified.get(packageName.isEmpty() ? target : packageName + "." + target);
+					: productionByQualified.get(pending.packageName().isEmpty() ? target : pending.packageName() + "." + target);
 			if (mapped != null) {
 				testedProduction.add(mapped.qualified());
 			}
-			String qualifiedTest = packageName.isEmpty() ? simpleName : packageName + "." + simpleName;
-			tests.add(new TestResult(path, qualifiedTest, (Integer) pending[3], (String) pending[4],
+			String qualifiedTest = pending.packageName().isEmpty() ? pending.simpleName()
+					: pending.packageName() + "." + pending.simpleName();
+			List<TestReferenceResult> references = extractor.extract(pending.unit(), pending.type(), pending.packageName());
+			if (referenceCount + references.size() > MAX_REFERENCES) {
+				references = references.subList(0, Math.max(0, MAX_REFERENCES - referenceCount));
+				referencesCapped = true;
+			}
+			referenceCount += references.size();
+			tests.add(new TestResult(pending.path(), qualifiedTest, pending.count(), pending.framework(),
 					mapped == null ? null : mapped.qualified(), mapped == null ? null : MappingMethod.NAMING_CONVENTION,
 					mapped == null ? null : Confidence.LIKELY,
-					List.of(new Evidence(path, (Integer) pending[5], "test class " + simpleName))));
+					List.of(new Evidence(pending.path(), pending.line(), "test class " + pending.simpleName())), references));
+		}
+		if (referencesCapped) {
+			result.warning("Test references were capped at " + MAX_REFERENCES + "; impact analysis may miss some tests.");
 		}
 		tests.forEach(result::testRecord);
 
@@ -184,9 +210,25 @@ public class JavaTestAnalyzer implements TestAnalyzer {
 		summary.put("testMethods", tests.stream().mapToInt(t -> t.testMethodCount() == null ? 0 : t.testMethodCount()).sum());
 		summary.put("frameworks", frameworks);
 		summary.put("productionClasses", production.size());
+		summary.put("testReferences", referenceCount);
 		result.configSummary(summary);
 		DESCRIPTOR.limitations().forEach(result::limitation);
 		return result.build();
+	}
+
+	/** Fully qualified names of a type and its member types (nested types are named Outer.Inner, like code_symbol). */
+	private static void collectTypeNames(TypeDeclaration<?> type, String packageName, Set<String> names) {
+		collectQualified(type, packageName.isEmpty() ? type.getNameAsString() : packageName + "." + type.getNameAsString(),
+				names);
+	}
+
+	private static void collectQualified(TypeDeclaration<?> type, String qualified, Set<String> names) {
+		names.add(qualified);
+		for (var member : type.getMembers()) {
+			if (member instanceof TypeDeclaration<?> nested) {
+				collectQualified(nested, qualified + "." + nested.getNameAsString(), names);
+			}
+		}
 	}
 
 	private Optional<CompilationUnit> parse(AnalysisContext context, JavaParser parser, FileInfo file, AnalyzerResult.Builder result) {
