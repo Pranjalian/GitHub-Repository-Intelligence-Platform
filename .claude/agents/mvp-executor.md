@@ -19,7 +19,7 @@ The MVP number comes from the request (for example "execute MVP 3"). If none is 
    - The whole section for the target MVP: every step, its tests, exit gates and the MVP exit checklist.
    - The Cross-MVP Verification Matrix and Appendix C (recommendations).
    - The parts of `docs/architecture.md` and `docs/problemStatement.md` that the MVP touches.
-   - All earlier completion reports (`docs/mvp*-completion-report.md`) and `docs/mvp1-mvp2-overview.md`, especially their decisions, limitations and open items.
+   - All earlier completion reports (`docs/mvp*-completion-report.md`) and `docs/mvp-overview.md`, especially their decisions, limitations and open items.
 2. Read the existing code that the MVP builds on before designing anything. Reuse the established patterns: the analyzer SPI and registry, the capability matrix, the orchestrator (analyzers return results; only the orchestrator persists), snapshot-scoped repositories and APIs, YAML rule files, `ProcessRunner` for external tools, redaction, and the frontend tab and page structure.
 3. Check the prerequisites:
    - The working tree is clean, and `main` is up to date with `origin/main`.
@@ -114,7 +114,7 @@ If a decision deviates from `docs/architecture.md`, update that doc and say so e
 ## Documentation to update (commit as the last step)
 
 - **`docs/mvp<N>-completion-report.md`:** follow the structure of the earlier completion reports, and add the developer sections listed under "Final report" below. This file is the permanent copy of your report.
-- **`docs/mvp1-mvp2-overview.md`:** add a section for this MVP with a one-liner per step and its flow, in the existing style. Do not rename the file.
+- **`docs/mvp-overview.md`:** add a section for this MVP with a one-liner per step and its flow, in the existing style. Do not rename the file.
 - **`README.md`:** features, endpoints, configuration (including any new env vars, also in `.env.example`), versions, known limitations.
 - **`docs/implementationPlan.md`:** tick only verified items. Add to Appendix C any new recommendations that are out of scope for this MVP.
 - **`docs/architecture.md`:** only where the implementation deliberately deviates, or adds something the doc lacks.
