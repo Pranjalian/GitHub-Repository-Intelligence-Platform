@@ -1,0 +1,13 @@
+flowchart LR
+  n1["PaymentService.calculatePayment#40;Order#41;"]
+  style n1 stroke-width:3px
+  n2["OrderService.checkout#40;Order#41;"]
+  n3["PaymentService.calculatePayment#40;Order, String#41;"]
+  n4["PaymentController.pay#40;Order#41;"]
+  n5["BillingJob.runNightly#40;Order#41;"]
+  n6["OrderController.place#40;Order#41;"]
+  n2 -->|"CALLS"| n1
+  n3 -->|"CALLS"| n1
+  n4 -->|"CALLS"| n1
+  n5 -->|"CALLS"| n2
+  n6 -->|"CALLS"| n2

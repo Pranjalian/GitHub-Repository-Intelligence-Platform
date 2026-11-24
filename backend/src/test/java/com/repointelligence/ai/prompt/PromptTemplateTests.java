@@ -30,9 +30,11 @@ class PromptTemplateTests {
 			schemas.getSchema(json.writeValueAsString(template.schema()));
 			assertThat(template.maxOutputTokens()).isBetween(200, 1500);
 		}
-		// the six insight templates of MVP 3 plus answer-question (repository Q&A, MVP 4)
-		assertThat(registry.all()).hasSize(7);
+		// the six insight templates of MVP 3, answer-question (repository Q&A, MVP 4) and the two impact templates (MVP 5)
+		assertThat(registry.all()).hasSize(9);
 		assertThat(registry.forFeature("answer-question").promptVersion()).isEqualTo("answer-question.v1");
+		assertThat(registry.forFeature("summarize-impact").promptVersion()).isEqualTo("summarize-impact.v1");
+		assertThat(registry.forFeature("suggest-impact-targets").promptVersion()).isEqualTo("suggest-impact-targets.v1");
 	}
 
 	@Test

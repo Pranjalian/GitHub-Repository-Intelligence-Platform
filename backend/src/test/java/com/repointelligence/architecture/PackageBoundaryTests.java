@@ -66,6 +66,8 @@ class PackageBoundaryTests {
 				// RAG (MVP 4) is an AI feature by design (architecture §2.2: rag -> ai). It still reaches models only
 				// through the gateway and the provider interfaces (see the provider-client test above).
 				.filter(p -> !p.toString().replace('\\', '/').contains("/rag/"))
+				// Impact analysis (MVP 5) has an optional AI summary, again only through the gateway and router.
+				.filter(p -> !p.toString().replace('\\', '/').contains("/impact/"))
 				.filter(p -> read(p).contains("import com.repointelligence.ai."))
 				.map(Path::toString)
 				.toList();
@@ -84,6 +86,30 @@ class PackageBoundaryTests {
 				.toList();
 
 			assertThat(violations).as("RAG is layered on top; nothing below it imports it").isEmpty();
+		}
+	}
+
+	@Test
+	void nothingBelowImpactAnalysisDependsOnIt() throws IOException {
+		try (Stream<Path> files = Files.walk(MAIN)) {
+			List<String> violations = files.filter(p -> p.toString().endsWith(".java"))
+				.filter(p -> !p.toString().replace('\\', '/').contains("/impact/"))
+				.filter(p -> read(p).contains("import com.repointelligence.impact."))
+				.map(Path::toString)
+				.toList();
+
+			assertThat(violations).as("impact analysis is layered on top; nothing else imports it").isEmpty();
+		}
+	}
+
+	@Test
+	void theImpactSpiLivesInTheCoreAndLanguageRulesInThePack() throws IOException {
+		assertThat(Files.exists(MAIN.resolve("analysis/spi/ImpactAnalyzer.java"))).isTrue();
+		assertThat(Files.exists(MAIN.resolve("analysis/packs/java/JavaImpactAnalyzer.java"))).isTrue();
+		try (Stream<Path> files = Files.walk(MAIN.resolve("impact"))) {
+			assertThat(files.filter(p -> p.toString().endsWith(".java")).filter(PackageBoundaryTests::importsAPack).toList())
+				.as("the impact module reaches language rules only through the ImpactAnalyzer SPI")
+				.isEmpty();
 		}
 	}
 

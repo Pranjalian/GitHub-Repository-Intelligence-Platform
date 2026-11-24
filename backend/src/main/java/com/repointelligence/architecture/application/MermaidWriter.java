@@ -10,7 +10,7 @@ import java.util.Map;
  * so a symbol name can neither break the diagram syntax nor inject HTML or click handlers. The frontend
  * additionally renders with {@code securityLevel: 'strict'}.
  */
-final class MermaidWriter {
+public final class MermaidWriter {
 
 	static final int LABEL_MAX = 80;
 
@@ -20,13 +20,13 @@ final class MermaidWriter {
 
 	private final String prefix;
 
-	MermaidWriter(String header, String prefix) {
+	public MermaidWriter(String header, String prefix) {
 		this.prefix = prefix;
 		out.append(header).append('\n');
 	}
 
 	/** The synthetic id of a node, declaring it with its label on first use. */
-	String node(String key, String label, String indent) {
+	public String node(String key, String label, String indent) {
 		String existing = ids.get(key);
 		if (existing != null) {
 			return existing;
@@ -37,19 +37,19 @@ final class MermaidWriter {
 		return id;
 	}
 
-	boolean has(String key) {
+	public boolean has(String key) {
 		return ids.containsKey(key);
 	}
 
-	String id(String key) {
+	public String id(String key) {
 		return ids.get(key);
 	}
 
-	void line(String text) {
+	public void line(String text) {
 		out.append(text).append('\n');
 	}
 
-	void edge(String fromId, String toId, String label) {
+	public void edge(String fromId, String toId, String label) {
 		if (label == null || label.isBlank()) {
 			out.append("  ").append(fromId).append(" --> ").append(toId).append('\n');
 		}
@@ -67,7 +67,7 @@ final class MermaidWriter {
 	 * A label safe inside {@code "..."}: control characters become spaces, the text is capped, and
 	 * {@code # " < > & ` | [ ] { } ( ) ;} become numeric entity codes ({@code #35;} etc.).
 	 */
-	static String label(String text) {
+	public static String label(String text) {
 		if (text == null) {
 			return "";
 		}
