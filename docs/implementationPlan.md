@@ -1485,12 +1485,12 @@ Two screens exist in several variants (dashboard x2, Overview x3). Use the **ref
 7. **Component sheet page for developers:** a dev-only route `/dev/components` (included only when `import.meta.env.DEV`) that renders every primitive in every state in both themes. It is the visual reference against `repointel_design_system_component_specification_sheet/screen.png`.
 
 **Tests:**
-- [ ] Unit: each badge renders text + icon for every enum value; an unknown value renders a neutral fallback
-- [ ] Unit: theme provider applies the class, persists, follows `system`
-- [ ] Unit: `Drawer` traps focus and closes on Esc; `Tabs`, `Accordion`, `SegmentedControl` are keyboard operable (correct roles and `aria-*`)
-- [ ] Automated contrast check over the token pairs (text/background, badge text/tint) for both themes at AA (4.5:1 text, 3:1 graphics); results go in the completion report
-- [ ] Build check: the production bundle makes no request to an external origin (scan `dist/` for external hosts), fonts are emitted as local assets
-- [ ] `nginx.conf` CSP unchanged
+- [x] Unit: each badge renders text + icon for every enum value; an unknown value renders a neutral fallback
+- [x] Unit: theme provider applies the class, persists, follows `system`
+- [x] Unit: `Drawer` traps focus and closes on Esc; `Tabs`, `Accordion`, `SegmentedControl` are keyboard operable (correct roles and `aria-*`)
+- [x] Automated contrast check over the token pairs (text/background, badge text/tint) for both themes at AA (4.5:1 text, 3:1 graphics); results go in the completion report
+- [x] Build check: the production bundle makes no request to an external origin (scan `dist/` for external hosts), fonts are emitted as local assets
+- [x] `nginx.conf` CSP unchanged
 
 ---
 
@@ -1513,11 +1513,11 @@ Stitch screens: every screen shows the same shell.
 6. **Accessibility:** skip-to-content link, landmarks (`nav`, `main`, `header`), `aria-current` on the active item, collapsed items keep accessible names.
 
 **Tests:**
-- [ ] Unit: repository group only inside a repository; Architecture item only when the analyzer ran; badges never show 0 for "not analyzed"
-- [ ] Unit: AI pill states (off, local, hosted, unavailable) from the providers response
-- [ ] Unit: switching snapshot rewrites nav links and the header SHA
-- [ ] Unit: collapse state persists; overlay mode on a narrow viewport
-- [ ] Existing route tests still pass (old URLs resolve)
+- [ ] Unit: repository group only inside a repository; Architecture item only when the analyzer ran; badges never show 0 for "not analyzed" (not ticked: the Architecture item stays visible with its reason instead of being hidden (7.2 and 7.9 item 10 disagree; 7.9 was followed); the other two parts are tested in `Shell.test.tsx`)
+- [x] Unit: AI pill states (off, local, hosted, unavailable) from the providers response
+- [x] Unit: switching snapshot rewrites nav links and the header SHA
+- [x] Unit: collapse state persists; overlay mode on a narrow viewport
+- [x] Existing route tests still pass (old URLs resolve)
 
 ---
 
@@ -1538,12 +1538,12 @@ Small, additive, tested like any other backend change (Flyway migration numbered
 5. **Insight refresh (optional):** insight requests accept `refresh: true` (skip the cache for this call; still counted against the budget and usage). If not wanted, the UI has no Regenerate button.
 
 **Tests:**
-- [ ] Repository list summary: correct for a Java repo, a generic repo, a repo with no completed run (null, not zeros) and one with a failed run; query count does not grow with page size
-- [ ] Report: a category with no analyzer reports `null` counts; dependency count matches the dependencies endpoint
-- [ ] Investigation types reflect configured budgets; history is snapshot-scoped (no cross-commit leakage)
-- [ ] Hash chain: tampering with one stored step makes `chainVerified` false; export contains every step
-- [ ] Secrets never appear in the audit export (fixture with a planted secret)
-- [ ] OpenAPI documents all additions
+- [x] Repository list summary: correct for a Java repo, a generic repo, a repo with no completed run (null, not zeros) and one with a failed run; query count does not grow with page size
+- [x] Report: a category with no analyzer reports `null` counts; dependency count matches the dependencies endpoint
+- [ ] Investigation types reflect configured budgets; history is snapshot-scoped (no cross-commit leakage) (not done: needs MVP 6)
+- [ ] Hash chain: tampering with one stored step makes `chainVerified` false; export contains every step (not done: needs MVP 6)
+- [ ] Secrets never appear in the audit export (fixture with a planted secret) (not done: needs MVP 6)
+- [x] OpenAPI documents all additions (the stats path is asserted; new fields are part of the generated schema)
 
 ---
 
@@ -1565,10 +1565,10 @@ Stitch: `repointel_repositories_dashboard_refined`, `repointel_add_repository`.
 4. After submit, navigate to the report route, which shows the progress screen (7.5), as today.
 
 **Tests:**
-- [ ] Unit: rows for each run status; severity chips never show 0 for null; index marker states; copy does not navigate
-- [ ] Unit: filters (text, status, language) and the three non-data states
-- [ ] Unit: Add Repository validation messages, example chip fill, busy state, force-rescan flag in the request, error mapping (4xx, 429 with retry time)
-- [ ] Existing dashboard and add-repository tests adapted and green
+- [x] Unit: rows for each run status; severity chips never show 0 for null; index marker states; copy does not navigate
+- [x] Unit: filters (text, status, language) and the three non-data states
+- [x] Unit: Add Repository validation messages, example chip fill, busy state, force-rescan flag in the request, error mapping (4xx, 429 with retry time)
+- [x] Existing dashboard and add-repository tests adapted and green
 
 ---
 
@@ -1586,10 +1586,10 @@ Stitch: `repointel_analysis_progress_spring_petclinic`.
 7. A phase with no per-phase time shows no duration (never `0`).
 
 **Tests:**
-- [ ] Unit: stepper for every `phase`; header counts match executions; running timer
-- [ ] Unit: failed row (redacted summary, expander), skipped row with reason, "Not configured" not styled as an error
-- [ ] Unit: cancel flow ("Cancelling...", disabled when terminal); retry-after rendering; failed and cancelled variants
-- [ ] Unit: polling stops at terminal status
+- [x] Unit: stepper for every `phase`; header counts match executions; running timer
+- [x] Unit: failed row (redacted summary, expander), skipped row with reason, "Not configured" not styled as an error
+- [x] Unit: cancel flow ("Cancelling...", disabled when terminal); retry-after rendering; failed and cancelled variants
+- [x] Unit: polling stops at terminal status
 
 ---
 
@@ -1610,11 +1610,11 @@ Stitch: `repointel_report_overview_petclinic_refined` (primary), `repointel_repo
 10. Loading skeletons per card; error with retry; a run still in progress shows the progress screen (7.5).
 
 **Tests:**
-- [ ] Unit: each summary card for a Java report and a generic report (null counts show "Not analyzed", coverage "Unavailable")
-- [ ] Unit: matrix renders all seven columns, tooltips carry reasons, unsupported cells are neutral
-- [ ] Unit: stack grouping, confidence badges, evidence expansion (a `<script>` in evidence is shown as text)
-- [ ] Unit: Re-analyze sends `forceRescan=true`; snapshot switch updates `?snapshot=`
-- [ ] Unit: module summary card states per AI availability
+- [x] Unit: each summary card for a Java report and a generic report (null counts show "Not analyzed", coverage "Unavailable")
+- [x] Unit: matrix renders all seven columns, tooltips carry reasons, unsupported cells are neutral
+- [x] Unit: stack grouping, confidence badges, evidence expansion (a `<script>` in evidence is shown as text)
+- [x] Unit: Re-analyze sends `forceRescan=true`; snapshot switch updates `?snapshot=`
+- [x] Unit: module summary card states per AI availability
 
 ---
 
@@ -1633,13 +1633,13 @@ Stitch: `repointel_findings_code_quality_refined`, `repointel_code_quality_findi
 8. All repository text (titles, paths, evidence, messages) is plain text (no `dangerouslySetInnerHTML`; the ESLint rule stays on).
 
 **Tests:**
-- [ ] Unit: filters, group, sort and URL sync; severity counts equal the visible total; Reset
-- [ ] Unit: list and table layouts show the same rows; Low group collapsed by default
-- [ ] Unit: redacted secret never shows a raw value (fixture with an obviously fake secret)
-- [ ] Unit: drawer content, prev/next, GitHub link, evidence highlight, Esc closes and focus returns to the row
-- [ ] Unit: Explain in the drawer: idle, available, unavailable, failure states
-- [ ] Unit: debt summary with structured priorities; unavailable state links to AI Settings
-- [ ] Unit: Security coverage statuses; `Not checked` never shown as "0 vulnerabilities"
+- [x] Unit: filters, group, sort and URL sync; severity counts equal the visible total; Reset
+- [x] Unit: list and table layouts show the same rows; Low group collapsed by default
+- [x] Unit: redacted secret never shows a raw value (fixture with an obviously fake secret)
+- [x] Unit: drawer content, prev/next, GitHub link, evidence highlight, Esc closes and focus returns to the row
+- [x] Unit: Explain in the drawer: idle, available, unavailable, failure states
+- [x] Unit: debt summary with structured priorities; unavailable state links to AI Settings
+- [x] Unit: Security coverage statuses; `Not checked` never shown as "0 vulnerabilities"
 
 ---
 
@@ -1653,9 +1653,9 @@ No Stitch screens: build with the design-system primitives, keeping current cont
 3. Each tab shows `UnavailableState` when its category was not analyzed or is not supported.
 
 **Tests:**
-- [ ] Unit: filters, sort, pagination; every version-source label; the remote-BOM label visible
-- [ ] Unit: coverage present vs absent (absent never renders "0%"); naming-convention note
-- [ ] Unit: unsupported and not-analyzed states
+- [x] Unit: filters, sort, pagination; every version-source label; the remote-BOM label visible
+- [x] Unit: coverage present vs absent (absent never renders "0%"); naming-convention note
+- [x] Unit: unsupported and not-analyzed states
 
 ---
 
@@ -1677,11 +1677,11 @@ Stitch: `repointel_architecture_tab_spring_boot_refined`.
 11. Keep `/repositories/:id/arch` and the report-tab behaviour as today.
 
 **Tests:**
-- [ ] Unit: all sections render from a fixture; confidence and "How" present; endpoints with the unresolved marker; entity chips; chains; cycles; patterns
-- [ ] Unit: diagram card toolbar (zoom, fit, full screen, copy source), collapsible source, truncation note
-- [ ] Unit: Mermaid re-renders on theme change; strict mode retained; hostile label text stays text
-- [ ] Unit: AI actions disabled with a reason when AI is off; results appear inline
-- [ ] Unit: not-supported state lists the detected technologies
+- [x] Unit: all sections render from a fixture; confidence and "How" present; endpoints with the unresolved marker; entity chips; chains; cycles; patterns
+- [x] Unit: diagram card toolbar (zoom, fit, full screen, copy source), collapsible source, truncation note
+- [x] Unit: Mermaid re-renders on theme change; strict mode retained; hostile label text stays text
+- [x] Unit: AI actions disabled with a reason when AI is off; results appear inline
+- [x] Unit: not-supported state lists the detected technologies
 
 ---
 
@@ -1709,11 +1709,11 @@ Stitch: `repointel_ai_insight_card_specification_state_matrix`, `repointel_ai_se
 7. Buttons: **Re-check health** (refetch). No "Save Policy".
 
 **Tests:**
-- [ ] Unit: every insight state of the matrix (idle, checking, asking, success, cached, fallback, truncated, five failures, AI off) shows the right text and actions; Cancel ignores a late result
-- [ ] Unit: Markdown safety (script / img / html in model text is not rendered); fenced diff coloured; copy works
-- [ ] Unit: evidence links point to the commit; missing-evidence and notes sections
-- [ ] Unit: AI Settings enabled, disabled and mixed-health variants; usage table reported vs estimated; empty state; env var names come from the same constants as the README text
-- [ ] Manual: both themes of the card against the spec sheet
+- [x] Unit: every insight state of the matrix (idle, checking, asking, success, cached, fallback, truncated, five failures, AI off) shows the right text and actions; Cancel ignores a late result
+- [x] Unit: Markdown safety (script / img / html in model text is not rendered); fenced diff coloured; copy works
+- [x] Unit: evidence links point to the commit; missing-evidence and notes sections
+- [x] Unit: AI Settings enabled, disabled and mixed-health variants; usage table reported vs estimated; empty state; env var names come from the same constants as the README text
+- [ ] Manual: both themes of the card against the spec sheet (not done: a human must compare against the spec sheet)
 
 ---
 
@@ -1737,11 +1737,11 @@ Stitch: `repointel_code_search_spring_petclinic`, `repointel_ask_q_a_spring_petc
 5. Follow-up chips are not built (7.0.3). Ask is disabled for an empty question; a very long question shows a counter at the backend limit.
 
 **Tests:**
-- [ ] Unit: index bar for every state; polling stops when done
-- [ ] Unit: search toggle, filters, URL sync, symbol and text cards, highlighted line, redaction marker, empty and not-indexed states
-- [ ] Unit: answer with citations (clicking `[1]` focuses the source), sources panel, insufficient-evidence style, both degraded cards with search results
-- [ ] Unit: new conversation clears the thread; example chips fill the question
-- [ ] Existing search and Q&A tests adapted and green
+- [x] Unit: index bar for every state; polling stops when done
+- [x] Unit: search toggle, filters, URL sync, symbol and text cards, highlighted line, redaction marker, empty and not-indexed states
+- [x] Unit: answer with citations (clicking `[1]` focuses the source), sources panel, insufficient-evidence style, both degraded cards with search results
+- [x] Unit: new conversation clears the thread; example chips fill the question
+- [x] Existing search and Q&A tests adapted and green
 
 ---
 
@@ -1761,11 +1761,11 @@ Stitch: `repointel_impact_analysis_spring_petclinic`. Restyle `ImpactAnalysisPag
 9. **Not supported** (non-Java), **no results** ("Nothing depends on this symbol in this snapshot"), loading and error states.
 
 **Tests:**
-- [ ] Unit: picker -> request (target, depth); description hidden with the note when AI is unavailable; confirmation step for AI-mapped symbols
-- [ ] Unit: risk score for LOW / MEDIUM / HIGH and a negative factor; the "not a probability" text is always present
-- [ ] Unit: components grouped and tab counts; view filters hide items without changing the underlying result
-- [ ] Unit: tests table has no execution status; the suggested command is text only
-- [ ] Unit: limitations rendered from data; not-supported state; Export JSON equals the response
+- [x] Unit: picker -> request (target, depth); description hidden with the note when AI is unavailable; confirmation step for AI-mapped symbols
+- [x] Unit: risk score for LOW / MEDIUM / HIGH and a negative factor; the "not a probability" text is always present
+- [x] Unit: components grouped and tab counts; view filters hide items without changing the underlying result
+- [x] Unit: tests table has no execution status; the suggested command is text only
+- [x] Unit: limitations rendered from data; not-supported state; Export JSON equals the response
 
 ---
 
@@ -1819,10 +1819,10 @@ Stitch: `repointel_investigations_start_history`, `repointel_investigations_fina
 8. **Responsive checks** at 1440, 1024 and 390 px for the shell, dashboard, report, findings drawer and a diagram card.
 
 **Tests / verification:**
-- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` green; backend `mvnw clean verify` green (Step 7.3)
-- [ ] Accessibility checks green on the main pages in both themes
-- [ ] Docker stack rebuilt (`docker compose up --build`); spring-petclinic analysed through nginx; every screen of 7.0.1 opened in both themes with no CSP or console errors and fonts served from the app origin
-- [ ] Side-by-side review of each implemented screen against its `screen.png`, with a checklist in the completion report listing every deliberate deviation from 7.0.3
+- [x] `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` green; backend `mvnw clean verify` green (Step 7.3) (backend 810 tests, frontend 313 tests, build)
+- [x] Accessibility checks green on the main pages in both themes
+- [ ] Docker stack rebuilt (`docker compose up --build`); spring-petclinic analysed through nginx; every screen of 7.0.1 opened in both themes with no CSP or console errors and fonts served from the app origin (not done: Docker is not installed on this machine; the same screens were opened in Chromium against a static server using the nginx.conf headers (see the completion report))
+- [ ] Side-by-side review of each implemented screen against its `screen.png`, with a checklist in the completion report listing every deliberate deviation from 7.0.3 (partly done: six screens reviewed by eye; a human review of all screens is still needed)
 
 ---
 
@@ -1838,16 +1838,16 @@ Stitch: `repointel_investigations_start_history`, `repointel_investigations_fina
 
 ### MVP 7: Exit Criteria Checklist
 
-- [ ] All screens of 7.0.1 implemented in dark and light themes, matching the Stitch designs except the documented deviations (7.0.3)
-- [ ] Screens Stitch did not deliver (Dependencies, Security coverage, Tests & Coverage, Python "not supported", Investigation progress) built in the same system
-- [ ] No design element violates a product rule: no invented metrics, no "0" for unavailable data, no percentage confidence, no test execution status, no fake telemetry
-- [ ] AI text appears only in the AI-violet treatment with the badge, provider / model and evidence; deterministic and AI content never look alike
-- [ ] No external fonts, scripts, icons or images; CSP unchanged; no violations in the browser console; fonts self-hosted
-- [ ] AI Settings uses the real environment variable names
-- [ ] Everything works with AI disabled; every AI entry point shows the same disabled pattern
-- [ ] WCAG AA contrast, visible focus and keyboard operation verified; status never conveyed by colour alone
-- [ ] All existing routes and query strings still work; all previous MVP features still work
-- [ ] README, architecture and API docs updated
+- [ ] All screens of 7.0.1 implemented in dark and light themes, matching the Stitch designs except the documented deviations (7.0.3) (not ticked: Investigations (start / history, report, audit trail) are not built, they need MVP 6)
+- [ ] Screens Stitch did not deliver (Dependencies, Security coverage, Tests & Coverage, Python "not supported", Investigation progress) built in the same system (not ticked: the Investigation progress screen needs MVP 6; the others are built)
+- [x] No design element violates a product rule: no invented metrics, no "0" for unavailable data, no percentage confidence, no test execution status, no fake telemetry
+- [x] AI text appears only in the AI-violet treatment with the badge, provider / model and evidence; deterministic and AI content never look alike
+- [x] No external fonts, scripts, icons or images; CSP unchanged; no violations in the browser console; fonts self-hosted (Playwright run: zero console or CSP errors, all fonts from the app origin)
+- [x] AI Settings uses the real environment variable names
+- [x] Everything works with AI disabled; every AI entry point shows the same disabled pattern
+- [x] WCAG AA contrast, visible focus and keyboard operation verified; status never conveyed by colour alone
+- [x] All existing routes and query strings still work; all previous MVP features still work
+- [x] README, architecture and API docs updated
 
 ---
 
@@ -1877,6 +1877,8 @@ After each MVP, verify that **all prior exit criteria still pass**:
 | UI honours CSP (no external fonts, scripts, icons) | | | | | | | | ✅ |
 | Light and dark themes meet WCAG AA | | | | | | | | ✅ |
 | CI is green | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+> **Verification note (MVP 7 run):** the MVP 6 and MVP 7 columns were pre-filled when the plan was written. In the MVP 7 run, `App runs via docker compose up --build` could **not** be verified (Docker is not installed on that machine; the built UI was served by a stand-in static server with the `nginx.conf` headers instead) and `Agentic investigation works` is **not** true yet (MVP 6 is not built). The other MVP 7 rows were verified: backend 810 tests and frontend 313 tests green, one live analysis of spring-petclinic, Mermaid diagrams rendered in Chromium, and a Playwright run with no console or CSP errors.
 
 ---
 
@@ -2007,4 +2009,14 @@ After each MVP, verify that **all prior exit criteria still pass**:
 - **Per-phase timings and per-analyzer summaries** while a run is active (counts such as files parsed), if the progress screen should show more than status and duration.
 - **Changed-line risk:** a "Compare with branch" view for impact analysis (the design shows a Compare action).
 - **Visual regression tests** (screenshots of each screen in both themes) once the design is stable.
+
+**Found during MVP 7 (not scheduled):**
+- **Investigations screens (Step 7.13) and the investigation parts of Step 7.3** (types, history, hash-chained audit, export) are waiting for MVP 6; the routes exist as honest placeholders.
+- **Primary language by share can mislead:** for spring-petclinic the dashboard's primary language is CSS (54.4%, *Likely*) because the language detector measures bytes, while Java is 27.5% (*Detected*). Consider weighting by source files, or showing the share basis.
+- **Per-analyzer progress while a run is active:** `executions` lists only analyzers that have started, so "N of M listed analyzers" cannot be a true percentage. Expose the planned analyzer list with the run.
+- **Faceted search filters:** the Search page's Language and Module inputs are free text because no endpoint lists what the index contains; add a facets endpoint.
+- **Symbol picker as a real combobox** (arrow-key navigation, `aria-activedescendant`) and a text search that is not limited to the first 200 picker results.
+- **Run the browser check in CI** against Docker Compose (`.github/workflows/browser-check.yml` exists but has not been run in Actions) and add screenshot baselines.
+- **Refresh on insight:** an optional `refresh: true` on the insight request (Step 7.3 item 5) was not built, so there is no Regenerate button.
+- **Mixed-health provider and light-theme card review** need a human pass against the Stitch spec sheet.
 
