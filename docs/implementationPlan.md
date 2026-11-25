@@ -4,7 +4,7 @@
 **Derived from:** [problemStatement.md](file:///d:/Pranjali_projects/Github_code_analyser/docs/problemStatement.md) · [architecture.md](file:///d:/Pranjali_projects/Github_code_analyser/docs/architecture.md)  
 **Delivery model:** Phased MVPs. Each phase ends with a working, tested, demonstrable application  
 **Rule:** Do **not** start the next MVP until the current one passes all exit criteria  
-**Revision:** v5 adds MVP 7 (UI redesign from the Google Stitch designs in `stitch_repointel_ui_platform/`). Earlier: v2. Revised after review: tarball ingestion, snapshot workspace, commit-scoped APIs, `AnalysisContext` SPI, generic security scanning, vertical-slice ordering, Testcontainers instead of H2, current dependency versions. v3: **no Docker dependency**. Tests use embedded PostgreSQL binaries (zonky `embedded-postgres`) instead of Testcontainers; local dev uses embedded PostgreSQL via `spring-boot:test-run` or a native PostgreSQL install instead of Docker Compose. v4: **Docker Compose is the recommended way to run the app locally** (PostgreSQL + backend + frontend, Step 1.19). Build, tests and CI still need no Docker, and the embedded/native PostgreSQL paths stay supported
+**Revision:** v6 adds MVP 8 (server-enforced login for the Railway/Vercel deployment). v5 adds MVP 7 (UI redesign from the Google Stitch designs in `stitch_repointel_ui_platform/`). Earlier: v2. Revised after review: tarball ingestion, snapshot workspace, commit-scoped APIs, `AnalysisContext` SPI, generic security scanning, vertical-slice ordering, Testcontainers instead of H2, current dependency versions. v3: **no Docker dependency**. Tests use embedded PostgreSQL binaries (zonky `embedded-postgres`) instead of Testcontainers; local dev uses embedded PostgreSQL via `spring-boot:test-run` or a native PostgreSQL install instead of Docker Compose. v4: **Docker Compose is the recommended way to run the app locally** (PostgreSQL + backend + frontend, Step 1.19). Build, tests and CI still need no Docker, and the embedded/native PostgreSQL paths stay supported
 
 ---
 
@@ -29,7 +29,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 | **Migration numbering** | Number Flyway migrations at the time they are written (`V<next>__description.sql`); later MVP steps below do not hard-code version numbers. |
 | **Analyzers never persist** | Analyzers return results; only the orchestrator writes analysis results to the database. |
 | **Commit scoping** | Every repository-derived query is scoped by `snapshot_id`. No API returns data from more than one commit unless that is its explicit purpose (e.g. snapshot list). |
-| **No auth in MVP 0–1** | Single-user local tool. Document clearly that it must not be exposed to the public internet until authentication is added. |
+| **No auth in MVP 0–1** | Single-user local tool. Document clearly that it must not be exposed to the public internet until authentication is added. **MVP 8 adds an optional server-enforced login (`AUTH_ENABLED`); it is required for any public deployment.** |
 
 ---
 
@@ -1347,6 +1347,8 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 
 ### Step 6.2: Investigation API & Frontend
 
+> **Also do the MVP 7 hand-off list.** MVP 7 (UI redesign) was built before this MVP and left out the investigation endpoints of Step 7.3 item 4 and the Investigations screens of Step 7.13. They are ticked off in [MVP 7 hand-off: items deferred until MVP 6 exists](#mvp-7-hand-off-items-deferred-until-mvp-6-exists). Build the backend parts together with the API below, then replace the placeholder `InvestigationsPage` using the Step 7.13 specification instead of the functional page described here.
+
 **Sub-tasks:**
 1. `POST /api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/investigations` with `{type: "TOP_RISKS" | "FULL_REVIEW" | …}` → `202` + run id (async); `GET /api/v1/investigations/{id}` for status and result
 2. `InvestigationPage`: request investigation, progress per step, consolidated report with specialist sections, step-by-step audit trail, expandable evidence. Build it functionally here; the visual design (start/history, report, audit trail from the Stitch designs) is specified in Step 7.13 and applied in MVP 7
@@ -1366,6 +1368,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 
 ### MVP 6: Exit Criteria Checklist
 
+- [ ] The MVP 7 hand-off list (investigation types, history, hash-chained audit, export, and the Step 7.13 screens) is done and ticked ([list](#mvp-7-hand-off-items-deferred-until-mvp-6-exists))
 - [ ] Multi-step investigation produces a consolidated, evidence-backed report
 - [ ] Specialist roles provide focused analysis
 - [ ] Per-task budgets enforced
@@ -1382,6 +1385,8 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 > **Goal:** Re-skin and restructure the whole frontend to the Google Stitch designs in [`stitch_repointel_ui_platform/`](../stitch_repointel_ui_platform/), without weakening any product rule (evidence first, honest "unavailable", AI clearly marked, commit-scoped, no external assets). Backend work is limited to the small additions the designs need (Step 7.3).
 >
 > **Prerequisites:** MVP 0–5 complete (done). The Investigations screens (Step 7.13) additionally need MVP 6 (Steps 6.1–6.2); every other step can ship without it.
+>
+> **DEFERRED UNTIL MVP 6 (read this when MVP 6 is done):** MVP 7 was built and verified without MVP 6, so a few items were left out on purpose. They are collected in [MVP 7 hand-off: items deferred until MVP 6 exists](#mvp-7-hand-off-items-deferred-until-mvp-6-exists) at the end of this MVP. Whoever implements MVP 6 must do that list as well; the MVP 6 section points back to it.
 >
 > **Design source of truth:** `stitch_repointel_ui_platform/<screen>/screen.png` (the picture), `.../code.html` (a rough markup reference only, never copied as is, see 7.0.2) and `repointel_design_system/DESIGN.md` (tokens, typography, components). The prompts that produced the designs are in [ui-design-stitch-prompt.md](ui-design-stitch-prompt.md).
 
@@ -1408,9 +1413,9 @@ This step has no code. It fixes the decisions that every later step relies on.
 | `repointel_code_search_spring_petclinic` | Code Search | `/repositories/:id/search` | 7.11 | 4 |
 | `repointel_ask_q_a_spring_petclinic` | Ask (Q&A) + fallback states | `/repositories/:id/qa` | 7.11 | 4 |
 | `repointel_impact_analysis_spring_petclinic` | Impact analysis | `/repositories/:id/impact` | 7.12 | 5 |
-| `repointel_investigations_start_history` | Investigations: start + history | `/repositories/:id/investigations` (new) | 7.13 | 6 |
-| `repointel_investigations_final_report` | Investigation consolidated report | `/investigations/:investigationId` (new) | 7.13 | 6 |
-| `repointel_investigations_audit_trail` | Investigation audit trail | `/investigations/:investigationId/audit` (new) | 7.13 | 6 |
+| `repointel_investigations_start_history` | Investigations: start + history | `/repositories/:id/investigations` (new) | 7.13 **(DEFERRED: needs MVP 6)** | 6 |
+| `repointel_investigations_final_report` | Investigation consolidated report | `/investigations/:investigationId` (new) | 7.13 **(DEFERRED: needs MVP 6)** | 6 |
+| `repointel_investigations_audit_trail` | Investigation audit trail | `/investigations/:investigationId/audit` (new) | 7.13 **(DEFERRED: needs MVP 6)** | 6 |
 
 **Not delivered by Stitch** (built in the same visual language from the design system, using the existing page content as the spec):
 
@@ -1418,7 +1423,7 @@ This step has no code. It fixes the decisions that every later step relies on.
 |---|---|
 | Dependencies tab, Security tab (findings use the 7.7 list; the "Security coverage" panel is new), Tests & Coverage tab | 7.7, 7.8 |
 | Report "Not analyzed / Not supported" state for a non-Java repository (only the Architecture "Python" reference tile exists) | 7.6, 7.9, 7.14 |
-| Investigation **progress** screen (steps by specialist, cancel, budget exceeded). Only the start page, report and audit trail exist | 7.13 |
+| Investigation **progress** screen (steps by specialist, cancel, budget exceeded). Only the start page, report and audit trail exist | 7.13 **(DEFERRED: needs MVP 6)** |
 | Light theme (every screen is dark; `DESIGN.md` lists the light values) | 7.1 |
 | Tablet and mobile layouts (`DESIGN.md` gives the rules) | 7.2, 7.14 |
 
@@ -1529,13 +1534,13 @@ Small, additive, tested like any other backend change (Flyway migration numbered
 1. **Repository list summary** (Dashboard rows and KPI tiles). Extend `GET /api/v1/repositories` items with `summary` (null when the repository has no completed run): `primaryLanguage`, `primaryLanguageShare`, `frameworks[]` (top 2), `dependencyCount`, `findingsBySeverity` (null per category when not analyzed, never zeros), `indexStatus` (state from MVP 4), `latestRunStatus`, `analysisDurationMs`. One aggregate query per page, not N+1 (measure and record). Add `GET /api/v1/repositories/stats` for the KPI tiles: repositories analyzed, indexed for search / total, open findings (latest snapshots), active runs.
 2. **Report header extras** (only if missing from `ConsolidatedReport`): wall-clock duration and, if available, the analyzer-set hash/version; `dependencyCount` if not derivable from existing sections. Sidebar badges reuse the report sections.
 3. **Analysis run display data:** `AnalysisRun` already has `phase`, `executions`, `retryAfter`, `failureReason`. Add per-phase timestamps **only if** already stored; otherwise the stepper shows overall elapsed time and no per-phase durations. Add an optional `reason` on each execution (the capability-matrix reason already exists) so a Skipped / Not configured analyzer can say why.
-4. **Investigations (needs MVP 6):**
+4. **Investigations (needs MVP 6). DEFERRED: not built in MVP 7; do it with MVP 6 (see the hand-off list at the end of MVP 7).**
    - `GET /api/v1/investigations/types`: each type's id, title, description, specialist roles and the **configured** budgets (max AI calls, tokens, tool invocations, wall-clock limit).
    - `GET /api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/investigations`: history for one commit (type, requestedAt, status, specialist count, AI calls, tokens, cost when configured, duration, partial flag).
    - Audit integrity: store `record_hash` per `agent_step` (SHA-256 over the canonical JSON of the step plus the previous step's hash) and a run-level `ledger_hash` set when the run ends. `GET /api/v1/investigations/{id}` returns `ledgerHash` and `chainVerified` (recomputed on read). No "Merkle root" claim; a hash chain is what exists.
    - `GET /api/v1/investigations/{id}/audit?format=json|csv` for the full export, next to the paged audit list the UI uses.
    - Priority items expose the numbers behind their rank (`criteria`: each factor and value, and `score`) so the report can show the "Priority ranking model" from data.
-5. **Insight refresh (optional):** insight requests accept `refresh: true` (skip the cache for this call; still counted against the budget and usage). If not wanted, the UI has no Regenerate button.
+5. **Insight refresh (optional). DONE after the first MVP 7 run:** insight requests accept `refresh: true` (skip the cache for this call; the new answer replaces the cached one; still counted against the budget and usage). The AI card has a **Regenerate** button on an answer. Omitted or `false` keeps the old behaviour.
 
 **Tests:**
 - [x] Repository list summary: correct for a Java repo, a generic repo, a repo with no completed run (null, not zeros) and one with a failed run; query count does not grow with page size
@@ -1543,6 +1548,7 @@ Small, additive, tested like any other backend change (Flyway migration numbered
 - [ ] Investigation types reflect configured budgets; history is snapshot-scoped (no cross-commit leakage) (not done: needs MVP 6)
 - [ ] Hash chain: tampering with one stored step makes `chainVerified` false; export contains every step (not done: needs MVP 6)
 - [ ] Secrets never appear in the audit export (fixture with a planted secret) (not done: needs MVP 6)
+- [x] Insight refresh: `refresh: true` skips the cache, calls the provider again, replaces the cached answer, counts against the call budget and is recorded as a normal (non-cache) usage record; a refused or exhausted budget still serves nothing new (gateway and end-to-end tests; frontend test for the Regenerate button)
 - [x] OpenAPI documents all additions (the stats path is asserted; new fields are part of the generated schema)
 
 ---
@@ -1771,6 +1777,8 @@ Stitch: `repointel_impact_analysis_spring_petclinic`. Restyle `ImpactAnalysisPag
 
 ### Step 7.13: Investigations (requires MVP 6 and Step 7.3 item 4)
 
+> **DEFERRED: NOT BUILT.** MVP 6 does not exist yet, so nothing in this step was implemented; the three Investigations routes show an honest placeholder. Do this step, together with Step 7.3 item 4, when MVP 6 is implemented. The checklist is in [the hand-off list](#mvp-7-hand-off-items-deferred-until-mvp-6-exists).
+
 Stitch: `repointel_investigations_start_history`, `repointel_investigations_final_report`, `repointel_investigations_audit_trail`. **Progress has no Stitch screen** (7.0.1).
 
 **A. Start and history (`/repositories/:id/investigations`):**
@@ -1836,6 +1844,35 @@ Stitch: `repointel_investigations_start_history`, `repointel_investigations_fina
 
 ---
 
+### MVP 7 hand-off: items deferred until MVP 6 exists
+
+MVP 7 was executed without MVP 6. Everything below was **not built** and is **not ticked** elsewhere in this plan. When MVP 6 (Steps 6.1 to 6.3) is implemented, do these as part of it (or immediately after it), then tick them here, in Step 7.3, in Step 7.13 and in the exit criteria below.
+
+**Backend (Step 7.3 item 4), after Step 6.1 / 6.2 exist:**
+- [ ] `GET /api/v1/investigations/types`: id, title, description, specialist roles and the **configured** budgets (max AI calls, tokens, tool invocations, wall-clock limit)
+- [ ] `GET /api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/investigations`: history for one commit (type, requestedAt, status, specialist count, AI calls, tokens, cost when configured, duration, partial flag)
+- [ ] Audit integrity: `record_hash` per `agent_step` (SHA-256 over the canonical JSON of the step plus the previous step's hash), run-level `ledger_hash` set when the run ends; `GET /api/v1/investigations/{id}` returns `ledgerHash` and `chainVerified` (recomputed on read). Needs a Flyway migration on top of the MVP 6 `agent_step` table
+- [ ] `GET /api/v1/investigations/{id}/audit?format=json|csv` full export, next to the paged audit list the UI uses
+- [ ] Priority items expose `criteria` (each factor and value) and `score`
+- [ ] Tests: types reflect configured budgets; history is snapshot-scoped (no cross-commit leakage); tampering with one stored step makes `chainVerified` false and the export contains every step; secrets never appear in the audit export (planted-secret fixture)
+
+**Frontend (Step 7.13), after the endpoints above exist:**
+- [ ] A. Start and history page at `/repositories/:id/investigations` (replaces the placeholder `InvestigationsPage`)
+- [ ] B. Investigation **progress** screen (no Stitch design; built from design-system parts): steps by specialist, Cancel, budget meters, budget-exceeded state
+- [ ] C. Report at `/investigations/:investigationId`
+- [ ] D. Audit trail at `/investigations/:investigationId/audit`
+- [ ] The Step 7.13 unit and integration tests (start -> progress -> report -> audit trail), axe checks in both themes, responsive checks, and the "no raw secret in the audit trail" test
+- [ ] Sidebar and header: the Investigations nav item and any "AI pill" wiring that the placeholder skipped; remove the placeholder text and the "needs MVP 6" notes in the README (UI tour, Known limitations) and `docs/architecture.md`
+
+**Exit criteria and matrix rows to tick afterwards:**
+- [ ] MVP 7 exit criteria "All screens of 7.0.1 implemented ..." and "Screens Stitch did not deliver ... (Investigation progress)" below
+- [ ] The `Agentic investigation works` row of the Cross-MVP matrix (its MVP 6 and MVP 7 cells were pre-filled before it was true; see the verification note under the matrix)
+- [ ] Appendix C.7 line "Investigations screens ... waiting for MVP 6"
+
+**Left out for other reasons (not MVP 6 related):** the `.github/workflows/browser-check.yml` run in CI, the Docker rebuild check, a human side-by-side review of every screen, and the mixed-health provider / light-theme AI card review. They are listed in Step 7.14 and Appendix C.7.
+
+---
+
 ### MVP 7: Exit Criteria Checklist
 
 - [ ] All screens of 7.0.1 implemented in dark and light themes, matching the Stitch designs except the documented deviations (7.0.3) (not ticked: Investigations (start / history, report, audit trail) are not built, they need MVP 6)
@@ -1851,32 +1888,179 @@ Stitch: `repointel_investigations_start_history`, `repointel_investigations_fina
 
 ---
 
+# MVP 8: Login (Server-Enforced Authentication)
+
+> **Goal:** Let the application be exposed on the internet (Railway backend, Vercel frontend, see [deployment-plan.md](deployment-plan.md)) by adding a real login. A login page alone protects nothing: the Railway API URL is public, so the **backend must reject every `/api/**` call that has no valid session**. The frontend login page is the user interface for that rule, not the rule itself.
+>
+> **Scope:** one operator account, configured with environment variables. No registration, no password reset by email, no roles, no social login. Those are listed in Appendix C.8.
+>
+> **Prerequisites:** MVP 0–5 and MVP 7 (the login page uses the MVP 7 design tokens and primitives). MVP 6 does not matter.
+>
+> **Replaces:** the two-layer gate of the first draft of the deployment plan (Vercel Deployment Protection and a shared-secret header added by a proxy function). With this MVP the backend is its own gate, so neither layer is required. Vercel Deployment Protection stays an optional extra.
+>
+> **Default stays open locally.** `AUTH_ENABLED=false` (the default) keeps today's behaviour for Docker Compose and tests: no login, ports bound to `127.0.0.1`. The deployment sets `AUTH_ENABLED=true`.
+
+---
+
+### Step 8.1: Decisions and Threat Model (no code)
+
+| Decision | Choice | Reason |
+|---|---|---|
+| Account | One user: `AUTH_USERNAME` and `AUTH_PASSWORD_HASH` (BCrypt, cost 12) from environment variables | Single-user tool; no user table, no migration, nothing to leak from the database |
+| Session | Server-side session, `HttpOnly`, `Secure` (when HTTPS), `SameSite=Lax`, cookie name `REPOINTEL_SESSION`, idle timeout 2 h, absolute lifetime 12 h | A token in `localStorage` can be stolen by any script; an `HttpOnly` cookie cannot be read by script. The CSP already blocks injected scripts |
+| Session store | In memory (single replica, see deployment plan) | Simplest. A backend restart logs you out, which is acceptable; Spring Session JDBC is the upgrade if redeploy logouts annoy (Appendix C.8) |
+| CSRF | Cookie-to-header: `XSRF-TOKEN` cookie (readable) and `X-XSRF-TOKEN` header on every `POST`, `PUT`, `PATCH`, `DELETE` | The browser attaches the session cookie automatically, so state-changing calls need a second proof. `SameSite=Lax` is defence in depth, not the only defence |
+| Same origin | The browser only ever talks to the Vercel domain; `/api/**` is a plain Vercel rewrite to Railway | Cookies stay first-party, CORS stays unconfigured, the CSP `connect-src 'self'` stays unchanged |
+| Login throttling | Failed attempts counted per client IP and per username; after 5 failures in 15 minutes answer `429` with `Retry-After` for that key; successful login clears the counter | Slows password guessing. In memory, which is enough for one replica |
+| Error messages | One message for every credential failure: "Invalid username or password" | No user enumeration. The same code path and similar timing for a wrong user and a wrong password |
+| Fail closed | `AUTH_ENABLED=true` with a missing or malformed `AUTH_PASSWORD_HASH` makes the application **refuse to start** | A deployment must never come up open by mistake |
+| Open paths | `/actuator/health`, `/api/v1/auth/session`, `/api/v1/auth/login` and the static SPA files. Everything else under `/api/**` needs a session | Railway's health check must work; the SPA must be able to ask "am I logged in?" |
+| Roles / MFA / reset | Out of scope. Resetting the password means changing the variable and redeploying | Keep the first release small. Appendix C.8 lists the follow-ups |
+
+**Threats this step checks the design against:** password guessing (throttle, strong hash), session theft (`HttpOnly`, `Secure`, short idle time, logout invalidates server-side), CSRF (token), session fixation (new session id on login), open redirect after login (the `next` parameter accepts only a same-origin path), credential leakage (never logged, never in a URL, never in an error body), cost abuse by strangers (blocked by the gate; the analyze rate limit stays as the second guard), clickjacking (CSP `frame-ancestors 'none'` stays).
+
+---
+
+### Step 8.2: Backend Authentication
+
+**Sub-tasks:**
+1. Add `spring-boot-starter-security` to the backend. Package `com.repointelligence.common.security`: `AuthProperties` (`auth.enabled`, `auth.username`, `auth.password-hash`, `auth.session.idle-timeout`, `auth.session.absolute-timeout`, `auth.throttle.*`), `SecurityConfig`, `AuthController`, `LoginThrottle`, `AuthStartupValidator`.
+2. `SecurityConfig` builds the filter chain **only when `auth.enabled=true`**; when it is false a permit-all chain keeps today's behaviour (and `/api/v1/auth/session` still answers, with `authRequired=false`). Stateless parts: none; sessions are server-side.
+3. Endpoints (documented in OpenAPI):
+   - `GET /api/v1/auth/session` → `200 { "authRequired": true, "authenticated": false }` or `{ "authRequired": true, "authenticated": true, "username": "..." }`. Always `200`, never `401`, so the SPA can decide what to show without console errors. Sets the `XSRF-TOKEN` cookie.
+   - `POST /api/v1/auth/login` body `{ "username", "password" }` → `200` with the session body and a **new** session id (fixation protection), `401` problem body for bad credentials, `429` with `Retry-After` and `retryAfterSeconds` when throttled, `400` for a malformed body. Requires the CSRF token like any `POST`.
+   - `POST /api/v1/auth/logout` → `204`, invalidates the session and clears the cookies.
+4. Every other `/api/**` request without a valid session → `401` with the standard RFC 9457 problem body (no `WWW-Authenticate: Basic`, so the browser does not show its own dialog). Wrong or missing CSRF token on a state-changing call → `403` problem body.
+5. Password check: `BCryptPasswordEncoder` against `auth.password-hash`; username compared in constant time; when the username is wrong still run a BCrypt comparison against a dummy hash, so timing does not reveal valid usernames.
+6. `AuthStartupValidator`: with `auth.enabled=true`, fail startup unless the hash matches `^\$2[aby]\$\d{2}\$.{53}$` and the username is non-blank. The error message names the variable, never the value.
+7. Headers: keep the nginx and Vercel headers as they are; add `Cache-Control: no-store` to the three auth responses. `server.servlet.session.cookie.*` set from properties; `Secure` is set when the request is HTTPS (`server.forward-headers-strategy=framework` in `prod`, so the Railway proxy's `X-Forwarded-Proto` is honoured).
+8. Production profile: disable Swagger UI and `/v3/api-docs` (`application-prod.yml`), keep actuator exposure at `health` only, redact `Authorization`, `Cookie` and `Set-Cookie` headers and any `password` field in logs (extend the existing redaction rules and add a test).
+9. Configuration: `AUTH_ENABLED`, `AUTH_USERNAME`, `AUTH_PASSWORD_HASH` in `application.yml`, `compose.yaml` (default `false`) and `.env.example`. **A BCrypt hash contains `$` characters:** write each `$` as `$$` in `compose.yaml` and `.env` files read by Compose; in Railway's variable editor paste it as is. Document a command to produce the hash (for example `htpasswd -nbBC 12 "" 'the-password' | cut -d: -f2`, or a one-line Java/Spring CLI alternative) and never put a real hash in the repository.
+
+**Tests to write:**
+- [ ] Integration (embedded PostgreSQL, `auth.enabled=true`): protected path without session → 401 problem body; with a session → 200
+- [ ] Login success returns a new session id; the old id from before login is not accepted afterwards
+- [ ] Wrong password and unknown user return the same status and body; timing difference within a generous bound (not a flaky strict assertion)
+- [ ] Throttle: 5 failures → 6th returns 429 with `Retry-After`; a correct password during lockout is still refused; counters are independent per key; success clears the counter; the lock expires (use an injectable clock)
+- [ ] CSRF: login and a protected `POST` without the header → 403; with the header → success; `GET` needs none
+- [ ] Logout invalidates the session server-side (the same cookie replayed afterwards → 401)
+- [ ] Idle and absolute timeouts end the session (injectable clock)
+- [ ] `GET /api/v1/auth/session` is 200 in every state and never leaks the username when unauthenticated
+- [ ] `/actuator/health` answers 200 without a session; `/actuator/info`, Swagger and `/v3/api-docs` do not in `prod`
+- [ ] `auth.enabled=false`: the whole existing test suite behaves exactly as before (all current e2e tests unchanged)
+- [ ] Startup refuses with `auth.enabled=true` and a missing, blank or malformed hash; the message contains no secret value
+- [ ] A planted password and a planted session id never appear in logs (redaction test)
+- [ ] Architecture test: the `security` package depends only on `common`; no feature package depends on it except through the filter chain
+
+---
+
+### Step 8.3: Backend Hardening Checks
+
+**Sub-tasks:**
+1. Re-run the existing security tests (secret redaction, malicious archive, AI-disabled) with `auth.enabled=true` and a logged-in test client; all pass.
+2. Confirm the rate limit on `POST /api/v1/repositories/analyze` and `max-pending-jobs` still apply **after** authentication (a logged-in user cannot exhaust the host either).
+3. Check the AI endpoints: with auth on, `/api/v1/ai/**` and the Q&A endpoints are protected; budgets are unchanged.
+4. Run a dependency vulnerability check on the new Spring Security dependency set (the project's existing OWASP/OSV check, if any, or `mvn dependency:tree` review).
+5. OpenAPI: the three auth endpoints are documented; protected endpoints list the `401` response.
+
+**Exit gate:** `./mvnw clean verify` green with both `auth.enabled` values; the new tests above pass.
+
+---
+
+### Step 8.4: Frontend Login Page and Session Handling
+
+> **Design source:** Google Stitch did not produce a login screen (its prompt said "no login screens"). Build it from the MVP 7 tokens and primitives (`Button`, `Input`, `Card`, `Alert`), or generate a Stitch design first from the prompt in the sub-task below. Either way the CSP rules of MVP 7 apply: self-hosted fonts, inline SVG icons, nothing external.
+
+**Screen: Sign in (`/login`)**
+- Centered card on the app background, no sidebar and no header navigation (the shell is not rendered). Brand mark and "RepoIntel" wordmark above; title "Sign in". Keep it minimal: no marketing text, no "forgot password", no registration link, and no hint about who the account belongs to.
+- Fields: Username, Password (show / hide toggle with an accessible name and `aria-pressed`), a primary "Sign in" button. Browser password-manager friendly: `autocomplete="username"` and `autocomplete="current-password"`, a real `<form>`, submit on Enter.
+- States: idle, submitting (button disabled with a spinner, fields read-only), wrong credentials (inline `role="alert"` message "Invalid username or password", focus returns to the password field, the password is cleared), throttled (message with a live countdown from `Retry-After`, button disabled until it ends), session expired (arrived from a 401 with `?expired=1`: calm note "Your session ended. Sign in again."), network or server error (generic retry message, never the server text).
+- Footer: theme toggle (works before login, uses the stored preference), version. No external links.
+- Responsive at 1440, 1024 and 390 px; both themes meet the MVP 7 contrast checks.
+
+**Session handling**
+1. `useSession()` (TanStack Query) calls `GET /api/v1/auth/session` once at start and after login and logout. It exposes `authRequired`, `authenticated`, `username` and a loading state.
+2. **Route guard** around the app shell: while loading show a neutral splash (no flash of the app or of the login page); when `authRequired && !authenticated` redirect to `/login?next=<path>`; when authenticated and visiting `/login` redirect to `next` or `/`. When `authRequired=false` (local Compose) the guard does nothing and no login UI appears, so local use is unchanged.
+3. `next` is accepted **only** if it starts with a single `/` and not `//`, contains no scheme and stays inside the app; otherwise ignore it and go to `/`.
+4. `frontend/src/api/client.ts`: send `credentials: 'same-origin'`; read the `XSRF-TOKEN` cookie and send it as `X-XSRF-TOKEN` on `POST`, `PUT`, `PATCH`, `DELETE`; on any `401` from a non-auth endpoint clear the query cache, set the session to unauthenticated and navigate to `/login?expired=1&next=...` once (no redirect loop, no repeated toasts). Never store the password, a token or the session anywhere in JavaScript-readable storage.
+5. **Sign out** in the header (user menu with the username and "Sign out", keyboard accessible): calls `POST /api/v1/auth/logout`, clears the TanStack Query cache and the per-browser AI preference is kept (it is not a secret), then goes to `/login`.
+6. Optional Stitch prompt for the login screen (if you want a designed version first): "Design the Sign in screen for RepoIntel, same design system as the other screens, dark and light: a centered 400 px card with the logo, a Username field, a Password field with a show/hide toggle, a primary Sign in button, an inline error state, a throttled state with a countdown and a session-expired note. No social buttons, no registration, no marketing text."
+
+**Tests to write:**
+- [ ] Unit: login form renders both fields with the right `autocomplete` values; Enter submits; the password toggle works and is labelled
+- [ ] Unit: each state (submitting, wrong credentials with focus and cleared password, throttled countdown disables then re-enables, expired note, server error) using mock API responses
+- [ ] Unit: route guard: loading → splash only; unauthenticated → redirect with `next`; authenticated on `/login` → redirect; `authRequired=false` → no redirect and no login UI
+- [ ] Unit: `next` sanitiser: `//evil.com`, `https://evil.com`, `/\evil`, `javascript:` and encoded variants fall back to `/`; `/repositories/1?tab=quality` is kept
+- [ ] Unit: `client.ts` adds the CSRF header only to state-changing methods; a `401` triggers exactly one redirect and clears the cache; the auth endpoints themselves never trigger it
+- [ ] Unit: logout clears the cache and navigates to `/login`
+- [ ] Accessibility (`vitest-axe`) on the login page in both themes; contrast check of the new colour pairs
+- [ ] No `dangerouslySetInnerHTML`, no external request (the bundle scan from MVP 7 still passes)
+- [ ] Browser check (optional Playwright job): with `AUTH_ENABLED=true` the stack shows the login, a wrong password shows the error, a correct one lands on the dashboard, reload keeps the session, sign out returns to the login, and there are no CSP errors
+
+---
+
+### Step 8.5: Deployment Wiring (login replaces the gate)
+
+**Sub-tasks:**
+1. Railway variables: `AUTH_ENABLED=true`, `AUTH_USERNAME`, `AUTH_PASSWORD_HASH`, `SPRING_PROFILES_ACTIVE=prod` (see [deployment-plan.md](deployment-plan.md) section 3).
+2. Vercel: `/api/:path*` is a **plain rewrite** to the Railway URL placed before the SPA fallback. Delete the planned proxy function and the `ACCESS_PROXY_SECRET` / `PROXY_SECRET` pair. Check that `Set-Cookie` from the backend reaches the browser through the rewrite and that the cookie is host-only and `Secure` (verify on the first deploy).
+3. Confirm from outside: `curl https://<railway>/api/v1/repositories` → 401; `curl https://<railway>/actuator/health` → 200; Swagger → 404; login through the Vercel domain works; the rate-limit and throttle responses show their `Retry-After` in the UI.
+4. Write the password rotation procedure (generate a new hash, change the Railway variable, redeploy; all sessions end because they are in memory).
+
+---
+
+### Step 8.6: Documentation and Completion Report
+
+**Sub-tasks:**
+1. README: replace the "no authentication" notes (header banner, Docker section, Known limitations) with the real rule: *open when `AUTH_ENABLED=false` (local only, ports on 127.0.0.1), login required when `true`; never expose an instance with `AUTH_ENABLED=false`*. Add an "Authentication" section (variables, how to create the hash, the `$$` escaping, session behaviour, throttling).
+2. `docs/architecture.md`: update the "API security" and deployment rows (lines that say "No authentication in MVP 0–1"), add the security package, the session and CSRF model, and the auth endpoints.
+3. Update the ground rule "No auth in MVP 0–1" at the top of this plan, and [deployment-plan.md](deployment-plan.md).
+4. Completion report `docs/mvp8-completion-report.md`: decisions of 8.1 as built, test evidence (both `auth.enabled` values), the manual checks of 8.5, and any deviation.
+
+---
+
+### MVP 8: Exit Criteria Checklist
+
+- [ ] With `AUTH_ENABLED=true`, every `/api/**` call except the auth endpoints answers `401` without a session, from the Railway URL directly and through Vercel
+- [ ] With `AUTH_ENABLED=false` (default) nothing changes: all previous tests and the Docker Compose run behave as before
+- [ ] The application refuses to start with `AUTH_ENABLED=true` and a missing or malformed password hash
+- [ ] Login uses an `HttpOnly` session cookie, a new session id per login, CSRF protection, throttling with `Retry-After`, and one generic failure message
+- [ ] No password, hash, session id or CSRF token appears in logs, URLs, error bodies or browser storage
+- [ ] Login page implemented in both themes with every state of 8.4, keyboard operable, WCAG AA, no CSP errors
+- [ ] Expired session or `401` returns the user to `/login` once, then back to the page they wanted (safe `next` only)
+- [ ] Vercel uses a plain `/api` rewrite; no shared-secret proxy remains in the plan or the code
+- [ ] `/actuator/health` open for Railway; Swagger and OpenAPI docs not exposed in `prod`
+- [ ] README, architecture, deployment plan and completion report updated
+
+---
+
 # Cross-MVP Verification Matrix
 
 After each MVP, verify that **all prior exit criteria still pass**:
 
-| Test | MVP 0 | MVP 1 | MVP 2 | MVP 3 | MVP 4 | MVP 5 | MVP 6 | MVP 7 |
-|---|---|---|---|---|---|---|---|---|
-| App starts without AI | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Health check works | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Migrations apply cleanly (embedded PostgreSQL) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| App runs via `docker compose up --build` | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Java repo analyzed | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Non-Java repo generic analysis | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Capability matrix accurate | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Results scoped to one commit | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Failed analyzer doesn't block others | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Secrets redacted (reports, logs, prompts) | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Malicious archive handled safely | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Architecture diagrams render | | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| AI insights work (when enabled) | | | | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Deterministic search works without AI | | | | | ✅ | ✅ | ✅ | ✅ |
-| Q&A returns grounded answers | | | | | ✅ | ✅ | ✅ | ✅ |
-| Impact analysis returns evidence | | | | | | ✅ | ✅ | ✅ |
-| Agentic investigation works | | | | | | | ✅ | ✅ |
-| UI honours CSP (no external fonts, scripts, icons) | | | | | | | | ✅ |
-| Light and dark themes meet WCAG AA | | | | | | | | ✅ |
-| CI is green | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Test | MVP 0 | MVP 1 | MVP 2 | MVP 3 | MVP 4 | MVP 5 | MVP 6 | MVP 7 | MVP 8 |
+|---|---|---|---|---|---|---|---|---|---|
+| App starts without AI | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Health check works | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Migrations apply cleanly (embedded PostgreSQL) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| App runs via `docker compose up --build` | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Java repo analyzed | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Non-Java repo generic analysis | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Capability matrix accurate | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Results scoped to one commit | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Failed analyzer doesn't block others | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Secrets redacted (reports, logs, prompts) | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Malicious archive handled safely | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Architecture diagrams render | | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| AI insights work (when enabled) | | | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Deterministic search works without AI | | | | | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Q&A returns grounded answers | | | | | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Impact analysis returns evidence | | | | | | ✅ | ✅ | ✅ | ✅ |
+| Agentic investigation works | | | | | | | ✅ | ✅ | ✅ |
+| UI honours CSP (no external fonts, scripts, icons) | | | | | | | | ✅ | ✅ |
+| Light and dark themes meet WCAG AA | | | | | | | | ✅ | ✅ |
+| Login enforced when `AUTH_ENABLED=true`, app open when false | | | | | | | | | ✅ |
+| CI is green | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 > **Verification note (MVP 7 run):** the MVP 6 and MVP 7 columns were pre-filled when the plan was written. In the MVP 7 run, `App runs via docker compose up --build` could **not** be verified (Docker is not installed on that machine; the built UI was served by a stand-in static server with the `nginx.conf` headers instead) and `Agentic investigation works` is **not** true yet (MVP 6 is not built). The other MVP 7 rows were verified: backend 810 tests and frontend 313 tests green, one live analysis of spring-petclinic, Mermaid diagrams rendered in Chromium, and a Playwright run with no console or CSP errors.
 
@@ -1894,7 +2078,8 @@ After each MVP, verify that **all prior exit criteria still pass**:
 | **MVP 5** | 3 steps (5.1–5.3) | Dependency graph + impact analysis |
 | **MVP 6** | 3 steps (6.1–6.3) | Agentic workflows |
 | **MVP 7** | 16 steps (7.0–7.15) | UI redesign from the Google Stitch designs (design intake, tokens, shell, every screen, small backend additions, verification) |
-| **Total** | **63 steps** | |
+| **MVP 8** | 6 steps (8.1–8.6) | Server-enforced single-user login: decisions, backend authentication, hardening, login page, deployment wiring, docs |
+| **Total** | **69 steps** | |
 
 # Appendix B: Revision Notes (v1 → v2)
 
@@ -2005,18 +2190,28 @@ After each MVP, verify that **all prior exit criteria still pass**:
 **Status:** recommended, not scheduled. These came out of the Stitch review (Step 7.0.3) as designed features that have no backend today.
 - **Live analysis log stream:** the progress designs show a stdout/stderr stream. Add a redacted, bounded, per-run event log (analyzer started/finished, counts) streamed over SSE; never raw process output without secret scrubbing.
 - **SARIF export** of findings (and optional OWASP/CWE tags on findings so the "OWASP Top 10" filter becomes possible).
-- **Follow-up question suggestions** in Q&A (schema field plus a prompt-version bump), and a Regenerate button for insights if 7.3 item 5 was skipped.
+- **Follow-up question suggestions** in Q&A (schema field plus a prompt-version bump), (the insight Regenerate button of 7.3 item 5 was built later, see the Step 7.3 note).
 - **Per-phase timings and per-analyzer summaries** while a run is active (counts such as files parsed), if the progress screen should show more than status and duration.
 - **Changed-line risk:** a "Compare with branch" view for impact analysis (the design shows a Compare action).
 - **Visual regression tests** (screenshots of each screen in both themes) once the design is stable.
 
 **Found during MVP 7 (not scheduled):**
-- **Investigations screens (Step 7.13) and the investigation parts of Step 7.3** (types, history, hash-chained audit, export) are waiting for MVP 6; the routes exist as honest placeholders.
+- **Investigations screens (Step 7.13) and the investigation parts of Step 7.3** (types, history, hash-chained audit, export) are waiting for MVP 6; the routes exist as honest placeholders. The full checklist is in [MVP 7 hand-off](#mvp-7-hand-off-items-deferred-until-mvp-6-exists).
 - **Primary language by share can mislead:** for spring-petclinic the dashboard's primary language is CSS (54.4%, *Likely*) because the language detector measures bytes, while Java is 27.5% (*Detected*). Consider weighting by source files, or showing the share basis.
 - **Per-analyzer progress while a run is active:** `executions` lists only analyzers that have started, so "N of M listed analyzers" cannot be a true percentage. Expose the planned analyzer list with the run.
 - **Faceted search filters:** the Search page's Language and Module inputs are free text because no endpoint lists what the index contains; add a facets endpoint.
 - **Symbol picker as a real combobox** (arrow-key navigation, `aria-activedescendant`) and a text search that is not limited to the first 200 picker results.
 - **Run the browser check in CI** against Docker Compose (`.github/workflows/browser-check.yml` exists but has not been run in Actions) and add screenshot baselines.
-- **Refresh on insight:** an optional `refresh: true` on the insight request (Step 7.3 item 5) was not built, so there is no Regenerate button.
+- ~~**Refresh on insight**~~ done: `refresh: true` on the insight request and a Regenerate button on the AI card (Step 7.3 item 5).
 - **Mixed-health provider and light-theme card review** need a human pass against the Stitch spec sheet.
+
+### C.8 MVP 8 follow-ups (login)
+
+**Status:** recommended, not scheduled.
+- **Session survives redeploys:** Spring Session JDBC (a Flyway migration) so a Railway redeploy does not log you out.
+- **Optional second factor** (TOTP) and an **API token** for scripts, if the instance is ever shared.
+- **Several users and roles** (a `users` table, per-user AI preference), only if the tool stops being single-user.
+- **Password reset** without redeploying (an admin CLI command).
+- **Audit log** of logins and failures (redacted, bounded).
+- **Distributed throttle** (database or Redis) if the backend ever runs more than one replica.
 

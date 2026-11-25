@@ -33,7 +33,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * ({@code ai.providers.<id>.embedding-model})
  */
 @ConfigurationProperties("ai")
-public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue("ollama") String defaultProvider,
+public record AIProperties(@DefaultValue("false") boolean enabled, @DefaultValue("gemini") String defaultProvider,
 		List<String> fallbackProviders, Map<String, FeatureRoute> features,
 		Map<String, ProviderSettings> providers, @DefaultValue Limits limits, @DefaultValue Cache cache,
 		@DefaultValue TokenEstimate tokenEstimate, @DefaultValue Source source,

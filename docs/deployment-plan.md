@@ -2,57 +2,55 @@
 
 **Document type:** Deployment blueprint (plan only; nothing in this file has been executed)
 **Targets:** Backend, PostgreSQL and (optionally) the analysis workspace volume on **Railway**. Static frontend on **Vercel**.
-**Based on:** `compose.yaml`, `backend/Dockerfile`, `db/Dockerfile`, `frontend/nginx.conf`, `.env.example`, `backend/src/main/resources/application*.yml`, [implementationPlan.md](implementationPlan.md) (ground rule: "No auth ... must not be exposed to the public internet until authentication is added").
+**Based on:** `compose.yaml`, `backend/Dockerfile`, `db/Dockerfile`, `frontend/nginx.conf`, `.env.example`, `backend/src/main/resources/application*.yml`, [implementationPlan.md](implementationPlan.md) (ground rule: "No auth ... must not be exposed to the public internet until authentication is added", now met by MVP 8).
 
 > Platform limits, prices and UI labels change. Every item marked **(verify)** must be checked against the current Railway or Vercel documentation when you reach that step.
 
 ---
 
-## 1. Decision you must make first: the app has no authentication
+## 1. Authentication: a real login, enforced by the backend (MVP 8)
 
-The product is a single-user local tool. Putting the backend on a public Railway URL means **anyone who finds the URL can**:
+The product was a single-user local tool with no authentication. Putting the backend on a public Railway URL means **anyone who finds the URL can**:
 
 - submit analyses of any public repository (CPU, memory and disk on your Railway bill),
 - spend your **GitHub token's** 5,000 requests per hour,
-- spend your **Gemini / OpenRouter** quota if a hosted AI provider is enabled,
+- spend your **Gemini** quota (you use a Gemini API key, so AI is on in this deployment),
 - read every report, finding and index you stored.
 
-The plan therefore adds a **two-layer gate** (Phase 1). This is a deliberate change to the "no auth" ground rule and must be recorded in the README and in `docs/architecture.md`.
+**Decision (replaces the earlier two-layer gate):** implement **MVP 8** ([implementationPlan.md](implementationPlan.md), a single-user login with a server-side session cookie, CSRF protection and login throttling). With it:
 
-| Layer | What it protects | How |
-|---|---|---|
-| **A. Protect the site** | The UI and what a visitor can reach | Vercel **Deployment Protection** (Vercel Authentication, or Password Protection if your plan has it) **(verify plan)**. Only people you allow can open the app |
-| **B. Protect the backend origin** | The Railway URL that must be public for Vercel to reach it | A **shared secret header** that only the Vercel proxy function adds. The backend answers `401` to every `/api/**` request without it |
+| Earlier idea | Status now |
+|---|---|
+| Shared-secret header added by a Vercel proxy function (backend origin gate) | **Dropped.** The backend rejects every `/api/**` call without a valid session, so the secret is redundant |
+| Vercel Deployment Protection (site gate) | **Optional.** The static HTML and JavaScript contain no data. Keep it only as an extra lock while testing |
+| Plain Vercel rewrite for `/api` | **Used** (4.3). No proxy function, no function time limit for normal calls |
 
-With both layers, a stranger can neither open the UI nor call the Railway API directly. Without layer B, protecting the site alone is **not enough**, because the Railway domain is public.
+**What must be true for this to be safe:** the login is enforced **on the Railway API**, not only in the React app. A login page that only hides screens protects nothing, because the Railway URL is public. MVP 8 Step 8.2 and its tests (401 without a session, from the Railway URL directly) are the proof; the deployment checks in Phase 2 and 3 repeat it from outside.
 
-**Fallback if you accept the risk** (not recommended): skip layer B and use a plain Vercel rewrite (Option 2 in 4.3). Then rely on Railway not being discoverable. Do **not** enable hosted AI in that case.
+**Do not deploy before MVP 8 is done.** With `AUTH_ENABLED=false` the app is open; the backend must never be reachable on a public URL in that mode.
 
 ---
 
 ## 2. Target architecture
 
 ```
-Browser ──HTTPS──> Vercel (static SPA from frontend/dist)
-                      │  same-origin request  /api/**
+Browser ──HTTPS──> Vercel (static SPA from frontend/dist, login page at /login)
+                      │  same-origin request  /api/**   (plain Vercel rewrite, cookies pass through)
                       ▼
-                   Vercel Function  api/[...path]   (adds X-Repointel-Proxy-Secret, forwards body)
-                      │  HTTPS
-                      ▼
-                   Railway: backend (Spring Boot, Semgrep, PMD)  ── private network ──>  Railway: postgres (+ pgvector)
-                      │                                                     
-                      ├──> api.github.com / codeload.github.com   (repository download)
-                      └──> optional: Gemini / OpenRouter           (hosted AI, off by default)
+                   Railway: backend (Spring Boot, Semgrep, PMD; session login enforced here)
+                      │  private network
+                      ├──> Railway: postgres (+ pgvector optional)
+                      ├──> api.github.com / codeload.github.com          (repository download)
+                      └──> generativelanguage.googleapis.com             (Gemini, AI features)
 ```
 
 Why same-origin (`/api` on the Vercel domain) instead of calling Railway from the browser:
 
-- The frontend already calls relative `/api/...` URLs (`frontend/src/api/client.ts`), so **no frontend code changes**.
+- The frontend already calls relative `/api/...` URLs (`frontend/src/api/client.ts`), so the only frontend changes are the MVP 8 login and session handling.
 - The CSP (`connect-src 'self'`) stays exactly as it is.
-- No CORS configuration on the backend, no Railway URL baked into the bundle.
-- The shared secret never reaches the browser.
+- The session cookie is first-party (the browser only sees the Vercel domain), so no CORS configuration and no third-party-cookie problems.
 
-What does **not** move: Ollama. A local Ollama cannot be reached from Railway. In the cloud, AI is either **off** (default, the app is fully useful) or a **hosted provider** (Gemini / OpenRouter) after you set its `*_DATA_HANDLING_ACKNOWLEDGED=true` (excerpts of public repositories, secrets scrubbed, leave your infrastructure).
+**AI in the cloud: Gemini.** This project uses a **Gemini API key** (locally too; Ollama is not used). `AI_DEFAULT_PROVIDER` now defaults to `gemini`, but AI is still **off** until `AI_ENABLED=true`, the Gemini provider is enabled and `AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED=true` is set (3.3). Excerpts of **public** repositories, with secrets scrubbed, are sent to Google; the backend only allows the host `generativelanguage.googleapis.com`. A local Ollama cannot be reached from Railway and is not part of this deployment.
 
 ---
 
@@ -120,21 +118,29 @@ numReplicas = 1                   # must stay 1, see below
 | `DB_PASSWORD` | `${{postgres.PGPASSWORD}}` | |
 | `GITHUB_TOKEN` | fine-grained token, public repositories read-only, no permissions | Raises the GitHub limit from 60 to 5,000/hour. **Required in practice**: unauthenticated cloud egress IPs are shared and hit the limit fast (Appendix C.1) |
 | `WORKSPACE_ROOT` | `/workspace` | Extracted snapshots |
-| `ACCESS_PROXY_SECRET` | random 48+ chars (`openssl rand -base64 48`) | The shared secret (Phase 1). Same value goes into Vercel |
-| `AI_ENABLED` | `false` (default) | Keep AI off in the first release |
+| `AUTH_ENABLED` | `true` | Turns the MVP 8 login on. The app refuses to start if it is true and the hash below is missing |
+| `AUTH_USERNAME` | your choice (not `admin`) | The single account |
+| `AUTH_PASSWORD_HASH` | BCrypt hash, cost 12 (`htpasswd -nbBC 12 "" 'password' \| cut -d: -f2`) | Paste as is in Railway (the `$$` escaping is only for Compose files). Never store the plain password |
+| `AI_ENABLED` | `true` | You use Gemini. Set to `false` for a first smoke test without AI if you prefer |
+| `AI_DEFAULT_PROVIDER` | `gemini` | Same as the new default |
+| `AI_PROVIDERS_GEMINI_ENABLED` | `true` | |
+| `GEMINI_API_KEY` | your key | Railway variable only, never committed. Consider a key restricted to the Generative Language API and a budget alert in Google Cloud |
+| `GEMINI_CHAT_MODEL` | the model id you use locally (for example your Flash Lite model) | Nothing is assumed by the code |
+| `AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED` | `true` | Required; public-repository excerpts leave your infrastructure |
+| `AI_MAX_CALLS_PER_ANALYSIS` | `5` | Matches your local setting (Appendix C.4) |
 | `ANALYSIS_VULNERABILITIES_OSV_ENABLED` | `false` | Keep off unless you want outbound OSV lookups |
 | `REPOSITORY_INGESTION_MAX_REPOSITORY_SIZE_MB` | `200` (lower to `100` to save cost) | Pre-check on repository size |
 | `ANALYSIS_JOBS_MAX_ANALYSIS_DURATION` | `PT15M` | Per-run deadline |
 | `JAVA_TOOL_OPTIONS` | `-XX:MaxRAMPercentage=75` (already the image default) | Leaves about 25% of memory for the Semgrep child process |
 | `RAILWAY_RUN_UID` | `0` | Only if the volume is not writable by the image's non-root `app` user (see 3.4) **(verify)** |
 
-Hosted AI later (only after reading the provider's current terms): `AI_ENABLED=true`, `AI_DEFAULT_PROVIDER=gemini`, `AI_PROVIDERS_GEMINI_ENABLED=true`, `GEMINI_API_KEY`, `GEMINI_CHAT_MODEL`, `AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED=true`, `AI_MAX_CALLS_PER_ANALYSIS=5`, and **`AI_TIMEOUT_SECONDS` below the Vercel function limit** (see 4.3). Leave `OLLAMA_*` unset and `AI_PROVIDERS_OLLAMA_ENABLED=false`.
+Read Google's current terms, quotas and data-use policy for your key type before enabling Gemini (free-tier data may be used to improve products; verify). Leave `OLLAMA_*` unset and `AI_PROVIDERS_OLLAMA_ENABLED=false`. Set **`AI_TIMEOUT_SECONDS` below the Vercel rewrite timeout** (see 4.3). If you use Gemini embeddings for semantic search: `AI_EMBEDDING_PROVIDER=gemini` and `GEMINI_EMBEDDING_MODEL` (the embedding default is still `ollama` in the code).
 
 **Resources.** Local Compose caps the backend at 2 GB. On Railway start with **2 GB RAM and 2 vCPU** **(verify plan limits and price)** and watch memory during an analysis of a larger Java repository (PMD plus Semgrep run in the same container). Raise only if you see restarts.
 
 **Networking.**
 - Generate a Railway public domain for `backend` only (for example `repointel-backend.up.railway.app`). Keep the project's private network for `backend` to `postgres`.
-- Railway's healthcheck calls `/actuator/health` from its own host name; the gate (Phase 1) must allow that path.
+- Railway's healthcheck calls `/actuator/health` from its own host name; MVP 8 leaves that path open (and only that actuator path).
 - Optional hardening: no custom domain for the backend at all. Only the Vercel proxy needs to know the URL.
 
 ### 3.4 Workspace volume
@@ -147,17 +153,9 @@ Hosted AI later (only after reading the provider's current terms): `AI_ENABLED=t
 
 ### 3.5 Backend changes required in this repo (small)
 
-These are the only code changes the deployment needs. Put them in a branch `deploy/railway-vercel` and test them like any backend change (`./mvnw clean verify`).
+The authentication code is **MVP 8** (Steps 8.2 and 8.3 of [implementationPlan.md](implementationPlan.md)): login endpoints, session and CSRF handling, throttling, fail-closed startup, Swagger and OpenAPI disabled in `prod`, `server.forward-headers-strategy=framework` in `prod` (so `Secure` cookies and the client address behind Railway's proxy work), log redaction of cookies and passwords. Do those first, on their own branch, and test them like any backend change (`./mvnw clean verify`, both `auth.enabled` values).
 
-1. **`AccessGateFilter`** (`com.repointelligence.common.security`):
-   - Active only when `ACCESS_PROXY_SECRET` is set (local Compose and tests stay open, unchanged).
-   - Requires header `X-Repointel-Proxy-Secret` equal to the secret for every `/api/**` request, compared in **constant time** (`MessageDigest.isEqual`). Otherwise `401` with the standard RFC 9457 problem body and **no hint** about the expected header.
-   - Always allows `/actuator/health` (Railway healthcheck). `show-details: never` already hides internals.
-   - Never logs the header value (redaction test).
-2. **Disable the Swagger UI and OpenAPI docs in `prod`** (`springdoc.swagger-ui.enabled=false`, `springdoc.api-docs.enabled=false` in `application-prod.yml`): they list every endpoint on a public host.
-3. **Trusted forwarded headers:** the backend sits behind Railway's proxy and the Vercel function. Set `server.forward-headers-strategy=framework` in `prod` so generated URLs and the analyze rate limiter use the forwarded client address, and decide which header the rate limit trusts. The existing token bucket (10 per minute on `POST /repositories/analyze`) is global; keep it (it is the cost guard).
-4. **Tests:** gate enabled without header, wrong header, right header, health path open, secret never logged; gate disabled when the variable is empty.
-5. Document the new variable in `.env.example` (empty by default), the README and `docs/architecture.md`.
+Deployment-only additions on top of MVP 8: `backend/railway.toml` (3.3) and the Railway variables above. The existing token bucket (10 per minute on `POST /repositories/analyze`) stays as the cost guard behind the login.
 
 ---
 
@@ -176,12 +174,7 @@ These are the only code changes the deployment needs. Put them in a branch `depl
 | Package manager | pnpm from `packageManager` in `package.json` (Corepack; **verify** that Vercel picks the pinned version) |
 | Production branch | `main`; other branches get preview deployments |
 
-Environment variables (Vercel, **not** exposed to the browser because they are read only by the function; do not prefix with `VITE_`):
-
-| Variable | Value | Scope |
-|---|---|---|
-| `BACKEND_URL` | `https://<backend>.up.railway.app` | Production (and Preview if previews should reach the backend; see 4.4) |
-| `PROXY_SECRET` | same as Railway `ACCESS_PROXY_SECRET` | Production, marked **Sensitive** |
+No Vercel environment variables are needed: `vercel.json` cannot read them, so the Railway URL is written into the rewrite (4.3). It is not a secret (the login protects the API, not the URL).
 
 ### 4.2 `frontend/vercel.json` (new)
 
@@ -206,37 +199,30 @@ Reproduces what `nginx.conf` did: the security headers and the SPA fallback. The
     }
   ],
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://<backend>.up.railway.app/api/:path*" },
     { "source": "/((?!api/|assets/).*)", "destination": "/index.html" }
   ]
 }
 ```
 
 Notes:
-- The fallback excludes `/api/` and `/assets/` so API calls reach the function and missing assets return 404 instead of HTML.
+- The fallback excludes `/api/` and `/assets/` so API calls reach the `/api` rewrite and missing assets return 404 instead of HTML.
 - The font files added by MVP 7 are emitted under `/assets/` by Vite, so `font-src` falls under `default-src 'self'`. No CSP change is needed (check again after MVP 7 lands).
 - Add `Strict-Transport-Security` only if you use a custom domain you control **(verify)**; Vercel already serves HTTPS.
 
-### 4.3 The `/api` proxy
+### 4.3 The `/api` rewrite (no proxy function)
 
-**Option 1 (recommended): a Vercel Function that adds the shared secret.** New file `frontend/api/[...path].ts`:
+With the backend enforcing the login (section 1), `/api/**` is a **plain rewrite** to Railway (the first rewrite in 4.2). There is no `api/[...path].ts` function and no shared secret.
 
-- Accepts every method on `/api/**`.
-- Builds the target URL `BACKEND_URL + request.url path + query`.
-- Forwards the method, body (JSON; the backend limit is 2 MB, below Vercel's request body limit **(verify)**), `Content-Type`, `Accept` and a request id; **drops** browser cookies and hop-by-hop headers; **adds** `X-Repointel-Proxy-Secret: ${PROXY_SECRET}`.
-- Returns the backend's status, `Content-Type`, `Retry-After` and body unchanged (the UI depends on RFC 9457 error bodies and `retryAfterSeconds`).
-- Sets a hard upstream timeout shorter than the function's `maxDuration`, and answers `504` with a problem body on timeout.
-- Never logs the secret, the token, request bodies or response bodies.
-
-**Function time limit (verify).** The long calls are AI insights and Q&A (up to `AI_TIMEOUT_SECONDS`, default 60). Analyses are asynchronous (`202` then polling), so they do not hit the limit. Choose one:
-- Plan allows a 60 s (or longer) function duration: set `maxDuration` accordingly and keep `AI_TIMEOUT_SECONDS=45`.
-- Plan limit is shorter: set `AI_TIMEOUT_SECONDS` below it (for example 20 to 25); the UI already shows "The AI provider did not answer in time" for a timeout.
-
-**Option 2 (simpler, weaker): plain rewrite** in `vercel.json`: `{ "source": "/api/:path*", "destination": "https://<backend>.up.railway.app/api/:path*" }` placed before the SPA fallback. No function and no function time limit, but **it cannot add the secret header**, so the Railway origin stays open to anyone. Use only with AI off and an accepted risk (section 1).
+- Put the real Railway URL in `vercel.json` (it is not a secret). Keep the `/api/` rule **before** the SPA fallback.
+- The browser, the rewrite and the backend must agree on cookies: the session cookie is set by the backend, host-only, `HttpOnly`, `Secure`, `SameSite=Lax`. Verify on the first deploy that `Set-Cookie` and `Retry-After` pass through the rewrite unchanged and that the request body (up to the backend's 2 MB limit) and the `X-XSRF-TOKEN` header arrive **(verify Vercel's rewrite behaviour and body limit)**.
+- Long calls: AI insights and Q&A can take up to `AI_TIMEOUT_SECONDS` (60 by default). **Verify the maximum time Vercel allows for a proxied (rewritten) request on your plan** and set `AI_TIMEOUT_SECONDS` below it (for example 25 if it is short). The UI already shows "The AI provider did not answer in time" on a timeout. Analyses are asynchronous (`202` then polling), so they are not affected.
+- If a rewrite turns out to strip or rewrite cookies or time out too early, the fallback is a small Vercel Function that forwards the request and `Set-Cookie` unchanged (no secret involved). Do that only if the verification above fails.
 
 ### 4.4 Deployment Protection and previews
 
-- Production: enable Vercel Deployment Protection so only allowed people open the site (layer A, section 1). **(Verify the options on your plan.)**
-- Preview deployments (one per pull request) must not hit production data by accident. Either leave `BACKEND_URL` / `PROXY_SECRET` unset for Preview (the UI then shows an error state, which is acceptable), or point Preview at a separate Railway **environment** with its own database. Do the second only if you really review UI changes against live data.
+- **Deployment Protection is optional** now that the API has its own login. Enabling it adds a second lock on the static site (and costs plan features) **(verify availability)**; it is not needed for safety.
+- Preview deployments (one per pull request) rewrite `/api` to the same Railway backend, so a preview needs the same login and sees production data. Either accept that (single user, same credentials) or use a separate Railway **environment** with its own database and point the preview rewrite at it. Do the second only if you really review UI changes against live data.
 
 ---
 
@@ -245,51 +231,53 @@ Notes:
 ### Phase 0: Prerequisites (about 0.5 day)
 - [ ] GitHub fine-grained token created (public repos read-only, no permissions). Never commit it.
 - [ ] Railway and Vercel accounts, both linked to the GitHub repository.
-- [ ] Decide the AI mode for the first release: **off** (recommended).
-- [ ] Decide protection: Vercel Deployment Protection available on your plan? If not, decide on the fallback (a small shared-password check in the proxy function) before going public.
-- [ ] `pnpm build` and `./mvnw clean verify` green on `main`; the Docker Compose stack works locally.
+- [ ] Gemini API key at hand (the one you use locally) and the chat model id; read Google's current terms for your key type.
+- [ ] **MVP 8 (login) implemented and merged**, `./mvnw clean verify` and `pnpm lint && pnpm typecheck && pnpm test && pnpm build` green, Docker Compose stack still works locally with `AUTH_ENABLED=false` and with `true`.
+- [ ] A BCrypt hash generated for the account password (stored in a password manager, not in the repository).
 
-### Phase 1: Code changes in the repo (about 1 day), branch `deploy/railway-vercel`
-- [ ] Backend: gate filter, prod Swagger off, forwarded-headers setting, tests (3.5).
+### Phase 1: Deployment files in the repo (about 0.5 day), branch `deploy/railway-vercel`
 - [ ] `backend/railway.toml` (3.3).
-- [ ] `frontend/vercel.json` (4.2) and `frontend/api/[...path].ts` (4.3) with unit tests for the proxy (header added, secret not returned to the browser, timeout becomes 504, hop-by-hop headers dropped).
-- [ ] `.env.example`: `ACCESS_PROXY_SECRET=` (empty means open, for local use).
-- [ ] README: a "Deploying to Railway and Vercel" section, plus the explicit note that the app is **not** safe to expose without the gate.
+- [ ] `frontend/vercel.json` (4.2) with the `/api` rewrite to the Railway URL (the URL is known after Phase 2, so this file is committed at the end of Phase 2).
+- [ ] README: a "Deploying to Railway and Vercel" section and the rule that an instance with `AUTH_ENABLED=false` must never be public.
 - [ ] CI stays Docker-free; add nothing that needs a Railway or Vercel token to the main jobs.
 
 ### Phase 2: Railway (about 0.5 day)
 1. New project; add `postgres` (3.2). Note the service name.
-2. Add `backend` from the GitHub repo, Root Directory `/backend`; set all variables of 3.3 (generate `ACCESS_PROXY_SECRET` now).
+2. Add `backend` from the GitHub repo, Root Directory `/backend`; set all variables of 3.3, including `AUTH_ENABLED=true`, `AUTH_USERNAME`, `AUTH_PASSWORD_HASH` and the Gemini variables.
 3. Attach the `/workspace` volume (3.4).
-4. Deploy. Watch the logs: Flyway applies all migrations; the app reports healthy; `/actuator/health` returns `UP` from the Railway healthcheck.
-5. Generate the public domain. Confirm:
-   - `GET https://<backend>/actuator/health` returns 200 (no secret needed);
-   - `GET https://<backend>/api/v1/repositories` returns **401** without the secret and **200** with `-H "X-Repointel-Proxy-Secret: ..."`;
+4. Deploy. Watch the logs: Flyway applies all migrations; the app reports healthy; `/actuator/health` returns `UP` from the Railway healthcheck. (If the app exits at startup complaining about the password hash, the variable is missing or malformed: that is the fail-closed check working.)
+5. Generate the public domain. Confirm from your own machine:
+   - `GET https://<backend>/actuator/health` returns 200;
+   - `GET https://<backend>/api/v1/repositories` returns **401** with no session;
+   - `POST https://<backend>/api/v1/auth/login` with a wrong password returns 401 (and 429 with `Retry-After` after five tries);
    - `/swagger-ui.html` and `/v3/api-docs` return 404.
+6. Put the domain into `frontend/vercel.json` and commit.
 
 ### Phase 3: Vercel (about 0.5 day)
-1. Import the repository, Root Directory `frontend`, settings of 4.1.
-2. Set `BACKEND_URL` and `PROXY_SECRET`; deploy.
-3. Enable Deployment Protection (4.4).
-4. Smoke test through the Vercel URL, signed in as an allowed user:
+1. Import the repository, Root Directory `frontend`, settings of 4.1; deploy.
+2. Open the Vercel URL signed out: you land on `/login`. Sign in; reload keeps the session; sign out returns to `/login`.
+3. Check the cookie in the browser tools: `HttpOnly`, `Secure`, host-only, `SameSite=Lax` (4.3).
+4. Smoke test through the Vercel URL, signed in:
    1. Dashboard loads, no CSP errors in the browser console, fonts and icons local.
    2. Analyze `https://github.com/spring-projects/spring-petclinic`: progress screen, completion, report, findings, dependencies, tests, architecture diagrams render.
    3. Search index one snapshot; run a symbol search.
    4. Impact analysis on a picked symbol.
-   5. Deep link refresh (`/repositories/<id>?tab=...`) works (SPA fallback).
+   5. Deep link refresh (`/repositories/<id>?tab=...`) works (SPA fallback), and when signed out it goes to the login and back to the same page.
    6. Workspace writable: the analysis in step 2 proves the volume permissions; check Railway logs for `AccessDenied`/permission errors.
-   7. AI Settings shows "AI disabled" and every AI entry point shows the calm disabled pattern.
-5. Negative checks: request the Railway API directly without the header (401); open the Vercel site while signed out (blocked); a long GitHub rate-limit case shows the retry time.
+   7. **AI with Gemini:** AI Settings shows Gemini active and up; run one insight; confirm the call stays within the Vercel rewrite time limit (4.3) and the usage page counts it.
+5. Negative checks: the Railway API called directly without a session (401); a state-changing call without the CSRF header (403); a long GitHub rate-limit case shows the retry time.
 
 ### Phase 4: Hardening and operations (about 0.5 day)
 - [ ] Railway: usage alert and a hard spend limit **(verify availability)**; restart policy set; one replica.
+- [ ] Google Cloud / AI Studio: a budget or quota alert for the Gemini key.
 - [ ] Backups: scheduled `pg_dump` (a Railway cron service or an external job) **or** Railway volume backups **(verify)**; do one test restore into a scratch database.
-- [ ] Secrets rotation procedure written down (section 7).
-- [ ] Log review: structured JSON with redaction; confirm no token, secret header, or repository secret appears in Railway logs (search for `ghp_`, `github_pat_`, the proxy secret's first characters).
+- [ ] Secrets rotation procedure written down (section 7), including the password hash.
+- [ ] Log review: structured JSON with redaction; confirm no token, password, cookie, API key or repository secret appears in Railway logs (search for `ghp_`, `github_pat_`, `AIza`, `REPOINTEL_SESSION`).
 - [ ] Optional: a custom domain for the Vercel site; none for the backend.
 
 ### Phase 5: Optional later
-- Hosted AI: enable Gemini or OpenRouter after reading the provider terms, with the acknowledgement variable, `AI_MAX_CALLS_PER_ANALYSIS=5`, and the timeout rule of 4.3. Prefer the cheap model per feature (Appendix C.4).
+- Per-feature Gemini models (a cheaper model for summaries, Appendix C.4) and Gemini embeddings for semantic search.
+- Sessions that survive redeploys (Appendix C.8).
 - pgvector (3.2 option B) if semantic search is used.
 - Preview environment with its own database.
 - Uptime check on `/actuator/health` via an external monitor.
@@ -313,11 +301,11 @@ Notes:
 | Secret | Where it lives | Rotate |
 |---|---|---|
 | `GITHUB_TOKEN` | Railway variable only | Revoke on GitHub, create a new one, update Railway, redeploy. Verify with `railway run sh -c '[ -n "$GITHUB_TOKEN" ] && echo set'` (do not print it) |
-| `ACCESS_PROXY_SECRET` / `PROXY_SECRET` | Railway variable and Vercel sensitive variable (same value) | Change both, redeploy backend then frontend; brief 401s between the two deploys are expected |
+| `AUTH_PASSWORD_HASH` (and `AUTH_USERNAME`) | Railway variable only; the plain password lives in your password manager | Generate a new hash, change the variable, redeploy. All sessions end (they are in memory), which is the point |
 | `DB_PASSWORD` | Railway reference to the Postgres service | Rotate in the Postgres service, redeploy the backend |
-| `GEMINI_API_KEY` / `OPENROUTER_API_KEY` | Railway variable (only if hosted AI is on) | Revoke at the provider, replace, redeploy |
+| `GEMINI_API_KEY` | Railway variable only | Revoke at Google, create a new key, replace, redeploy |
 
-Rules (unchanged from Appendix C.1): never commit secrets, never put them in `vercel.json`, `railway.toml`, docs or chat; the proxy and backend never log them.
+Rules (unchanged from Appendix C.1): never commit secrets, never put them in `vercel.json`, `railway.toml`, docs or chat; the backend never logs them (redaction covers cookies, passwords and `Authorization`).
 
 ---
 
@@ -327,15 +315,15 @@ Rules (unchanged from Appendix C.1): never commit secrets, never put them in `ve
 - **Rollback frontend:** Vercel "Promote" the previous production deployment (instant).
 - **Database loss:** restore the latest dump. All results are **derived data**: if there is no backup, re-run the analyses (each is one GitHub download per commit). This is why backups are useful but not critical.
 - **Leaked token or secret:** rotate per section 7, then check Railway logs and GitHub's token activity.
-- **Abuse or cost spike:** set `ACCESS_PROXY_SECRET` to a new value (cuts off any direct callers), lower `repository.submission.rate-limit.capacity` / `max-pending-jobs`, and pause the service in Railway if needed.
+- **Abuse or cost spike:** change `AUTH_PASSWORD_HASH` and redeploy (ends every session and locks out whoever had access), lower `repository.submission.rate-limit.capacity` / `max-pending-jobs`, and pause the service in Railway if needed.
 
 ---
 
 ## 9. Costs and sizing (indicative, verify current prices)
 
 - **Railway:** usage based (compute, memory, volume, egress) after the plan's included credit. The backend is the main cost because of memory (2 GB target) while analyses run; it is mostly idle otherwise. PostgreSQL and a 5 GB volume are small. Set a spend limit.
-- **Vercel:** the static site and the proxy function are small. Protection options and function duration depend on the plan.
-- **Third parties:** GitHub API is free with a token. Hosted AI is pay-per-use or quota-limited (keep it off at first).
+- **Vercel:** the static site is small and there is no function. The allowed duration of a rewritten request depends on the plan (4.3).
+- **Third parties:** GitHub API is free with a token. Gemini is pay-per-use or quota-limited depending on your key; `AI_MAX_CALLS_PER_ANALYSIS=5`, the per-snapshot Q&A budget and the login keep spend bounded.
 
 ---
 
@@ -343,27 +331,31 @@ Rules (unchanged from Appendix C.1): never commit secrets, never put them in `ve
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| No authentication in the app itself | Open API on the public internet | Two-layer gate (section 1); do not skip layer B |
-| Vercel function duration shorter than AI call time | Insight/Q&A calls fail with 504 | Keep `AI_TIMEOUT_SECONDS` below the limit or choose a plan with a longer duration (4.3) |
+| Login not enforced by the backend (or `AUTH_ENABLED` left false) | Open API on the public internet | MVP 8 enforces it server-side; the app refuses to start with a bad hash; Phase 2 checks 401 from outside; never deploy before MVP 8 |
+| Password guessing against the login | Account takeover | BCrypt cost 12, throttle with `Retry-After`, a long random password |
+| Session lost on every backend redeploy | You must sign in again | Accepted; Spring Session JDBC is the upgrade (Appendix C.8) |
+| Vercel rewrite changes cookies, body or timing | Login or AI calls fail | Verified in Phase 3; fallback is a small forwarding function (4.3) |
+| Vercel limit on a rewritten request shorter than AI call time | Insight/Q&A calls fail with 504 | Keep `AI_TIMEOUT_SECONDS` below the limit (4.3) |
 | Non-root `app` user cannot write to the volume | Every analysis fails at ingestion | Test in Phase 3; chown in an entrypoint step, or `RAILWAY_RUN_UID=0` as a last resort |
 | Memory pressure (PMD + Semgrep + JVM) | Restarts during large analyses | 2 GB+ RAM, repository size cap, `max-pending-jobs`; watch metrics |
 | Shared GitHub egress IP without a token | 60 requests/hour shared | Token is mandatory (3.3) |
 | Scaling beyond one instance | Budget counters and job pool are in memory | Keep `numReplicas = 1`; revisit (Appendix C.4) before scaling |
-| Hosted AI data handling | Repository excerpts leave your infrastructure | Off by default; acknowledgement variable; public repositories only |
+| Gemini data handling | Public-repository excerpts (secrets scrubbed) leave your infrastructure and your key's terms apply | Acknowledgement variable; public repositories only; `AI_MAX_CALLS_PER_ANALYSIS=5`; check the key type's terms |
 | Railway/Vercel feature or limit changes | Plan steps drift | Every **(verify)** item is checked at execution time and the result recorded in the completion note |
 
 ---
 
 ## 11. Completion checklist
 
-- [ ] Backend deployed on Railway, healthy, one replica, database and volume attached
-- [ ] Frontend deployed on Vercel from `main`; `/api` reaches the backend through the proxy function
-- [ ] Direct calls to the Railway API without the secret return 401; Swagger is not exposed
-- [ ] Site protected by Vercel Deployment Protection (or the documented fallback)
+- [ ] MVP 8 (login) done and its exit criteria ticked
+- [ ] Backend deployed on Railway, healthy, one replica, database and volume attached, `AUTH_ENABLED=true`
+- [ ] Frontend deployed on Vercel from `main`; `/api` reaches the backend through the plain rewrite
+- [ ] Direct calls to the Railway API without a session return 401; Swagger and OpenAPI docs are not exposed
+- [ ] Login, reload, sign out and session-expired redirect work through the Vercel URL; the cookie is `HttpOnly` and `Secure`
 - [ ] spring-petclinic analysed end to end through the Vercel URL (report, architecture, search, impact)
+- [ ] Gemini insight works through the Vercel URL within the time limit; the acknowledgement variable is set
 - [ ] No CSP violations in the browser console; no external fonts, scripts or images
-- [ ] AI disabled by default and every AI entry point shows the disabled pattern
-- [ ] No secret in logs, repository, build output or browser
+- [ ] No secret, password, cookie or API key in logs, repository, build output or browser storage
 - [ ] Backup configured and one restore tested
-- [ ] Spend limit and alerts set
-- [ ] README, `docs/architecture.md` and `.env.example` updated; the "no auth" rule updated with the gate
+- [ ] Spend limit and alerts set (Railway and the Gemini key)
+- [ ] README, `docs/architecture.md` and `.env.example` updated; the "no auth" rule replaced by the `AUTH_ENABLED` rule

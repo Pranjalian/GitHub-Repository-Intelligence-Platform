@@ -1,10 +1,10 @@
 # GitHub Repository Intelligence Platform
 
-Evidence-backed analysis of public GitHub repositories. Submit a public repository URL and get a commit-scoped report: technologies, structure, dependencies, code quality, secrets and security rules, tests and (real) coverage, plus an honest capability matrix that says what the platform could not analyze and why. For Java/Spring Boot it also discovers the **architecture**: layers, REST endpoints with request/response types, JPA entities and relationships, dependency injection chains, Maven module dependencies, dependency cycles and design-pattern candidates, with Mermaid diagrams. It is deterministic: **no AI and no AI key are needed**, and no code from the analyzed repository is ever executed. Optionally (MVP 3), an AI provider you configure (local Ollama, or hosted Gemini/OpenRouter after you acknowledge their data handling) can **explain** classes, methods and findings, suggest refactorings and summarise modules and technical debt; every answer is marked AI-generated and lists the evidence it was given. MVP 4 adds **code search** that needs no model (exact symbol lookup and full-text search in one commit) and optional **repository Q&A**: answers grounded in retrieved code with source links, or an explicit "not enough evidence". MVP 5 adds **change-impact analysis**: pick a class or method and see which callers, endpoints, entities, modules and tests may be affected, from the dependency graph of the parsed code (never from a model), with a transparent heuristic risk score and an explicit list of what the analysis cannot see. MVP 7 is a **UI redesign**: the whole interface was rebuilt from the Google Stitch designs (dark and light themes, a navigation shell, a findings inspector, themed architecture diagrams, designed loading, empty, error and "not supported" states) without changing what any analyzer, search or impact rule does.
+Evidence-backed analysis of public GitHub repositories. Submit a public repository URL and get a commit-scoped report: technologies, structure, dependencies, code quality, secrets and security rules, tests and (real) coverage, plus an honest capability matrix that says what the platform could not analyze and why. For Java/Spring Boot it also discovers the **architecture**: layers, REST endpoints with request/response types, JPA entities and relationships, dependency injection chains, Maven module dependencies, dependency cycles and design-pattern candidates, with Mermaid diagrams. It is deterministic: **no AI and no AI key are needed**, and no code from the analyzed repository is ever executed. Optionally (MVP 3), an AI provider you configure (hosted Gemini, the project default, or OpenRouter after you acknowledge their data handling, or a local Ollama) can **explain** classes, methods and findings, suggest refactorings and summarise modules and technical debt; every answer is marked AI-generated and lists the evidence it was given. MVP 4 adds **code search** that needs no model (exact symbol lookup and full-text search in one commit) and optional **repository Q&A**: answers grounded in retrieved code with source links, or an explicit "not enough evidence". MVP 5 adds **change-impact analysis**: pick a class or method and see which callers, endpoints, entities, modules and tests may be affected, from the dependency graph of the parsed code (never from a model), with a transparent heuristic risk score and an explicit list of what the analysis cannot see. MVP 7 is a **UI redesign**: the whole interface was rebuilt from the Google Stitch designs (dark and light themes, a navigation shell, a findings inspector, themed architecture diagrams, designed loading, empty, error and "not supported" states) without changing what any analyzer, search or impact rule does.
 
 See [docs/](docs/) for the problem statement, architecture, implementation plan and the completion reports for [MVP 1](docs/mvp1-completion-report.md), [MVP 2](docs/mvp2-completion-report.md), [MVP 3](docs/mvp3-completion-report.md) [MVP 4](docs/mvp4-completion-report.md), [MVP 5](docs/mvp5-completion-report.md) and [MVP 7](docs/mvp7-completion-report.md) (the UI redesign).
 
-> Local single-user tool. There is no authentication yet: do not expose it to the public internet.
+> Local single-user tool. There is no authentication yet: do not expose it to the public internet. A login (MVP 8, see [docs/implementationPlan.md](docs/implementationPlan.md)) is planned before any Railway/Vercel deployment ([docs/deployment-plan.md](docs/deployment-plan.md)).
 
 ## Prerequisites
 
@@ -84,9 +84,11 @@ Set `GITHUB_TOKEN` to a **fine-grained token with read-only access to public rep
 
 AI is **off by default** and nothing in the platform needs it. With `AI_ENABLED=false` no provider client is created, nothing is sent anywhere, and every AI button says why it is unavailable.
 
+> **This project uses Gemini, not Ollama, including for local development.** `AI_DEFAULT_PROVIDER` defaults to `gemini`, and the author's own `.env` uses a Gemini API key. Ollama is still supported as an alternative (below) but is not the default and is not what the sample data, screenshots or deployment plan assume. AI stays **off** until you set `AI_ENABLED=true`, enable the Gemini provider and acknowledge its data handling (see "Hosted: Gemini" below).
+
 **What is sent.** Only bounded evidence for one request: the target's declaration (from the parser), its source excerpt (at most `ai.source.max-lines` lines), directly related types (declarations only), findings in range, or deduplicated findings for the debt summary. Never the whole repository. Before anything is hashed, cached or sent, lines with a possible secret are withheld (stored secret findings, the secret scanner's rules on every line, whole PEM private-key blocks) and `SecretRedactor` masks the rest. Repository text is placed in delimited data blocks after a fixed system prompt that tells the model it is untrusted data. Answers must match the template's JSON schema; anything else is shown as *invalid output*, never displayed.
 
-**Local (recommended for private code): Ollama.** Install Ollama, `ollama pull <model>`, then in `.env`:
+**Local alternative (private code that must not leave your machine): Ollama.** Not the project default. Install Ollama, `ollama pull <model>`, then in `.env`:
 
 ```sh
 AI_ENABLED=true
@@ -95,11 +97,11 @@ OLLAMA_CHAT_MODEL=<model>        # e.g. the model you pulled; nothing is assumed
 # outside Docker only: OLLAMA_BASE_URL=http://localhost:11434 (Docker uses http://host.docker.internal:11434)
 ```
 
-**Hosted: Gemini or OpenRouter.** First read the provider's **current** terms, quotas, pricing and data-use policy: free tiers and model lists change, and nothing here assumes a model is free. Excerpts (secrets scrubbed) are sent to the provider, so a hosted provider is only used after you acknowledge that:
+**Hosted: Gemini (the default provider here) or OpenRouter.** First read the provider's **current** terms, quotas, pricing and data-use policy: free tiers and model lists change, and nothing here assumes a model is free. Excerpts (secrets scrubbed) are sent to the provider, so a hosted provider is only used after you acknowledge that:
 
 ```sh
 AI_ENABLED=true
-AI_DEFAULT_PROVIDER=gemini                     # or openrouter, or keep ollama and list a fallback
+AI_DEFAULT_PROVIDER=gemini                     # the default; or openrouter / ollama
 AI_PROVIDERS_GEMINI_ENABLED=true
 GEMINI_API_KEY=...                             # .env only; never commit it
 GEMINI_CHAT_MODEL=<model id>                   # list the ids your key can use: GET /v1beta/models

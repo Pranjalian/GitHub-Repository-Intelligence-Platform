@@ -123,7 +123,7 @@ ai:
   # and with ai.enabled=false no provider client is created and nothing is sent anywhere.
   enabled: ${AI_ENABLED:false}
   # Provider used unless the request (preferred provider) or a feature route names another.
-  default-provider: ${AI_DEFAULT_PROVIDER:ollama}
+  default-provider: ${AI_DEFAULT_PROVIDER:gemini}
   # Tried in order when the selected provider is unavailable. A hosted provider is only ever used when
   # its data-handling-acknowledged is true, so a local provider is never silently replaced by a hosted one.
   fallback-providers: []
