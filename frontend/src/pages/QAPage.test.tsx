@@ -65,6 +65,12 @@ describe('Q&A page', () => {
     const conversation = await screen.findByRole('list', { name: 'Conversation' })
     expect(within(conversation).getByText('AI-generated')).toBeInTheDocument()
     expect(within(conversation).getByText(/Owners are looked up in/)).toBeInTheDocument()
+    // the [E2] marker in the text is a button that opens and focuses the matching source
+    expect(within(conversation).getByText('Grounded in 1 file')).toBeInTheDocument()
+    await userEvent.click(within(conversation).getByRole('button', { name: 'Source E2' }))
+    const sources = within(conversation).getByRole('button', { name: /Sources \(1\)/ })
+    expect(sources).toHaveAttribute('aria-expanded', 'true')
+    expect(conversation.querySelector('[data-active]')).not.toBeNull()
     expect(within(conversation).getByRole('link', { name: /OwnerController\.java:90-118/ })).toHaveAttribute(
       'href',
       ownerChunk.sourceUrl,
@@ -124,9 +130,9 @@ describe('Q&A page', () => {
 
     await ask('Where is the xylophone configured?')
 
-    expect(await screen.findByText('Not enough evidence')).toBeInTheDocument()
+    expect(await screen.findByText('Insufficient evidence')).toBeInTheDocument()
     expect(screen.getByText(/Could you name a class/)).toBeInTheDocument()
-    expect(screen.getByText(/Searched: keyword search/)).toBeInTheDocument()
+    expect(screen.getByText(/keyword search for owners/)).toBeInTheDocument()
   })
 
   it('cannot ask before the snapshot is indexed', async () => {
@@ -136,5 +142,21 @@ describe('Q&A page', () => {
     expect(await screen.findByText('Index this snapshot to ask questions.')).toBeInTheDocument()
     await userEvent.type(screen.getByRole('textbox'), 'Anything?')
     expect(screen.getByRole('button', { name: 'Ask' })).toBeDisabled()
+  })
+
+  it('degraded modes offer Code Search and AI Settings, and example chips fill the question; New conversation clears the thread', async () => {
+    const unavailable = answer({ status: 'UNAVAILABLE', aiGenerated: false, answer: null, sources: [], reason: 'AI is disabled.', searchResults: [ownerChunk], provider: null, model: null })
+    stub(indexStatus('COMPLETED'), [unavailable], false)
+    renderPage(<QAPage />, route)
+
+    await screen.findByRole('textbox')
+    await userEvent.click(screen.getByRole('button', { name: 'Where is the owner form validated?' }))
+    expect(screen.getByRole('textbox')).toHaveValue('Where is the owner form validated?')
+    await userEvent.click(screen.getByRole('button', { name: 'Ask' }))
+
+    expect(await screen.findByRole('link', { name: /Open in Code Search/ })).toHaveAttribute('href', `/repositories/${REPO_ID}/search?snapshot=${SNAP_NEW}`)
+    expect(screen.getByRole('link', { name: /Configure AI Settings/ })).toHaveAttribute('href', '/settings/ai')
+    await userEvent.click(screen.getByRole('button', { name: 'New conversation' }))
+    expect(screen.queryByRole('list', { name: 'Conversation' })).toBeNull()
   })
 })

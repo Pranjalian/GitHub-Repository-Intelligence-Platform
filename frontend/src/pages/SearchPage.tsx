@@ -1,134 +1,126 @@
 import { useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router'
 import IndexStatusPanel from '../components/rag/IndexStatusPanel'
 import SearchResultsList from '../components/rag/SearchResultsList'
 import SnapshotPageFrame from '../components/rag/SnapshotPageFrame'
-import { useSearch } from '../hooks/queries'
-import type { SearchParams, SearchType } from '../types/api'
+import { Badge, Button, EmptyState, Input, SegmentedControl, Select } from '../components/ui'
+import { Notice, SkeletonRows, UnavailableState } from '../components/ui/Layout'
+import { useIndexStatus, useSearch } from '../hooks/queries'
+import { isIndexSearchable, type SearchParams, type SearchType } from '../types/api'
 
 const FILE_TYPES = ['', 'SOURCE', 'TEST', 'CONFIG', 'BUILD', 'DOCS', 'RESOURCE']
+const FILE_TYPE_LABEL: Record<string, string> = { '': 'All', SOURCE: 'Source', TEST: 'Test', CONFIG: 'Config', BUILD: 'Build', DOCS: 'Docs', RESOURCE: 'Resource' }
+const SOURCE_LABEL = { SYMBOL_GRAPH: 'symbol graph', CHUNK_NAMES: 'chunk names', KEYWORD_INDEX: 'keyword index' } as const
 
 /** `/repositories/:repositoryId/search?snapshot=`: deterministic symbol and text search, always available. */
 export default function SearchPage() {
   return (
-    <SnapshotPageFrame title="Search">
-      {({ repositoryId, snapshotId }) => <SearchView repositoryId={repositoryId} snapshotId={snapshotId} />}
+    <SnapshotPageFrame title="Code Search" subtitle="deterministic: no AI model is involved">
+      {({ repositoryId, snapshotId, commitSha }) => <SearchView repositoryId={repositoryId} snapshotId={snapshotId} commitSha={commitSha} />}
     </SnapshotPageFrame>
   )
 }
 
-function SearchView({ repositoryId, snapshotId }: { repositoryId: string; snapshotId: string }) {
-  const [text, setText] = useState('')
-  const [type, setType] = useState<SearchType>('text')
-  const [language, setLanguage] = useState('')
-  const [module, setModule] = useState('')
-  const [fileType, setFileType] = useState('')
-  const [params, setParams] = useState<SearchParams | null>(null)
+function SearchView({ repositoryId, snapshotId, commitSha }: { repositoryId: string; snapshotId: string; commitSha: string }) {
+  const [urlParams, setUrlParams] = useSearchParams()
+  const q = urlParams.get('q') ?? ''
+  const type = (urlParams.get('type') === 'symbol' ? 'symbol' : 'text') as SearchType
+  const language = urlParams.get('lang') ?? ''
+  const module = urlParams.get('module') ?? ''
+  const fileType = urlParams.get('ftype') ?? ''
+  const [draft, setDraft] = useState(q)
+  const params: SearchParams | null = q ? { q, type, language, module, fileType } : null
   const search = useSearch(repositoryId, snapshotId, params)
+  const index = useIndexStatus(repositoryId, snapshotId)
+  const indexed = isIndexSearchable(index.data?.status)
+
+  function set(next: Record<string, string>) {
+    const copy = new URLSearchParams(urlParams)
+    for (const [key, value] of Object.entries(next)) {
+      if (value === '' || (key === 'type' && value === 'text')) copy.delete(key)
+      else copy.set(key, value)
+    }
+    setUrlParams(copy, { replace: true })
+  }
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    const q = text.trim()
-    if (q) {
-      setParams({ q, type, language: language.trim(), module: module.trim(), fileType })
-    }
+    const text = draft.trim()
+    if (text) set({ q: text })
   }
+
+  const data = search.data
+  const symbolCount = data?.results.length ?? 0
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        Deterministic search: no AI model is involved. <strong>Symbol</strong> finds exact identifiers (a class, method or
-        field, e.g. <code>OwnerController</code> or <code>Owner.getPets</code>) right after the analysis.{' '}
-        <strong>Text</strong> searches the snapshot's index (all words must match; identifiers also match by their
-        camelCase parts).
-      </p>
       <IndexStatusPanel repositoryId={repositoryId} snapshotId={snapshotId} />
-      <form onSubmit={submit} className="space-y-2 rounded border border-slate-200 bg-white p-3" role="search">
-        <div className="flex flex-wrap gap-2">
+      <form onSubmit={submit} className="space-y-3 rounded-lg border border-line bg-surface p-3" role="search">
+        <div className="flex flex-wrap items-center gap-2">
           <label className="sr-only" htmlFor="search-query">
             Search query
           </label>
-          <input
+          <Input
             id="search-query"
-            value={text}
-            onChange={(event) => setText(event.target.value)}
+            icon="search"
+            hint="/"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
             maxLength={500}
             placeholder={type === 'symbol' ? 'Identifier, e.g. OwnerController' : 'Words to find, e.g. owner validation'}
-            className="min-w-0 flex-1 rounded border border-slate-300 px-3 py-1.5 text-sm"
+            className="min-w-0 flex-1"
           />
-          <label className="sr-only" htmlFor="search-type">
-            Search type
-          </label>
-          <select
-            id="search-type"
-            value={type}
-            onChange={(event) => setType(event.target.value as SearchType)}
-            className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-          >
-            <option value="text">Text</option>
-            <option value="symbol">Symbol</option>
-          </select>
-          <button type="submit" className="rounded bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700">
+          <SegmentedControl<SearchType> label="Search type" value={type} onChange={(v) => set({ type: v })} options={[{ value: 'symbol', label: 'Symbol' }, { value: 'text', label: 'Text' }]} />
+          <Button type="submit" variant="primary" icon="search">
             Search
-          </button>
+          </Button>
         </div>
-        <div className="flex flex-wrap gap-2 text-xs">
-          <label className="flex items-center gap-1">
-            Language
-            <input
-              value={language}
-              onChange={(event) => setLanguage(event.target.value)}
-              placeholder="any"
-              className="w-28 rounded border border-slate-300 px-2 py-1"
-            />
-          </label>
-          <label className="flex items-center gap-1">
-            Module
-            <input
-              value={module}
-              onChange={(event) => setModule(event.target.value)}
-              placeholder="any"
-              className="w-28 rounded border border-slate-300 px-2 py-1"
-            />
-          </label>
-          <label className="flex items-center gap-1">
-            File type
-            <select
-              value={fileType}
-              onChange={(event) => setFileType(event.target.value)}
-              className="rounded border border-slate-300 px-2 py-1"
-            >
-              {FILE_TYPES.map((value) => (
-                <option key={value} value={value}>
-                  {value === '' ? 'any' : value}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="flex flex-wrap items-center gap-2 text-body-md">
+          <Input aria-label="Language" placeholder="Lang: any" value={language} onChange={(e) => set({ lang: e.target.value })} className="w-32" />
+          <Input aria-label="Module" placeholder="Module: any" value={module} onChange={(e) => set({ module: e.target.value })} className="w-32" />
+          <Select label="File type" value={fileType} onChange={(e) => set({ ftype: e.target.value })}>
+            {FILE_TYPES.map((value) => (
+              <option key={value} value={value}>
+                {FILE_TYPE_LABEL[value]}
+              </option>
+            ))}
+          </Select>
         </div>
+        <p className="text-body-sm text-muted">
+          <strong>Symbol</strong> finds exact identifiers (a class, method or field, e.g. <code className="font-mono">OwnerController</code> or <code className="font-mono">Owner.getPets</code>) right after the analysis. <strong>Text</strong> searches the snapshot&apos;s index (all words must match; identifiers also match by their camelCase parts).
+        </p>
       </form>
 
-      {search.isFetching && <p role="status" className="text-sm text-slate-600">Searching…</p>}
+      {search.isFetching && <SkeletonRows rows={2} label="Searching" />}
       {search.error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-body-md text-[color:var(--t-failed-fg)]">
           {search.error.message}
         </p>
       )}
-      {search.data && !search.isFetching && (
+      {!q && !indexed && index.data && (
+        <UnavailableState title="Not indexed" reason="Symbol search works from the analysis right away. Text search needs the snapshot index: use Index this snapshot above." />
+      )}
+      {!q && (
+        <EmptyState icon="search" title="Search this commit" description="Type an identifier or words, choose Symbol or Text, and search. Results link to GitHub at this exact commit." />
+      )}
+      {data && !search.isFetching && (
         <section aria-label="Search results" className="space-y-2">
-          {search.data.status !== 'OK' && (
-            <p role="note" className="rounded bg-amber-50 p-2 text-sm text-amber-900">
-              {search.data.reason}
+          {data.status !== 'OK' && <Notice tone="warning"><span role="note">{data.reason}</span></Notice>}
+          {data.status === 'OK' && data.reason && <p className="text-body-sm text-muted">{data.reason}</p>}
+          {data.status === 'OK' && (
+            <p className="flex flex-wrap items-center gap-2 text-body-md text-fg-2">
+              {symbolCount === 0 ? (
+                <>No results for &quot;{data.query}&quot;. Try fewer words, an exact identifier, or switch between Symbol and Text.</>
+              ) : (
+                <>
+                  Showing {symbolCount} {data.type === 'SYMBOL' ? 'symbol' : 'text'} {symbolCount === 1 ? 'match' : 'matches'} for <code className="font-mono">{data.query}</code>
+                </>
+              )}
+              <Badge tone="neutral">Commit {(data.commitSha ?? commitSha).slice(0, 7).toUpperCase()}</Badge>
+              {data.source && <Badge tone="info">{SOURCE_LABEL[data.source]}</Badge>}
             </p>
           )}
-          {search.data.status === 'OK' && search.data.reason && <p className="text-xs text-slate-600">{search.data.reason}</p>}
-          {search.data.status === 'OK' && (
-            <p className="text-xs text-slate-600">
-              {search.data.results.length === 0
-                ? `No results for "${search.data.query}".`
-                : `${search.data.results.length} result(s) at commit ${search.data.commitSha.slice(0, 7)}.`}
-            </p>
-          )}
-          <SearchResultsList results={search.data.results} />
+          <SearchResultsList results={data.results} terms={data.terms} />
         </section>
       )}
     </div>

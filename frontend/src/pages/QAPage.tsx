@@ -1,22 +1,29 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import IndexStatusPanel from '../components/rag/IndexStatusPanel'
 import AnswerView from '../components/rag/AnswerView'
+import IndexStatusPanel from '../components/rag/IndexStatusPanel'
 import SnapshotPageFrame from '../components/rag/SnapshotPageFrame'
+import { Button, Icon } from '../components/ui'
+import { Notice } from '../components/ui/Layout'
 import { useAIProviders, useAskQuestion, useIndexStatus } from '../hooks/queries'
 import { readPreferredProvider } from '../lib/aiPreference'
 import { isIndexSearchable, type QuestionAnswer } from '../types/api'
 
+const EXAMPLES = ['Where is the owner form validated?', 'Which classes handle HTTP requests?', 'How are database entities mapped?']
+const LIMIT = 2000
+
 /** `/repositories/:repositoryId/qa?snapshot=`: questions about one commit, answered from its index. */
 export default function QAPage() {
   return (
-    <SnapshotPageFrame title="Ask about">
-      {({ repositoryId, snapshotId }) => <QAView key={snapshotId} repositoryId={repositoryId} snapshotId={snapshotId} />}
+    <SnapshotPageFrame title="Ask">
+      {({ repositoryId, snapshotId, commitSha, repositoryName }) => (
+        <QAView key={snapshotId} repositoryId={repositoryId} snapshotId={snapshotId} commitSha={commitSha} repositoryName={repositoryName} />
+      )}
     </SnapshotPageFrame>
   )
 }
 
-function QAView({ repositoryId, snapshotId }: { repositoryId: string; snapshotId: string }) {
+function QAView({ repositoryId, snapshotId, commitSha, repositoryName }: { repositoryId: string; snapshotId: string; commitSha: string; repositoryName: string }) {
   const providers = useAIProviders()
   const index = useIndexStatus(repositoryId, snapshotId)
   const ask = useAskQuestion(repositoryId, snapshotId)
@@ -46,77 +53,88 @@ function QAView({ repositoryId, snapshotId }: { repositoryId: string; snapshotId
   return (
     <div className="space-y-4">
       {providers.data && !providers.data.available && (
-        <p role="note" className="rounded bg-slate-100 p-2 text-sm text-slate-700">
-          AI unavailable: {providers.data.unavailableReason ?? 'no provider is configured.'} Questions still return
-          deterministic search results, and{' '}
-          <Link to={searchLink} className="text-blue-700 hover:underline">
-            Search
-          </Link>{' '}
-          works without any model.{' '}
-          <Link to="/settings/ai" className="text-blue-700 hover:underline">
-            AI settings
-          </Link>
-        </p>
+        <Notice>
+          <span role="note">
+            AI unavailable: {providers.data.unavailableReason ?? 'no provider is configured.'} Questions still return deterministic search results, and{' '}
+            <Link to={searchLink} className="text-primary-text underline">
+              Search
+            </Link>{' '}
+            works without any model.{' '}
+            <Link to="/settings/ai" className="text-primary-text underline">
+              AI settings
+            </Link>
+          </span>
+        </Notice>
       )}
       {index.data?.embeddingStatus === 'NOT_CONFIGURED' && (
-        <p role="note" className="rounded bg-slate-100 p-2 text-sm text-slate-700">
-          No embedding provider configured: answers use keyword and symbol retrieval only (no semantic search).{' '}
-          <Link to={searchLink} className="text-blue-700 hover:underline">
-            Search
-          </Link>{' '}
-          finds exact identifiers and words.
-        </p>
+        <Notice>
+          <span role="note">
+            No embedding provider configured: answers use keyword and symbol retrieval only (no semantic search).{' '}
+            <Link to={searchLink} className="text-primary-text underline">
+              Search
+            </Link>{' '}
+            finds exact identifiers and words.
+          </span>
+        </Notice>
       )}
-      <IndexStatusPanel repositoryId={repositoryId} snapshotId={snapshotId} />
+      <div className="flex flex-wrap items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <IndexStatusPanel repositoryId={repositoryId} snapshotId={snapshotId} />
+        </div>
+        {turns.length > 0 && (
+          <Button variant="secondary" icon="add" onClick={() => setTurns([])}>
+            New conversation
+          </Button>
+        )}
+      </div>
 
       {turns.length > 0 && (
         <ol aria-label="Conversation" className="space-y-4">
           {turns.map((turn) => (
             <li key={turn.messageId ?? turn.question} className="space-y-2">
-              <p className="ml-auto max-w-prose rounded bg-slate-900 px-3 py-2 text-sm text-white">{turn.question}</p>
-              <div className="rounded border border-slate-200 bg-white p-3">
-                <AnswerView answer={turn} />
+              <p className="ml-auto w-fit max-w-prose rounded-lg bg-primary px-3 py-2 text-body-lg text-primary-fg">{turn.question}</p>
+              <div className={`rounded-lg border p-4 ${turn.aiGenerated ? 'ai-surface' : 'border-line bg-surface'}`}>
+                <AnswerView answer={turn} searchLink={searchLink} commitSha={commitSha} />
               </div>
             </li>
           ))}
         </ol>
       )}
 
-      <form onSubmit={submit} className="space-y-2 rounded border border-slate-200 bg-white p-3">
-        <label htmlFor="question" className="text-sm font-medium">
-          {turns.length > 0 ? 'Follow-up question' : 'Question about this commit'}
+      <form onSubmit={submit} className="space-y-2 rounded-lg border border-line bg-surface p-3">
+        <label htmlFor="question" className="flex items-center gap-2 text-body-md font-medium">
+          <Icon name="sparkle" size={14} className="text-ai-text" />
+          {turns.length > 0 ? 'Follow-up question' : `Ask a question about ${repositoryName} (${commitSha.slice(0, 7)})`}
         </label>
         <textarea
           id="question"
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
-          maxLength={2000}
+          maxLength={LIMIT}
           rows={3}
           placeholder="For example: Where is the owner form validated?"
-          className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+          className="w-full rounded border border-line-strong bg-canvas px-3 py-2 text-body-lg"
         />
+        {question.length > LIMIT * 0.8 && <p className="text-body-sm text-muted" aria-live="polite">{question.length} / {LIMIT}</p>}
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="submit"
-            disabled={ask.isPending || !searchable || question.trim() === ''}
-            className="rounded bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <Button type="submit" variant="ai" icon="sparkle" busy={ask.isPending} disabled={!searchable || question.trim() === ''}>
             {ask.isPending ? 'Asking…' : 'Ask'}
-          </button>
-          {turns.length > 0 && (
-            <button type="button" onClick={() => setTurns([])} className="text-sm text-slate-600 hover:underline">
-              New conversation
-            </button>
-          )}
-          {!searchable && index.data && <span className="text-xs text-slate-600">Index this snapshot to ask questions.</span>}
+          </Button>
+          {turns.length === 0 &&
+            EXAMPLES.map((example) => (
+              <button key={example} type="button" onClick={() => setQuestion(example)} className="rounded border border-line-strong px-2 py-1 text-body-sm text-fg-2 hover:bg-raised">
+                {example}
+              </button>
+            ))}
+          {!searchable && index.data && <span className="text-body-sm text-muted">Index this snapshot to ask questions.</span>}
         </div>
         {ask.isPending && (
-          <p role="status" className="text-xs text-slate-600">
+          <p role="status" className="text-body-sm text-muted">
             Searching the index and asking the model; this can take up to a minute…
           </p>
         )}
         {ask.error && (
-          <p role="alert" className="text-xs text-red-700">
+          <p role="alert" className="text-body-sm text-[color:var(--t-failed-fg)]">
             {ask.error.message}
           </p>
         )}

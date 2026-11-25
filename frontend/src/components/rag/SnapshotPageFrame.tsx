@@ -1,22 +1,28 @@
 import type { ReactNode } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { useParams, useSearchParams } from 'react-router'
 import { useRepository, useSnapshots } from '../../hooks/queries'
 import { chooseSnapshot } from '../../lib/snapshots'
 import { isCompleted } from '../../types/api'
 import SnapshotSelector from '../report/SnapshotSelector'
 import EmptyState from '../ui/EmptyState'
 import ErrorState from '../ui/ErrorState'
+import { SkeletonRows } from '../ui/Layout'
 
 /**
- * Shared frame of the per-snapshot pages (Search, Q&A): repository and commit header, snapshot selector,
- * links to the other views, and the page content once the snapshot has a completed analysis.
+ * Shared frame of the per-snapshot pages (Search, Q&A, Impact): the page title, the repository and
+ * commit it is about, the snapshot selector (which rewrites ?snapshot=), and the content once the
+ * snapshot has a completed analysis. Navigation to the other views is the sidebar's job.
  */
 export default function SnapshotPageFrame({
   title,
+  subtitle,
   children,
+  actions,
 }: {
   title: string
-  children: (props: { repositoryId: string; snapshotId: string; commitSha: string }) => ReactNode
+  subtitle?: string
+  actions?: ReactNode
+  children: (props: { repositoryId: string; snapshotId: string; commitSha: string; repositoryName: string; repositoryUrl: string }) => ReactNode
 }) {
   const { repositoryId = '' } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -24,7 +30,7 @@ export default function SnapshotPageFrame({
   const snapshots = useSnapshots(repositoryId)
 
   if (repository.isPending || snapshots.isPending) {
-    return <p role="status">Loading repository…</p>
+    return <SkeletonRows rows={3} label="Loading repository" />
   }
   if (repository.error || snapshots.error) {
     const error = repository.error ?? snapshots.error
@@ -35,41 +41,33 @@ export default function SnapshotPageFrame({
     return <EmptyState title="Nothing analyzed yet" description="This repository has no snapshots." />
   }
   const completed = isCompleted(selected.latestRun?.status)
-  const query = `?snapshot=${selected.id}`
+  const name = `${repository.data.owner}/${repository.data.name}`
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-5">
+      <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-xl font-semibold">
-            {title} {repository.data.owner}/{repository.data.name}
-          </h2>
-          <p className="break-all font-mono text-xs text-slate-500">{selected.commitSha}</p>
+          <h1 className="text-headline-lg font-semibold tracking-tight">{title}</h1>
+          <p className="text-body-sm text-muted">
+            {name} <span className="font-mono">@ {selected.commitSha.slice(0, 7)}</span>
+            {subtitle && <span> · {subtitle}</span>}
+          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {actions}
           <SnapshotSelector
             snapshots={snapshots.data.items}
             selectedId={selected.id}
-            onSelect={(snapshotId) => setSearchParams({ snapshot: snapshotId })}
+            onSelect={(snapshotId) => {
+              const next = new URLSearchParams(searchParams)
+              next.set('snapshot', snapshotId)
+              setSearchParams(next)
+            }}
           />
-          <nav aria-label="Snapshot views" className="flex gap-3 text-sm">
-            <Link to={`/repositories/${repositoryId}${query}`} className="text-blue-700 hover:underline">
-              Report
-            </Link>
-            <Link to={`/repositories/${repositoryId}/search${query}`} className="text-blue-700 hover:underline">
-              Search
-            </Link>
-            <Link to={`/repositories/${repositoryId}/qa${query}`} className="text-blue-700 hover:underline">
-              Q&amp;A
-            </Link>
-            <Link to={`/repositories/${repositoryId}/impact${query}`} className="text-blue-700 hover:underline">
-              Impact
-            </Link>
-          </nav>
         </div>
       </header>
       {completed ? (
-        children({ repositoryId, snapshotId: selected.id, commitSha: selected.commitSha })
+        children({ repositoryId, snapshotId: selected.id, commitSha: selected.commitSha, repositoryName: name, repositoryUrl: repository.data.canonicalUrl })
       ) : (
         <EmptyState title="Not analyzed" description="This commit has no completed analysis yet." />
       )}

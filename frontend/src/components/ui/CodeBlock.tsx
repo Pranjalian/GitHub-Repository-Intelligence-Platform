@@ -12,6 +12,7 @@ export default function CodeBlock({
   label,
   copy = true,
   lineNumbers = true,
+  emphasize = [],
 }: {
   code: string
   startLine?: number
@@ -20,6 +21,8 @@ export default function CodeBlock({
   label?: string
   copy?: boolean
   lineNumbers?: boolean
+  /** Terms to emphasise inside lines (as <mark> elements; the text itself stays text). */
+  emphasize?: string[]
 }) {
   const lines = code.replace(/\n$/, '').split('\n')
   return (
@@ -40,12 +43,28 @@ export default function CodeBlock({
               <div key={i} className={`flex px-3 ${tone} ${marked ? 'bg-[color-mix(in_srgb,var(--t-warning)_16%,transparent)]' : ''}`} data-highlighted={marked || undefined}>
                 {lineNumbers && <span aria-hidden="true" className="mr-3 inline-block w-8 shrink-0 select-none text-right text-muted">{number}</span>}
                 {marked && <span aria-hidden="true" className="mr-1 select-none text-[color:var(--t-warning-fg)]">&gt;&gt;&gt;</span>}
-                <span className="whitespace-pre">{line || ' '}</span>
+                <span className="whitespace-pre">{emphasize.length > 0 ? markTerms(line, emphasize) : line || ' '}</span>
               </div>
             )
           })}
         </code>
       </pre>
     </figure>
+  )
+}
+
+/** Splits a line on the terms (case-insensitive) and wraps matches in <mark>: React nodes only, never HTML. */
+export function markTerms(line: string, terms: string[]) {
+  const escaped = terms.filter((t) => t.length > 0).map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  if (escaped.length === 0) return line || ' '
+  const parts = line.split(new RegExp(`(${escaped.join('|')})`, 'i'))
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <mark key={i} className="rounded-sm bg-[color-mix(in_srgb,var(--t-warning)_35%,transparent)] px-0.5 text-inherit">
+        {part}
+      </mark>
+    ) : (
+      part
+    ),
   )
 }
