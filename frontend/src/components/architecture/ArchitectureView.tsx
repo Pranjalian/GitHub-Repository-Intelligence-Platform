@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
+import { Link } from 'react-router'
 import type {
   ArchitectureCycle,
   ArchitectureEndpoint,
@@ -9,6 +10,7 @@ import type {
   ChainStep,
   EdgeResolution,
   Injection,
+  LayerClass,
   LayerMethod,
   PatternCandidate,
 } from '../../types/api'
@@ -16,6 +18,11 @@ import AIAvailabilityNote from '../ai/AIAvailabilityNote'
 import SymbolInsights from '../ai/SymbolInsights'
 import Badge from '../ui/Badge'
 import ConfidenceBadge from '../ui/ConfidenceBadge'
+import { Accordion, Input, Select } from '../ui/Controls'
+import { DataTable } from '../ui/Data'
+import Icon from '../ui/icons'
+import { Card, UnavailableState } from '../ui/Layout'
+import { HttpMethodBadge } from '../ui/MoreBadges'
 import SeverityBadge from '../ui/SeverityBadge'
 import StatusLabel from '../ui/StatusLabel'
 import MermaidDiagram from './MermaidDiagram'
@@ -30,6 +37,7 @@ const LAYER_LABELS: Record<ArchitectureLayer, string> = {
   INFRASTRUCTURE: 'Infrastructure',
 }
 
+/** The "How" tag of a type row, from how the backend assigned the layer. */
 const METHOD_LABELS: Record<LayerMethod, string> = {
   ANNOTATION: 'annotation',
   TYPE_HIERARCHY: 'Spring Data interface',
@@ -57,18 +65,19 @@ function SourceLink({ url, children }: { url: string | null; children: ReactNode
     return <>{children}</>
   }
   return (
-    <a href={url} target="_blank" rel="noreferrer" className="text-blue-700 hover:underline">
+    <a href={url} target="_blank" rel="noreferrer" className="text-primary-text hover:underline">
       {children}
     </a>
   )
 }
 
-function Section({ title, children, count }: { title: string; children: ReactNode; count?: number }) {
+function Section({ title, children, count, icon }: { title: string; children: ReactNode; count?: number; icon?: string }) {
   return (
     <section aria-label={title} className="space-y-2">
-      <h3 className="text-base font-semibold">
+      <h3 className="flex items-center gap-2 text-headline-md font-semibold">
+        {icon && <Icon name={icon} size={18} className="text-fg-2" />}
         {title}
-        {count != null && <span className="ml-2 text-sm font-normal text-slate-500">({count})</span>}
+        {count != null && <span className="text-body-md font-normal text-muted">({count})</span>}
       </h3>
       {children}
     </section>
@@ -76,46 +85,46 @@ function Section({ title, children, count }: { title: string; children: ReactNod
 }
 
 /** The architecture of one snapshot. For unsupported technologies it says so instead of showing empty sections. */
-export default function ArchitectureView({ report }: { report: ArchitectureReport }) {
+export default function ArchitectureView({ report, stackLabel, links }: { report: ArchitectureReport; stackLabel?: string; links?: { to: string; label: string }[] }) {
   if (!report.supported) {
-    return <UnsupportedArchitecture report={report} />
+    return <UnsupportedArchitecture report={report} links={links} />
   }
   const { diagrams } = report
+  const noDiagrams = !diagrams.layers && !diagrams.apiFlow && !diagrams.entities && !diagrams.modules
+  const cap = diagrams.notes.find((n) => /\d+ of \d+/.test(n))
   return (
     <div className="space-y-8">
-      <Overview report={report} />
-      {report.cycles.length > 0 && <CycleWarnings cycles={report.cycles} />}
-      <Section title="Diagrams">
+      <Overview report={report} stackLabel={stackLabel} />
+      <Section title="Diagrams" icon="architecture">
         <div className="grid gap-4 xl:grid-cols-2">
-          {diagrams.layers && <MermaidDiagram title="Layers" source={diagrams.layers} />}
-          {diagrams.apiFlow && <MermaidDiagram title="API flow" source={diagrams.apiFlow} />}
-          {diagrams.entities && <MermaidDiagram title="Entity relationships" source={diagrams.entities} />}
-          {diagrams.modules && <MermaidDiagram title="Modules" source={diagrams.modules} />}
+          {diagrams.layers && <MermaidDiagram title="Layers" source={diagrams.layers} icon="architecture" note={cap} />}
+          {diagrams.apiFlow && <MermaidDiagram title="API flow" source={diagrams.apiFlow} icon="route" />}
+          {diagrams.entities && <MermaidDiagram title="Entity relationships" source={diagrams.entities} icon="entity" />}
+          {diagrams.modules && <MermaidDiagram title="Modules" source={diagrams.modules} icon="package" />}
         </div>
-        {!diagrams.layers && !diagrams.apiFlow && !diagrams.entities && !diagrams.modules && (
-          <p className="text-sm text-slate-600">Nothing to draw: no layers, endpoints, entities or module dependencies were found.</p>
-        )}
+        {noDiagrams && <p className="text-body-md text-fg-2">Nothing to draw: no layers, endpoints, entities or module dependencies were found.</p>}
         {diagrams.notes.length > 0 && (
-          <ul aria-label="Diagram notes" className="list-disc pl-5 text-xs text-slate-600">
+          <ul aria-label="Diagram notes" className="list-disc pl-5 text-body-sm text-muted">
             {diagrams.notes.map((note) => (
               <li key={note}>{note}</li>
             ))}
           </ul>
         )}
       </Section>
-      <LayerOverview layers={report.layers} repositoryId={report.repositoryId} snapshotId={report.snapshotId} />
+      <LayerOverview layers={report.layers} injections={report.injections} repositoryId={report.repositoryId} snapshotId={report.snapshotId} />
       <EndpointTable endpoints={report.endpoints} />
       <EntityView entities={report.entities} />
       <DiChains chains={report.diChains} />
+      {report.cycles.length > 0 ? <CycleWarnings cycles={report.cycles} /> : <Section title="Dependency cycles" count={0}><p className="text-body-md text-fg-2">No cycles detected.</p></Section>}
       <InjectionTable injections={report.injections} />
       {report.moduleDependencies.length > 0 && (
         <Section title="Module dependencies" count={report.moduleDependencies.length}>
-          <ul className="space-y-1 text-sm">
+          <ul className="space-y-1 text-body-md">
             {report.moduleDependencies.map((dependency) => (
               <li key={dependency.source + '>' + dependency.target}>
                 <span className="font-mono">{dependency.source}</span> → <span className="font-mono">{dependency.target}</span>
                 {dependency.evidence[0] && (
-                  <span className="ml-2 text-xs text-slate-500">
+                  <span className="ml-2 text-body-sm text-muted">
                     {dependency.evidence[0].path}
                     {dependency.evidence[0].line != null && `:${dependency.evidence[0].line}`}
                   </span>
@@ -131,29 +140,51 @@ export default function ArchitectureView({ report }: { report: ArchitectureRepor
   )
 }
 
-function UnsupportedArchitecture({ report }: { report: ArchitectureReport }) {
+/** Not supported (for example Python): says so, lists the detected technologies and points to what is available. */
+export function UnsupportedArchitecture({ report, links }: { report: ArchitectureReport; links?: { to: string; label: string }[] }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-dashed border-slate-300 bg-white p-6">
-        <h3 className="text-base font-semibold">Architecture analysis is not supported for this technology</h3>
-        <p className="mt-2 text-sm text-slate-600">
-          Architecture discovery currently exists for Java and Spring Boot. The structure, dependency, security and test
-          sections of the report are not affected.
+      <UnavailableState
+        icon="architecture"
+        title="Architecture analysis is not supported for this technology"
+        reason="Architecture discovery currently exists for Java and Spring Boot. The structure, dependency, security and test sections of the report are not affected."
+      />
+      {report.unsupported.length > 0 && (
+        <ul aria-label="Unsupported technologies" className="flex flex-wrap gap-2">
+          {report.unsupported.map((item) => (
+            <li key={item}>
+              <Badge tone="neutral">{item}</Badge>
+            </li>
+          ))}
+        </ul>
+      )}
+      {links && (
+        <p className="flex flex-wrap items-center gap-3 text-body-md">
+          Available instead:
+          {links.map((l) => (
+            <Link key={l.to} to={l.to} className="text-primary-text hover:underline">
+              {l.label}
+            </Link>
+          ))}
         </p>
-        {report.unsupported.length > 0 && (
-          <ul aria-label="Unsupported technologies" className="mt-3 list-disc pl-5 text-sm">
-            {report.unsupported.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        )}
-      </div>
+      )}
     </div>
   )
 }
 
-function Overview({ report }: { report: ArchitectureReport }) {
+function Overview({ report, stackLabel }: { report: ArchitectureReport; stackLabel?: string }) {
   const summary = report.summary
+  const count = (layer: ArchitectureLayer) => report.layers.find((g) => g.layer === layer)?.total ?? 0
+  const unresolved = (summary.unresolvedRelationships ?? 0) + (summary.ambiguousRelationships ?? 0)
+  const chips: [string, number][] = [
+    ['controllers', count('CONTROLLER')],
+    ['repositories', count('REPOSITORY')],
+    ['services', count('SERVICE')],
+    ['DTOs', count('DTO')],
+    ['configuration', count('CONFIGURATION')],
+    ['entities', summary.entities ?? count('ENTITY')],
+    ['endpoints', summary.endpoints ?? report.endpoints.length],
+  ]
   const items: [string, number | undefined][] = [
     ['Types', summary.types],
     ['Layered types', summary.layeredTypes],
@@ -165,10 +196,30 @@ function Overview({ report }: { report: ArchitectureReport }) {
   ]
   return (
     <Section title="Overview">
-      <div className="flex flex-wrap items-center gap-2 text-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge tone="primary" icon="architecture">AST + graph inference</Badge>
         <StatusLabel status={report.status} />
+        {stackLabel && <Badge tone="neutral">{stackLabel}</Badge>}
+        <span className="ml-auto font-mono text-body-sm text-fg-2">{stackLabel ? `${stackLabel} · ` : ''}{report.commitSha.slice(0, 7)}</span>
+      </div>
+      <ul aria-label="Summary chips" className="flex flex-wrap gap-2">
+        {chips.filter(([label, n]) => n > 0 || label === 'controllers' || label === 'endpoints').map(([label, n]) => (
+          <li key={label} className="rounded border border-line bg-surface px-2 py-1 text-body-md">
+            <span className="font-mono font-semibold">{n}</span> {label}
+          </li>
+        ))}
+        {unresolved > 0 && (
+          <li>
+            <a href="#architecture-limitations" className="tone tone-warning inline-flex items-center gap-1 rounded px-2 py-1 text-body-md">
+              <Icon name="warning" size={14} />
+              {unresolved} unresolved or ambiguous edges
+            </a>
+          </li>
+        )}
+      </ul>
+      <div className="flex flex-wrap items-center gap-2 text-body-sm text-fg-2">
         {report.analyzers.map((analyzer) => (
-          <span key={analyzer.id} className="text-slate-600">
+          <span key={analyzer.id}>
             {analyzer.id} {analyzer.version}
             {analyzer.capabilityLevel && <span className="ml-1">({analyzer.capabilityLevel.toLowerCase()})</span>}
           </span>
@@ -176,9 +227,9 @@ function Overview({ report }: { report: ArchitectureReport }) {
       </div>
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
         {items.map(([label, value]) => (
-          <div key={label} className="rounded border border-slate-200 bg-white p-2">
-            <dt className="text-xs text-slate-500">{label}</dt>
-            <dd className="text-lg font-semibold">{value ?? '—'}</dd>
+          <div key={label} className="rounded-lg border border-line bg-surface p-2">
+            <dt className="font-mono text-label-sm uppercase tracking-wider text-muted">{label}</dt>
+            <dd className="text-headline-md font-semibold">{value ?? '—'}</dd>
           </div>
         ))}
       </dl>
@@ -191,14 +242,15 @@ function CycleWarnings({ cycles }: { cycles: ArchitectureCycle[] }) {
     <Section title="Dependency cycles" count={cycles.length}>
       <ul className="space-y-2">
         {cycles.map((cycle) => (
-          <li key={cycle.rule + cycle.members.join(',')} role="alert" className="rounded border border-amber-300 bg-amber-50 p-3 text-sm">
-            <div className="flex flex-wrap items-center gap-2">
+          <li key={cycle.rule + cycle.members.join(',')} role="alert" className="tone tone-warning space-y-1 rounded-lg p-3 text-body-md">
+            <div className="flex flex-wrap items-center gap-2 text-fg">
+              <Badge tone="warning" icon="warning">WARN</Badge>
               <SeverityBadge severity={cycle.severity} />
               <ConfidenceBadge confidence={cycle.confidence} />
               <span className="font-medium">{cycle.title}</span>
             </div>
-            {cycle.description && <p className="mt-1 text-slate-700">{cycle.description}</p>}
-            <ul className="mt-1 font-mono text-xs">
+            {cycle.description && <p className="text-fg">{cycle.description}</p>}
+            <ul className="font-mono text-code-md text-fg">
               {cycle.edges.map((edge, index) => (
                 <li key={index}>
                   {shortName(String(edge.from))} → {shortName(String(edge.to))} ({String(edge.relationship).toLowerCase()},{' '}
@@ -213,49 +265,85 @@ function CycleWarnings({ cycles }: { cycles: ArchitectureCycle[] }) {
   )
 }
 
-function LayerOverview({
-  layers,
-  repositoryId,
-  snapshotId,
-}: {
-  layers: ArchitectureLayerGroup[]
-  repositoryId: string
-  snapshotId: string
-}) {
+function TypeRow({ cls, injections, repositoryId, snapshotId }: { cls: LayerClass; injections: Injection[]; repositoryId: string; snapshotId: string }) {
+  const [open, setOpen] = useState(false)
+  const deps = injections.filter((i) => i.from === cls.fullyQualifiedName)
   return (
-    <Section title="Layers">
-      {layers.length === 0 && <p className="text-sm text-slate-600">No class could be assigned to a layer.</p>}
-      {layers.length > 0 && <AIAvailabilityNote />}
-      <div className="grid gap-4 lg:grid-cols-2">
-        {layers.map((group) => (
-          <div key={group.layer} className="rounded border border-slate-200 bg-white p-3" aria-label={`Layer ${group.layer}`}>
-            <h4 className="text-sm font-semibold">
-              {LAYER_LABELS[group.layer]} <span className="font-normal text-slate-500">({group.total})</span>
-            </h4>
-            <ul className="mt-2 space-y-1 text-sm">
-              {group.classes.map((cls) => (
-                <li key={cls.fullyQualifiedName + cls.filePath} className="flex flex-wrap items-center gap-2">
-                  <SourceLink url={cls.sourceUrl}>
-                    <span className="font-mono text-xs" title={cls.fullyQualifiedName}>
-                      {cls.name}
-                    </span>
-                  </SourceLink>
-                  <ConfidenceBadge confidence={cls.confidence} />
-                  <span className="text-xs text-slate-500">
-                    {METHOD_LABELS[cls.method]}
-                    {cls.evidence[0]?.signal && `: ${cls.evidence[0].signal}`}
-                  </span>
-                  {cls.symbolId && (
-                    <SymbolInsights repositoryId={repositoryId} snapshotId={snapshotId} symbolId={cls.symbolId} name={cls.name} />
-                  )}
-                </li>
-              ))}
-            </ul>
-            {group.total > group.classes.length && (
-              <p className="mt-1 text-xs text-slate-500">
-                {group.classes.length} of {group.total} shown.
-              </p>
+    <li className="rounded border border-line bg-canvas">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-2">
+        <SourceLink url={cls.sourceUrl}>
+          <span className="font-mono text-body-sm font-medium" title={cls.fullyQualifiedName}>
+            {cls.name}
+          </span>
+        </SourceLink>
+        <ConfidenceBadge confidence={cls.confidence} />
+        <Badge tone="neutral">{METHOD_LABELS[cls.method]}</Badge>
+        <span className="text-body-sm text-muted">{cls.evidence[0]?.signal && `${METHOD_LABELS[cls.method]}: ${cls.evidence[0].signal}`}</span>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-label={`${open ? 'Collapse' : 'Expand'} ${cls.name}`}
+          onClick={() => setOpen((v) => !v)}
+          className="ml-auto inline-flex size-7 items-center justify-center rounded text-fg-2 hover:bg-raised"
+        >
+          <Icon name={open ? 'chevron-up' : 'chevron-down'} size={14} />
+        </button>
+      </div>
+      {open && (
+        <div className="space-y-3 border-t border-line px-3 py-2">
+          <div>
+            <h5 className="font-mono text-label-sm uppercase tracking-wider text-muted">Injected dependencies</h5>
+            {deps.length === 0 ? (
+              <p className="text-body-sm text-muted">No injected dependencies were found for this type.</p>
+            ) : (
+              <ul className="mt-1 flex flex-wrap gap-1.5">
+                {deps.map((d) => (
+                  <li key={`${d.to}-${d.member}`} className={`rounded px-1.5 py-0.5 font-mono text-body-sm ${d.resolution === 'RESOLVED' ? 'bg-raised' : 'tone tone-neutral border-dashed'}`} title={d.to ?? undefined}>
+                    {d.resolution === 'RESOLVED' ? shortName(d.to) : d.to}
+                  </li>
+                ))}
+              </ul>
             )}
+          </div>
+          {cls.symbolId ? (
+            <SymbolInsights repositoryId={repositoryId} snapshotId={snapshotId} symbolId={cls.symbolId} name={cls.name} />
+          ) : (
+            <p className="text-body-sm text-muted">AI actions need a parsed symbol for this type, which was not recorded.</p>
+          )}
+        </div>
+      )}
+    </li>
+  )
+}
+
+function LayerOverview({ layers, injections, repositoryId, snapshotId }: { layers: ArchitectureLayerGroup[]; injections: Injection[]; repositoryId: string; snapshotId: string }) {
+  return (
+    <Section title="Layers" icon="class">
+      {layers.length === 0 && <p className="text-body-md text-fg-2">No class could be assigned to a layer.</p>}
+      {layers.length > 0 && <AIAvailabilityNote />}
+      <div className="space-y-2">
+        {layers.map((group) => (
+          <div key={group.layer} aria-label={`Layer ${group.layer}`}>
+            <Accordion
+              defaultOpen
+              title={
+                <span className="font-semibold">
+                  {LAYER_LABELS[group.layer]} <span className="font-normal text-muted">({group.total})</span>
+                </span>
+              }
+              right={<span className="hidden font-mono text-body-sm text-muted md:inline">{group.classes[0]?.evidence[0]?.signal ?? ''}</span>}
+            >
+              <ul className="space-y-1.5">
+                {group.classes.map((cls) => (
+                  <TypeRow key={cls.fullyQualifiedName + cls.filePath} cls={cls} injections={injections} repositoryId={repositoryId} snapshotId={snapshotId} />
+                ))}
+              </ul>
+              {group.total > group.classes.length && (
+                <p className="mt-1 text-body-sm text-muted">
+                  {group.classes.length} of {group.total} shown.
+                </p>
+              )}
+            </Accordion>
           </div>
         ))}
       </div>
@@ -264,42 +352,54 @@ function LayerOverview({
 }
 
 function EndpointTable({ endpoints }: { endpoints: ArchitectureEndpoint[] }) {
+  const [method, setMethod] = useState('')
+  const [text, setText] = useState('')
+  const methods = useMemo(() => [...new Set(endpoints.map((e) => e.httpMethod))].sort(), [endpoints])
+  const rows = endpoints.filter((e) => (!method || e.httpMethod === method) && (!text || `${e.route} ${e.handler ?? ''}`.toLowerCase().includes(text.toLowerCase())))
   return (
-    <Section title="REST endpoints" count={endpoints.length}>
+    <Section title="REST endpoints" count={endpoints.length} icon="route">
       {endpoints.length === 0 ? (
-        <p className="text-sm text-slate-600">No Spring MVC request mappings were found.</p>
+        <p className="text-body-md text-fg-2">No Spring MVC request mappings were found.</p>
       ) : (
-        <table className="w-full bg-white text-left text-sm">
-          <thead className="border-b border-slate-200 text-xs text-slate-500">
-            <tr>
-              <th className="p-2">Method</th>
-              <th className="p-2">Route</th>
-              <th className="p-2">Handler</th>
-              <th className="p-2">Request</th>
-              <th className="p-2">Response</th>
-            </tr>
-          </thead>
-          <tbody>
-            {endpoints.map((endpoint) => (
-              <tr key={endpoint.httpMethod + endpoint.route + endpoint.handler} className="border-b border-slate-100">
-                <td className="p-2 font-mono text-xs">{endpoint.httpMethod}</td>
-                <td className="p-2 font-mono text-xs">
-                  {endpoint.route}
-                  {!endpoint.routeResolved && (
-                    <span className="ml-2">
-                      <Badge tone="warning">path not resolved</Badge>
-                    </span>
-                  )}
-                </td>
-                <td className="p-2 font-mono text-xs">
-                  <SourceLink url={endpoint.sourceUrl}>{endpoint.handler ?? '—'}</SourceLink>
-                </td>
-                <td className="p-2 font-mono text-xs">{endpoint.requestType ? shortName(endpoint.requestType) : '—'}</td>
-                <td className="p-2 font-mono text-xs">{endpoint.responseType ? shortName(endpoint.responseType) : '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select label="HTTP method" value={method} onChange={(e) => setMethod(e.target.value)}>
+              <option value="">All methods</option>
+              {methods.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </Select>
+            <Input icon="search" aria-label="Search endpoints" placeholder="Search route or handler" value={text} onChange={(e) => setText(e.target.value)} className="w-60" />
+            <span className="text-body-sm text-muted">{endpoints.length} mapped routes</span>
+          </div>
+          <DataTable
+            caption="REST endpoints"
+            rows={rows}
+            rowKey={(e) => e.httpMethod + e.route + e.handler}
+            columns={[
+              { key: 'm', header: 'Method', cell: (e) => <HttpMethodBadge method={e.httpMethod} /> },
+              {
+                key: 'r',
+                header: 'Route',
+                cell: (e) => (
+                  <span className="font-mono text-body-sm">
+                    {e.route}
+                    {!e.routeResolved && (
+                      <span className="ml-2">
+                        <Badge tone="warning">path not resolved</Badge>
+                      </span>
+                    )}
+                  </span>
+                ),
+              },
+              { key: 'h', header: 'Handler', cell: (e) => <span className="font-mono text-body-sm"><SourceLink url={e.sourceUrl}>{e.handler ?? '—'}</SourceLink></span> },
+              { key: 'rq', header: 'Request', cell: (e) => <span className="font-mono text-body-sm">{e.requestType ? shortName(e.requestType) : '—'}</span> },
+              { key: 'rs', header: 'Response', cell: (e) => <span className="font-mono text-body-sm">{e.responseType ? shortName(e.responseType) : '—'}</span> },
+            ]}
+          />
+        </>
       )}
     </Section>
   )
@@ -307,25 +407,25 @@ function EndpointTable({ endpoints }: { endpoints: ArchitectureEndpoint[] }) {
 
 function EntityView({ entities }: { entities: ArchitectureEntity[] }) {
   return (
-    <Section title="JPA entities" count={entities.length}>
+    <Section title="JPA entities" count={entities.length} icon="entity">
       {entities.length === 0 ? (
-        <p className="text-sm text-slate-600">No JPA entities were found.</p>
+        <p className="text-body-md text-fg-2">No JPA entities were found.</p>
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
           {entities.map((entity) => (
-            <div key={entity.fullyQualifiedName} className="rounded border border-slate-200 bg-white p-3 text-sm">
+            <Card key={entity.fullyQualifiedName} as="article" className="text-body-md">
               <h4 className="font-semibold">
                 <SourceLink url={entity.sourceUrl}>{entity.name}</SourceLink>
-                {entity.table && <span className="ml-2 font-mono text-xs font-normal text-slate-500">table {entity.table}</span>}
+                {entity.table && <span className="ml-2 font-mono text-body-sm font-normal text-muted">table {entity.table}</span>}
               </h4>
               {entity.relationships.length > 0 && (
-                <ul className="mt-1 space-y-0.5 font-mono text-xs">
+                <ul className="mt-1 space-y-0.5 font-mono text-code-md">
                   {entity.relationships.map((relation) => (
                     <li key={(relation.field ?? '') + relation.type}>
                       {relation.field} {relation.type.toLowerCase().replace(/_/g, '-')} {shortName(relation.target)}
-                      {!relation.targetResolved && <span className="text-slate-500"> (not in this repository)</span>}
+                      {!relation.targetResolved && <span className="text-muted"> (not in this repository)</span>}
                       {Object.keys(relation.attributes).length > 0 && (
-                        <span className="text-slate-500">
+                        <span className="text-muted">
                           {' '}
                           {Object.entries(relation.attributes)
                             .map(([key, value]) => `${key}=${value}`)
@@ -336,10 +436,8 @@ function EntityView({ entities }: { entities: ArchitectureEntity[] }) {
                   ))}
                 </ul>
               )}
-              {entity.repositories.length > 0 && (
-                <p className="mt-1 text-xs text-slate-600">Repository: {entity.repositories.map(shortName).join(', ')}</p>
-              )}
-            </div>
+              {entity.repositories.length > 0 && <p className="mt-1 text-body-sm text-fg-2">Repository: {entity.repositories.map(shortName).join(', ')}</p>}
+            </Card>
           ))}
         </div>
       )}
@@ -349,17 +447,17 @@ function EntityView({ entities }: { entities: ArchitectureEntity[] }) {
 
 function DiChains({ chains }: { chains: ChainStep[][] }) {
   return (
-    <Section title="Dependency injection chains" count={chains.length}>
+    <Section title="Dependency injection chains" count={chains.length} icon="link">
       {chains.length === 0 ? (
-        <p className="text-sm text-slate-600">No controller → service → repository chain was found.</p>
+        <p className="text-body-md text-fg-2">No controller → service → repository chain was found.</p>
       ) : (
-        <ol className="space-y-1 font-mono text-xs">
+        <ol className="space-y-1.5">
           {chains.map((chain) => (
-            <li key={chain.map((step) => step.fullyQualifiedName).join('>')}>
+            <li key={chain.map((step) => step.fullyQualifiedName).join('>')} className="flex flex-wrap items-center gap-1 font-mono text-code-md">
               {chain.map((step, index) => (
-                <span key={step.fullyQualifiedName}>
-                  {index > 0 && ' → '}
-                  <span title={step.fullyQualifiedName}>{step.name}</span>
+                <span key={step.fullyQualifiedName} className="inline-flex items-center gap-1">
+                  {index > 0 && <span aria-hidden="true" className="text-muted"> → </span>}
+                  <span className="rounded bg-raised px-1.5 py-0.5" title={step.fullyQualifiedName}>{step.name}</span>
                 </span>
               ))}
             </li>
@@ -376,39 +474,32 @@ function InjectionTable({ injections }: { injections: Injection[] }) {
   }
   return (
     <Section title="Injected dependencies" count={injections.length}>
-      <table className="w-full bg-white text-left text-sm">
-        <thead className="border-b border-slate-200 text-xs text-slate-500">
-          <tr>
-            <th className="p-2">Bean</th>
-            <th className="p-2">Depends on</th>
-            <th className="p-2">How</th>
-            <th className="p-2">Resolution</th>
-          </tr>
-        </thead>
-        <tbody>
-          {injections.map((injection) => (
-            <tr key={`${injection.from}>${injection.to}`} className="border-b border-slate-100">
-              <td className="p-2 font-mono text-xs">{shortName(injection.from)}</td>
-              <td className="p-2 font-mono text-xs" title={injection.to ?? undefined}>
-                {injection.resolution === 'RESOLVED' ? shortName(injection.to) : injection.to}
-              </td>
-              <td className="p-2 text-xs">
-                <SourceLink url={injection.sourceUrl}>
-                  {injection.via} {injection.member}
+      <DataTable
+        caption="Injected dependencies"
+        rows={injections}
+        rowKey={(i) => `${i.from}>${i.to}>${i.member}`}
+        columns={[
+          { key: 'f', header: 'Bean', cell: (i) => <span className="font-mono text-body-sm">{shortName(i.from)}</span> },
+          { key: 't', header: 'Depends on', cell: (i) => <span className="font-mono text-body-sm" title={i.to ?? undefined}>{i.resolution === 'RESOLVED' ? shortName(i.to) : i.to}</span> },
+          {
+            key: 'v',
+            header: 'How',
+            cell: (i) => (
+              <span className="text-body-sm">
+                <SourceLink url={i.sourceUrl}>
+                  {i.via} {i.member}
                 </SourceLink>
-                {injection.confidence && (
+                {i.confidence && (
                   <span className="ml-1">
-                    <ConfidenceBadge confidence={injection.confidence} />
+                    <ConfidenceBadge confidence={i.confidence} />
                   </span>
                 )}
-              </td>
-              <td className="p-2">
-                <Badge tone={RESOLUTION_TONES[injection.resolution]}>{injection.resolution.toLowerCase()}</Badge>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </span>
+            ),
+          },
+          { key: 'r', header: 'Resolution', cell: (i) => <Badge tone={RESOLUTION_TONES[i.resolution]}>{i.resolution.toLowerCase()}</Badge> },
+        ]}
+      />
     </Section>
   )
 }
@@ -416,19 +507,26 @@ function InjectionTable({ injections }: { injections: Injection[] }) {
 function PatternList({ patterns }: { patterns: PatternCandidate[] }) {
   return (
     <Section title="Design pattern candidates" count={patterns.length}>
-      <p className="text-xs text-slate-600">
-        Candidates inferred from structure (implementations, injection, object creation, delegation), never from class
-        names. Possible and likely candidates need a human look.
+      <p className="text-body-sm text-muted">
+        Candidates inferred from structure (implementations, injection, object creation, delegation), never from class names. Possible and likely candidates need a human look.
       </p>
       {patterns.length === 0 ? (
-        <p className="text-sm text-slate-600">No pattern candidate was found.</p>
+        <p className="text-body-md text-fg-2">No pattern candidate was found.</p>
       ) : (
-        <ul className="space-y-1 text-sm">
+        <ul className="space-y-1.5">
           {patterns.map((pattern) => (
-            <li key={pattern.pattern + pattern.symbols.join(',')} className="flex flex-wrap items-center gap-2">
-              <Badge tone="info">{pattern.pattern.toLowerCase()}</Badge>
-              <ConfidenceBadge confidence={pattern.confidence} />
-              <span>{pattern.summary ?? pattern.symbols.map(shortName).join(', ')}</span>
+            <li key={pattern.pattern + pattern.symbols.join(',')}>
+              <Accordion
+                title={
+                  <span className="flex flex-wrap items-center gap-2">
+                    <Badge tone="info">{pattern.pattern.toLowerCase()}</Badge>
+                    <span className="text-body-md">{pattern.summary ?? pattern.symbols.map(shortName).join(', ')}</span>
+                  </span>
+                }
+                right={<ConfidenceBadge confidence={pattern.confidence} />}
+              >
+                <p className="font-mono text-body-sm text-fg-2">{pattern.symbols.join(', ')}</p>
+              </Accordion>
             </li>
           ))}
         </ul>
@@ -442,12 +540,14 @@ function Limitations({ limitations }: { limitations: string[] }) {
     return null
   }
   return (
-    <Section title="Limitations of this architecture analysis">
-      <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-        {limitations.map((limitation) => (
-          <li key={limitation}>{limitation}</li>
-        ))}
-      </ul>
-    </Section>
+    <div id="architecture-limitations">
+      <Section title="Limitations of this architecture analysis">
+        <ul className="list-disc space-y-1 pl-5 text-body-md text-fg-2">
+          {limitations.map((limitation) => (
+            <li key={limitation}>{limitation}</li>
+          ))}
+        </ul>
+      </Section>
+    </div>
   )
 }

@@ -56,14 +56,13 @@ describe('AI insights on the architecture page', () => {
     )
     renderPage(<ArchitectureView report={withSymbolIds} />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'AI insights for OrderService' }))
-    const panel = screen.getByLabelText('AI insights for OrderService', { selector: 'div' })
+    await userEvent.click(await screen.findByRole('button', { name: 'Expand OrderService' }))
+    const panel = await screen.findByLabelText('AI insights for OrderService', { selector: 'div' })
     const explain = within(panel).getByRole('button', { name: 'Explain class' })
     await waitFor(() => expect(explain).toBeEnabled())
     await userEvent.click(explain)
     expect(await within(panel).findByText('AI-generated')).toBeInTheDocument()
 
-    await userEvent.click(within(panel).getByRole('button', { name: 'Methods' }))
     const methods = await within(panel).findByRole('list', { name: 'Methods of OrderService' })
     expect(within(methods).getByText('create(CreateOrderRequest)')).toBeInTheDocument()
     expect(within(methods).queryByText('orders')).toBeNull()

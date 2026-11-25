@@ -3,16 +3,10 @@ import ArchitectureSection from '../components/architecture/ArchitectureSection'
 import SnapshotSelector from '../components/report/SnapshotSelector'
 import EmptyState from '../components/ui/EmptyState'
 import ErrorState from '../components/ui/ErrorState'
+import { SkeletonRows } from '../components/ui/Layout'
 import { useRepository, useSnapshots } from '../hooks/queries'
-import { isCompleted, type Snapshot } from '../types/api'
-
-function chooseSnapshot(snapshots: Snapshot[], requestedId: string | null): Snapshot | undefined {
-  return (
-    snapshots.find((snapshot) => snapshot.id === requestedId) ??
-    snapshots.find((snapshot) => isCompleted(snapshot.latestRun?.status)) ??
-    snapshots[0]
-  )
-}
+import { chooseSnapshot } from '../lib/snapshots'
+import { isCompleted } from '../types/api'
 
 /** `/repositories/:repositoryId/arch?snapshot=`: the architecture of one analysed commit. */
 export default function ArchitecturePage() {
@@ -22,7 +16,7 @@ export default function ArchitecturePage() {
   const snapshots = useSnapshots(repositoryId)
 
   if (repository.isPending || snapshots.isPending) {
-    return <p role="status">Loading repository…</p>
+    return <SkeletonRows rows={3} label="Loading repository" />
   }
   if (repository.error || snapshots.error) {
     const error = repository.error ?? snapshots.error
@@ -38,10 +32,10 @@ export default function ArchitecturePage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold">
-            Architecture of {repository.data.owner}/{repository.data.name}
-          </h2>
-          <p className="font-mono text-xs text-slate-500">{selected.commitSha}</p>
+          <h1 className="text-headline-lg font-semibold tracking-tight">Application Architecture</h1>
+          <p className="text-body-sm text-muted">
+            {repository.data.owner}/{repository.data.name} <span className="font-mono">@ {selected.commitSha.slice(0, 7)}</span>
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <SnapshotSelector
@@ -49,7 +43,7 @@ export default function ArchitecturePage() {
             selectedId={selected.id}
             onSelect={(snapshotId) => setSearchParams({ snapshot: snapshotId })}
           />
-          <Link to={`/repositories/${repositoryId}?snapshot=${selected.id}`} className="text-sm text-blue-700 hover:underline">
+          <Link to={`/repositories/${repositoryId}?snapshot=${selected.id}`} className="text-body-md text-primary-text hover:underline">
             Full report
           </Link>
         </div>

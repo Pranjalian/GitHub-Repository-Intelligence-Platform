@@ -1,5 +1,4 @@
 import { screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
 import {
@@ -57,9 +56,10 @@ describe('architecture page', () => {
       initialEntry: `/repositories/${REPO_ID}/arch?snapshot=${SNAP_NEW}`,
     })
 
-    expect(await screen.findByRole('heading', { name: 'Architecture of octo/demo' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Application Architecture' })).toBeInTheDocument()
     expect(await screen.findByRole('region', { name: 'REST endpoints' })).toHaveTextContent('/api/orders')
     expect(screen.getAllByRole('figure')).toHaveLength(4)
+    expect(screen.getByLabelText('Summary chips')).toHaveTextContent('1 controllers')
     expect(screen.getByRole('region', { name: 'Dependency injection chains' })).toHaveTextContent('OrderService')
     expect(requests).toEqual([`${BASE}/snapshots/${SNAP_NEW}/architecture`])
     expect(screen.getByRole('link', { name: 'Full report' })).toHaveAttribute('href', `/repositories/${REPO_ID}?snapshot=${SNAP_NEW}`)
@@ -72,38 +72,31 @@ describe('architecture page', () => {
       initialEntry: `/repositories/${REPO_ID}/arch`,
     })
 
-    expect(
-      await screen.findByRole('heading', { name: 'Architecture analysis is not supported for this technology' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Architecture analysis is not supported for this technology')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Code Search' })).toBeInTheDocument()
   })
 })
 
 describe('report dashboard architecture tab', () => {
-  const renderDashboard = () =>
+  const renderDashboard = (search = '?tab=architecture') =>
     renderPage(<RepositoryOverviewPage pollIntervalMs={25} />, {
       path: '/repositories/:repositoryId',
-      initialEntry: `/repositories/${REPO_ID}`,
+      initialEntry: `/repositories/${REPO_ID}${search}`,
     })
 
-  it('appears when an architecture analyzer ran and opens the architecture', async () => {
+  it('shows the architecture inside the report when an architecture analyzer ran', async () => {
     stub(architectureReport, [section('STRUCTURE', 'COMPLETED'), section('ARCHITECTURE', 'COMPLETED_WITH_WARNINGS')])
     renderDashboard()
 
-    const tabs = await screen.findByRole('tablist', { name: 'Report sections' })
-    await userEvent.click(within(tabs).getByRole('tab', { name: 'Architecture' }))
-
     expect(await screen.findByRole('region', { name: 'Layers' })).toHaveTextContent('OrderController')
-    expect(screen.getByRole('link', { name: 'Open the architecture page' })).toHaveAttribute(
-      'href',
-      `/repositories/${REPO_ID}/arch?snapshot=${SNAP_NEW}`,
-    )
   })
 
-  it('is hidden when no architecture analyzer applies', async () => {
-    stub(unsupportedArchitecture, [section('STRUCTURE', 'COMPLETED'), section('ARCHITECTURE', 'NOT_SUPPORTED')])
+  it('says the architecture was not analyzed, neutrally and with the reason, when no analyzer applies', async () => {
+    stub(unsupportedArchitecture, [section('STRUCTURE', 'COMPLETED'), { ...section('ARCHITECTURE', 'NOT_SUPPORTED'), summary: 'No analyzer exists for architecture in this repository.' }])
     renderDashboard()
 
-    const tabs = await screen.findByRole('tablist', { name: 'Report sections' })
-    expect(within(tabs).queryByRole('tab', { name: 'Architecture' })).not.toBeInTheDocument()
+    const panel = await screen.findByRole('tabpanel', { name: 'Architecture' })
+    expect(panel).toHaveTextContent('No analyzer exists for architecture in this repository.')
+    expect(within(panel).queryByRole('alert')).toBeNull()
   })
 })
