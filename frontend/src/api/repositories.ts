@@ -24,6 +24,7 @@ import type {
   TestsReport,
   PageResponse,
   Repository,
+  RepositoryStats,
   Snapshot,
 } from '../types/api'
 import { apiFetch } from './client'
@@ -37,6 +38,8 @@ export const analyzeRepository = (url: string, forceRescan: boolean) =>
 
 export const listRepositories = (page = 0, size = 20) =>
   apiFetch<PageResponse<Repository>>(`/api/v1/repositories?page=${page}&size=${size}`)
+
+export const getRepositoryStats = () => apiFetch<RepositoryStats>('/api/v1/repositories/stats')
 
 export const getRepository = (repositoryId: string) => apiFetch<Repository>(`/api/v1/repositories/${repositoryId}`)
 

@@ -20,6 +20,7 @@ import {
   getAnalysisRun,
   getReport,
   getRepository,
+  getRepositoryStats,
   listRepositories,
   listSnapshots,
 } from '../api/repositories'
@@ -40,11 +41,14 @@ export const useRepositories = (page: number, size = 20) =>
     placeholderData: keepPreviousData,
   })
 
+export const useRepositoryStats = () =>
+  useQuery({ queryKey: ['repository-stats'], queryFn: getRepositoryStats, refetchInterval: 15_000 })
+
 export const useRepository = (repositoryId: string) =>
-  useQuery({ queryKey: ['repository', repositoryId], queryFn: () => getRepository(repositoryId) })
+  useQuery({ queryKey: ['repository', repositoryId], queryFn: () => getRepository(repositoryId), enabled: !!repositoryId })
 
 export const useSnapshots = (repositoryId: string) =>
-  useQuery({ queryKey: ['snapshots', repositoryId], queryFn: () => listSnapshots(repositoryId) })
+  useQuery({ queryKey: ['snapshots', repositoryId], queryFn: () => listSnapshots(repositoryId), enabled: !!repositoryId })
 
 /** Polls a run every {@code pollIntervalMs} while it is not terminal, then stops. */
 export const useAnalysisRun = (runId: string | undefined, pollIntervalMs = 3000) =>
@@ -94,7 +98,7 @@ export const useTests = (repositoryId: string, snapshotId: string) =>
   useQuery({ queryKey: ['tests', repositoryId, snapshotId], queryFn: () => getTests(repositoryId, snapshotId) })
 
 export const useCoverage = (repositoryId: string, snapshotId: string) =>
-  useQuery({ queryKey: ['coverage', repositoryId, snapshotId], queryFn: () => getCoverage(repositoryId, snapshotId) })
+  useQuery({ queryKey: ['coverage', repositoryId, snapshotId], queryFn: () => getCoverage(repositoryId, snapshotId), enabled: !!repositoryId && !!snapshotId })
 
 export const useArchitecture = (repositoryId: string, snapshotId: string | undefined) =>
   useQuery({

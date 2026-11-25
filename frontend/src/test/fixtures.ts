@@ -57,6 +57,7 @@ export function repository(latest: Snapshot | null = snapshot(SNAP_NEW, SHA_NEW,
     createdAt: '2026-11-19T10:00:00Z',
     updatedAt: '2026-11-19T10:00:00Z',
     latestSnapshot: latest,
+    summary: null,
   }
 }
 

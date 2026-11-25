@@ -128,3 +128,25 @@ describe('AddRepositoryPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Too many submissions. Try again in about 42 seconds.')
   })
 })
+
+describe('AddRepositoryPage design additions', () => {
+  it('example chips fill the field', async () => {
+    renderAdd()
+    await userEvent.click(screen.getByRole('button', { name: 'pallets/flask' }))
+    expect(screen.getByLabelText('Repository URL')).toHaveValue('https://github.com/pallets/flask')
+  })
+
+  it('prefills a known example from ?example= and ignores unknown values', () => {
+    renderPage(<AddRepositoryPage />, { path: '/', initialEntry: '/?example=pallets/flask' })
+    expect(screen.getByLabelText('Repository URL')).toHaveValue('https://github.com/pallets/flask')
+  })
+
+  it('links the error to the field with aria-describedby and mentions the token limits', async () => {
+    renderAdd()
+    await userEvent.type(screen.getByLabelText('Repository URL'), 'nonsense')
+    await userEvent.click(screen.getByRole('button', { name: 'Analyze' }))
+    const alert = await screen.findByRole('alert')
+    expect(screen.getByLabelText('Repository URL').getAttribute('aria-describedby')).toContain(alert.id)
+    expect(screen.getByText(/60 to 5,000 requests per hour/)).toBeInTheDocument()
+  })
+})
