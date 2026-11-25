@@ -64,9 +64,10 @@ export function DataTable<T>({
   )
 }
 
-export function Pagination({ page, totalPages, totalElements, shown, onPage }: { page: number; totalPages: number; totalElements: number; shown: number; onPage: (page: number) => void }) {
+export function Pagination({ page, totalPages, totalElements, shown, pageSize, onPage }: { page: number; totalPages: number; totalElements: number; shown: number; pageSize?: number; onPage: (page: number) => void }) {
   if (totalElements === 0) return null
-  const from = page * Math.max(shown, 1) + 1
+  // the first row of this page needs the page size, not the number of rows on a (possibly short, last) page
+  const from = page * Math.max(pageSize ?? shown, 1) + 1
   return (
     <nav aria-label="Pagination" className="flex flex-wrap items-center justify-between gap-2 text-body-md text-fg-2">
       <span>

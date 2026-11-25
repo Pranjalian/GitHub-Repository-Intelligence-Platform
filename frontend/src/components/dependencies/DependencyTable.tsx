@@ -144,7 +144,7 @@ export default function DependencyTable({ repositoryId, snapshotId }: { reposito
               },
             ]}
           />
-          <Pagination page={page} totalPages={Math.ceil(visible.length / PAGE)} totalElements={visible.length} shown={pageRows.length} onPage={setPage} />
+          <Pagination page={page} totalPages={Math.ceil(visible.length / PAGE)} totalElements={visible.length} shown={pageRows.length} pageSize={PAGE} onPage={setPage} />
         </>
       )}
     </div>

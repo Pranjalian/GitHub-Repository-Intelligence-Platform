@@ -274,7 +274,7 @@ export default function AISettingsPage() {
                     },
                   ]}
                 />
-                <Pagination page={usage.data.page} totalPages={usage.data.totalPages} totalElements={usage.data.totalElements} shown={usage.data.items.length} onPage={setPage} />
+                <Pagination page={usage.data.page} totalPages={usage.data.totalPages} totalElements={usage.data.totalElements} shown={usage.data.items.length} pageSize={usage.data.size} onPage={setPage} />
               </div>
             )}
           </Card>

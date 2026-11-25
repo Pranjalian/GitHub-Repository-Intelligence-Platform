@@ -254,7 +254,7 @@ export default function DashboardPage() {
           ))}
         </ul>
       )}
-      <Pagination page={page} totalPages={data.totalPages} totalElements={data.totalElements} shown={data.items.length} onPage={setPage} />
+      <Pagination page={page} totalPages={data.totalPages} totalElements={data.totalElements} shown={data.items.length} pageSize={data.size} onPage={setPage} />
     </div>
   )
 }

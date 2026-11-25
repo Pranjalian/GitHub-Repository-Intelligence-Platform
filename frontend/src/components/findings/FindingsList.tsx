@@ -351,7 +351,7 @@ export default function FindingsList({
           {data && (
             <>
               {(q || analyzer) && <p className="text-body-sm text-muted">Search and analyzer filters are applied by the server across all pages.</p>}
-              <Pagination page={data.page} totalPages={data.totalPages} totalElements={data.totalElements} shown={data.items.length} onPage={(p) => set({ page: String(p) })} />
+              <Pagination page={data.page} totalPages={data.totalPages} totalElements={data.totalElements} shown={data.items.length} pageSize={data.size} onPage={(p) => set({ page: String(p) })} />
             </>
           )}
         </div>
