@@ -49,9 +49,11 @@ class ApiDocumentationAndHealthTests {
 			.andExpect(jsonPath("$.info.version").value("0.0.1"))
 			.andExpect(jsonPath("$.info.description").isNotEmpty())
 			// only the endpoints the UI needs, no placeholders for future phases
-			.andExpect(jsonPath("$.paths", aMapWithSize(22)))
+			.andExpect(jsonPath("$.paths", aMapWithSize(23)))
 			.andExpect(jsonPath("$.paths['/api/v1/repositories/analyze']").exists())
 			.andExpect(jsonPath("$.paths['/api/v1/repositories']").exists())
+			// MVP 7 (Step 7.3): dashboard KPI tiles
+			.andExpect(jsonPath("$.paths['/api/v1/repositories/stats']").exists())
 			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}']").exists())
 			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}/snapshots']").exists())
 			.andExpect(jsonPath("$.paths['/api/v1/analysis-runs/{runId}']").exists())

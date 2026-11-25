@@ -34,6 +34,28 @@ public interface AnalysisFindingRepository extends JpaRepository<AnalysisFinding
 			""")
 	List<SeverityCount> countByCategoryAndSeverity(@Param("snapshotId") UUID snapshotId, @Param("runId") UUID runId);
 
+	/** Severity counts of the given categories for several runs at once (dashboard rows). */
+	@Query("""
+			select f.run.id as runId, f.category as category, f.severity as severity, count(f) as total
+			from AnalysisFinding f
+			where f.run.id in :runIds and f.category in :categories
+			group by f.run.id, f.category, f.severity
+			""")
+	List<RunSeverityCount> countForRuns(@Param("runIds") java.util.Collection<UUID> runIds,
+			@Param("categories") java.util.Collection<AnalysisCategory> categories);
+
+	interface RunSeverityCount {
+
+		UUID getRunId();
+
+		AnalysisCategory getCategory();
+
+		Severity getSeverity();
+
+		long getTotal();
+
+	}
+
 	interface SeverityCount {
 
 		AnalysisCategory getCategory();

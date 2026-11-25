@@ -55,6 +55,13 @@ public class RepositoryController {
 		return queryService.list(page, size);
 	}
 
+	@Operation(summary = "Dashboard KPI tiles",
+			description = "Repositories analyzed, indexed for search, open findings of the analyzed categories (null when none was analyzed) and active runs.")
+	@GetMapping("/stats")
+	public RepositoryStatsDTO stats() {
+		return queryService.stats();
+	}
+
 	@Operation(summary = "Get one repository with its latest snapshot")
 	@GetMapping("/{repositoryId}")
 	public RepositoryDTO get(@PathVariable UUID repositoryId) {

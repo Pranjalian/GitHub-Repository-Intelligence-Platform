@@ -13,4 +13,7 @@ public interface SnapshotIndexRepository extends JpaRepository<SnapshotIndex, UU
 
 	List<SnapshotIndex> findByStatusIn(Collection<IndexStatus> statuses);
 
+	/** Index rows of several snapshots at once (dashboard rows). */
+	List<SnapshotIndex> findBySnapshotIdIn(Collection<UUID> snapshotIds);
+
 }

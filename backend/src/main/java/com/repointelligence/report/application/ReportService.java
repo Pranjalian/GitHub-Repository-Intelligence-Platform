@@ -144,7 +144,10 @@ public class ReportService {
 						repository.getCanonicalUrl()),
 				new ReportSnapshotDTO(snapshot.getId(), snapshot.getCommitSha(), snapshot.getBranch(),
 						run.getCompletedAt()),
-				new ReportRunDTO(run.getId(), run.getStatus(), run.getCompletedAt()),
+				new ReportRunDTO(run.getId(), run.getStatus(), run.getCompletedAt(), run.getStartedAt(),
+						run.getStartedAt() != null && run.getCompletedAt() != null
+								? java.time.Duration.between(run.getStartedAt(), run.getCompletedAt()).toMillis() : null,
+						run.getAnalyzerSetHash()),
 				technologies.findBySnapshotIdAndRunId(snapshotId, run.getId())
 					.stream()
 					.sorted(Comparator.comparing(TechnologyFinding::getKind).thenComparing(TechnologyFinding::getTechnology))
@@ -156,7 +159,16 @@ public class ReportService {
 						.thenComparing(AnalyzerCapability::getCategory))
 					.map(ReportService::toMatrixRow)
 					.toList(),
-				sections(snapshotId, run.getId(), runExecutions, matrix), limitations(runExecutions, matrix));
+				sections(snapshotId, run.getId(), runExecutions, matrix), limitations(runExecutions, matrix),
+				dependencyCount(snapshotId, run.getId(), runExecutions));
+	}
+
+	/** Null when no dependency analyzer completed: an unknown count is never reported as 0. */
+	private Long dependencyCount(UUID snapshotId, UUID runId, List<AnalyzerExecution> runExecutions) {
+		boolean analyzed = runExecutions.stream()
+			.anyMatch(e -> e.getCategory() == AnalysisCategory.DEPENDENCIES
+					&& SectionAggregator.isAnalyzed(e.getStatus()));
+		return analyzed ? dependencies.countByRunId(runId) : null;
 	}
 
 	public PageResponse<FindingDTO> findings(UUID repositoryId, UUID snapshotId, AnalysisCategory category,

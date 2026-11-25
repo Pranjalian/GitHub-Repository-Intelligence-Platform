@@ -26,10 +26,12 @@ public class RepositoryMapper {
 				snapshot.getIngestedAt(), snapshot.getCreatedAt(), toRunSummary(latestRun));
 	}
 
-	public RepositoryDTO toRepository(TrackedRepository repository, SnapshotDTO latestSnapshot) {
+	public RepositoryDTO toRepository(TrackedRepository repository, SnapshotDTO latestSnapshot,
+			RepositorySummaryDTO summary) {
 		return new RepositoryDTO(repository.getId(), repository.getHost(), repository.getOwner(),
 				repository.getName(), repository.getCanonicalUrl(), repository.getDefaultBranch(),
-				repository.getVisibility(), repository.getCreatedAt(), repository.getUpdatedAt(), latestSnapshot);
+				repository.getVisibility(), repository.getCreatedAt(), repository.getUpdatedAt(), latestSnapshot,
+				summary);
 	}
 
 }

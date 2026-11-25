@@ -22,6 +22,15 @@ public interface RepositorySnapshotRepository extends JpaRepository<RepositorySn
 
 	Optional<RepositorySnapshot> findFirstByRepositoryIdOrderByCreatedAtDesc(UUID repositoryId);
 
+	/** The newest snapshot of each given repository in one query (dashboard rows; no N+1). */
+	@Query("""
+			select s from RepositorySnapshot s
+			where s.repository.id in :repositoryIds
+			  and s.createdAt = (select max(s2.createdAt) from RepositorySnapshot s2 where s2.repository.id = s.repository.id)
+			""")
+	java.util.List<RepositorySnapshot> findLatestOfRepositories(
+			@Param("repositoryIds") java.util.Collection<UUID> repositoryIds);
+
 	/** Startup recovery: ingestion interrupted by a restart did not finish; a later run starts it again. */
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	@Query("update RepositorySnapshot s set s.ingestionStatus = com.repointelligence.common.model.IngestionStatus.FAILED, "

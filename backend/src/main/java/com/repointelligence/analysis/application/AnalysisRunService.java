@@ -85,12 +85,20 @@ public class AnalysisRunService {
 			.stream()
 			.sorted(Comparator.comparing(AnalyzerExecution::getAnalyzerId))
 			.map(e -> new ExecutionDTO(e.getAnalyzerId(), e.getCategory(), e.getStatus(), e.getStartedAt(),
-					e.getCompletedAt(), e.getDurationMs(), e.getErrorSummary()))
+					e.getCompletedAt(), e.getDurationMs(), e.getErrorSummary(), reason(e)))
 			.toList();
 		return new AnalysisRunDTO(run.getId(), snapshot.getRepository().getId(), snapshot.getId(),
 				snapshot.getCommitSha(), run.getStatus(), run.getFailureReason(), run.getRetryAfter(),
 				run.getRequestedAt(), run.getStartedAt(), run.getCompletedAt(), phase(run.getStatus(), executionDtos),
 				executionDtos);
+	}
+
+	private static String reason(AnalyzerExecution execution) {
+		if (execution.getErrorSummary() != null && !execution.getErrorSummary().isBlank()) {
+			return execution.getErrorSummary();
+		}
+		List<String> limitations = execution.getLimitations();
+		return limitations == null || limitations.isEmpty() ? null : limitations.get(0);
 	}
 
 	private static String phase(RunStatus status, List<ExecutionDTO> executions) {

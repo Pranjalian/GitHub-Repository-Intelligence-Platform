@@ -15,6 +15,9 @@ public interface AnalyzerExecutionRepository extends JpaRepository<AnalyzerExecu
 
 	List<AnalyzerExecution> findByRunId(UUID runId);
 
+	/** Executions of several runs at once (dashboard rows). */
+	List<AnalyzerExecution> findByRunIdIn(Collection<UUID> runIds);
+
 	List<AnalyzerExecution> findBySnapshotIdAndRunId(UUID snapshotId, UUID runId);
 
 	Optional<AnalyzerExecution> findByRunIdAndAnalyzerId(UUID runId, String analyzerId);

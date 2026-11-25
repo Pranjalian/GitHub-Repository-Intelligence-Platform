@@ -25,6 +25,27 @@ public interface AnalysisRunRepository extends JpaRepository<AnalysisRun, UUID> 
 
 	Optional<AnalysisRun> findTopBySnapshotIdOrderByRequestedAtDesc(UUID snapshotId);
 
+	/** The newest run of each given snapshot in one query. */
+	@Query("""
+			select r from AnalysisRun r
+			where r.snapshot.id in :snapshotIds
+			  and r.requestedAt = (select max(r2.requestedAt) from AnalysisRun r2 where r2.snapshot.id = r.snapshot.id)
+			""")
+	List<AnalysisRun> findLatestOfSnapshots(@Param("snapshotIds") Collection<UUID> snapshotIds);
+
+	/**
+	 * For each given repository, its most recently completed run (any snapshot) with the snapshot loaded:
+	 * what the dashboard summarises.
+	 */
+	@Query("""
+			select r from AnalysisRun r join fetch r.snapshot s
+			where s.repository.id in :repositoryIds and r.status in :statuses
+			  and r.completedAt = (select max(r2.completedAt) from AnalysisRun r2
+			                       where r2.snapshot.repository.id = s.repository.id and r2.status in :statuses)
+			""")
+	List<AnalysisRun> findLatestCompletedOfRepositories(@Param("repositoryIds") Collection<UUID> repositoryIds,
+			@Param("statuses") Collection<RunStatus> statuses);
+
 	/** Startup recovery: runs left in an in-flight state by a previous process. */
 	List<AnalysisRun> findByStatusIn(Collection<RunStatus> statuses);
 

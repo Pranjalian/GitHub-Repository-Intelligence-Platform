@@ -10,4 +10,7 @@ public interface TechnologyFindingRepository extends JpaRepository<TechnologyFin
 	/** Rows of one run; always scoped by snapshot as well. */
 	List<TechnologyFinding> findBySnapshotIdAndRunId(UUID snapshotId, UUID runId);
 
+	/** Rows of several runs of already-scoped snapshots (dashboard rows). */
+	List<TechnologyFinding> findByRunIdIn(java.util.Collection<UUID> runIds);
+
 }
