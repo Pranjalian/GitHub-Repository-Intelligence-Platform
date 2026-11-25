@@ -37,7 +37,7 @@ export default function ArchitecturePage() {
             {repository.data.owner}/{repository.data.name} <span className="font-mono">@ {selected.commitSha.slice(0, 7)}</span>
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <SnapshotSelector
             snapshots={snapshots.data.items}
             selectedId={selected.id}

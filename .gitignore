@@ -33,3 +33,8 @@ Thumbs.db
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Playwright output (optional browser check)
+frontend/test-results/
+frontend/playwright-report/
+frontend/.shots/

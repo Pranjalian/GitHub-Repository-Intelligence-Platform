@@ -248,7 +248,7 @@ flowchart TD
 |---|---|
 | **Framework** | React 19 with TypeScript |
 | **Build tool** | Vite (dev server on port 5173, `/api` proxied to 8080) |
-| **Routing** | React Router v7 |
+| **Routing** | React Router 8 |
 | **State management** | React Query (TanStack Query) for server state; React context or Zustand for UI state |
 | **UI components** | Component library (e.g., Radix UI / Shadcn/ui) + Tailwind CSS 4 |
 | **HTTP client** | Axios or fetch wrapper with interceptors |
@@ -277,6 +277,29 @@ flowchart TD
 
 > [!IMPORTANT]
 > Only implement screens required for the current MVP phase. Future routes are listed for planning only.
+
+#### Frontend structure and design system (MVP 7)
+
+The UI was rebuilt from the Google Stitch designs (`stitch_repointel_ui_platform/`). Implemented routes: `/`, `/repositories/new`, `/repositories/:id` (report; `?tab=overview|dependencies|code-quality|security|tests|architecture`, `?snapshot=`, `?run=`), `/repositories/:id/arch`, `/search`, `/qa`, `/impact`, `/repositories/:id/investigations` and `/investigations/:id[/audit]` (placeholders until MVP 6), `/settings/ai`, `/dev/components` (development builds only) and a designed "not found" page. The earlier planning routes `/tech`, `/structure`, `/deps`, `/quality`, `/security`, `/tests` and `/insights` were never built: those are report tabs.
+
+```
+frontend/src
+  styles/globals.css     design tokens: CSS variables (:root = light, .dark = dark) mapped to Tailwind 4 theme names
+                         (bg-canvas, bg-surface, bg-raised, text-fg, text-fg-2, text-muted, border-line, text-ai, ...),
+                         tone classes (.tone-critical ... .tone-ai) for 12% tint + 28% hairline chips, the AI surface
+  lib/theme.tsx          light | dark | system, persisted, applied in main.tsx before first render (CSP forbids inline scripts)
+  components/ui/         primitives: icons (inline SVG), badges, Button, Controls (SegmentedControl, Tabs, Select,
+                         Accordion, Tooltip, ...), Data (DataTable, Pagination), CodeBlock, Flow (Stepper, Drawer),
+                         Charts (Donut, SegmentedBar, BarList), Layout (Card, StatCard, Skeleton, UnavailableState, Notice)
+  components/layout/     shell: Sidebar (Global workspace, Active context, Diagnostics, Analytical engine), Header
+                         (breadcrumb, AI status pill, theme toggle), MainLayout (docked sidebar >= 1280 px, overlay below)
+  hooks/useRepoContext   the repository, snapshot and report the URL belongs to (shared cached queries; no extra requests)
+  pages/                 lazy-loaded per route, so Mermaid is fetched only where diagrams are drawn
+```
+
+Rules the redesign keeps: no external fonts, scripts, icons or images (Geist and JetBrains Mono are bundled from `@fontsource-variable/*`; the nginx CSP is unchanged); repository text is plain text (no `dangerouslySetInnerHTML`; AI text only through `MarkdownText`); Mermaid stays in `strict` mode and only its colours follow the theme; a value that was not measured is never shown as zero.
+
+API additions of MVP 7 (all additive): `RepositoryDTO.summary` and `GET /api/v1/repositories/stats` (batch queries, constant per page), `ReportRunDTO.durationMs/startedAt/analyzerSetHash`, `ConsolidatedReportDTO.dependencyCount`, `ExecutionDTO.reason`, and `analyzer` and `q` on the findings endpoint. The repository module learns the search-index state through the port `repository.application.SnapshotIndexStatusProvider`, implemented in `rag.indexing`, so the rule "nothing below RAG imports RAG" still holds.
 
 ### 2.2 Backend — Spring Boot Modular Monolith
 

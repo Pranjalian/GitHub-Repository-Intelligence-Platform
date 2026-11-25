@@ -116,9 +116,9 @@ const fieldClass = 'h-8 rounded border border-line-strong bg-canvas px-2 text-bo
 
 export function Select({ label, children, className, ...rest }: { label: string } & SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <label className="inline-flex items-center gap-2 text-body-md text-fg-2">
+    <label className="inline-flex max-w-full min-w-0 items-center gap-2 text-body-md text-fg-2">
       <span className="sr-only sm:not-sr-only">{label}</span>
-      <select aria-label={label} className={`${fieldClass} ${className ?? ''}`} {...rest}>
+      <select aria-label={label} className={`${fieldClass} min-w-0 max-w-[calc(100vw-3rem)] ${className ?? ''}`} {...rest}>
         {children}
       </select>
     </label>

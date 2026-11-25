@@ -265,11 +265,11 @@ Create the design system sheet: colour tokens for light and dark (background, su
 
 ## 3. Notes for bringing the design back into the app
 
-- The frontend is React 19 + Tailwind CSS 4 (`frontend/src`): pages in `pages/`, sections in `components/report`, `components/findings`, `components/dependencies`, `components/tests`, `components/architecture`, AI components in `components/ai` (`InsightPanel`, `InsightResult`, `AIGeneratedBadge`, `SymbolInsights`, `ModuleSummaryPanel`, `MarkdownText`), navigation in `components/layout/Sidebar.tsx`, shared badges in `components/ui`.
-- Keep these rules when implementing a Stitch design:
-  - No external fonts, scripts or images. The nginx security policy blocks them; self-host anything needed.
-  - Never render repository text as HTML (no `dangerouslySetInnerHTML`; ESLint fails the build).
-  - AI text goes through `MarkdownText` (Markdown without raw HTML).
-  - Keep Mermaid in strict mode.
-- Existing routes: `/` (Dashboard), `/repositories/new` (Add Repository), `/repositories/:repositoryId?tab=...` (report tabs), `/repositories/:repositoryId/arch` (Architecture page), `/settings/ai` (AI Settings).
-- Planned screens (Search, Ask, Impact analysis, Investigations) have no routes yet. Choose them when MVP 4–6 are implemented, scoped under `/repositories/:repositoryId/...` with the snapshot in the query string, as the existing pages do.
+> **Design implemented in MVP 7.** The screens below were built from the Stitch exports; see [mvp7-completion-report.md](mvp7-completion-report.md) for every deliberate deviation. Investigations (start and history, progress, report, audit trail) were not built because MVP 6 does not exist yet; their routes are placeholders.
+
+- The frontend is React 19 + Tailwind CSS 4 (`frontend/src`). Tokens are CSS variables in `styles/globals.css` (light in `:root`, dark in `.dark`), exposed to Tailwind as `bg-canvas`, `bg-surface`, `bg-raised`, `text-fg`, `text-fg-2`, `text-muted`, `border-line`, `text-ai` and the `.tone-*` chip classes. Primitives live in `components/ui` (icons, badges, Button, Controls, Data, CodeBlock, Flow, Charts, Layout), the shell in `components/layout`, the AI card in `components/ai`, pages in `pages/` (lazy-loaded per route). `/dev/components` (development only) shows every primitive in both themes.
+- Keep these rules when changing a screen:
+  - No external fonts, scripts, icons or images. The nginx security policy blocks them; fonts come from `@fontsource-variable/*`, icons are inline SVG (`components/ui/icons.tsx`).
+  - Never render repository text as HTML (no `dangerouslySetInnerHTML`; ESLint fails the build). AI text goes through `MarkdownText`. Keep Mermaid in strict mode.
+  - Never show a number for something that was not measured ("Not analyzed", "Unavailable", "Not checked"); never show a percentage confidence or a test pass/fail status.
+- Routes: `/` (Dashboard), `/repositories/new`, `/repositories/:repositoryId?tab=overview|dependencies|code-quality|security|tests|architecture&snapshot=`, `/repositories/:repositoryId/arch`, `/search`, `/qa`, `/impact`, `/repositories/:repositoryId/investigations` (placeholder), `/investigations/:id` and `/investigations/:id/audit` (placeholders), `/settings/ai`.

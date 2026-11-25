@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { useAnalysisRun, useCancelRun, useRepository } from '../../hooks/queries'
@@ -72,6 +73,16 @@ export default function AnalysisProgress({ runId, pollIntervalMs }: { runId: str
   const repository = useRepository(run?.repositoryId ?? '')
   const analyze = useAnalyzeRepository()
   const [confirming, setConfirming] = useState(false)
+  const queryClient = useQueryClient()
+  const status = run?.status
+  // The run moved on: refresh what the header, sidebar and report page derive from the snapshot's latest run,
+  // so a finished run switches to the report without a manual reload.
+  useEffect(() => {
+    if (!status) return
+    void queryClient.invalidateQueries({ queryKey: ['snapshots'] })
+    void queryClient.invalidateQueries({ queryKey: ['repository'] })
+    void queryClient.invalidateQueries({ queryKey: ['repositories'] })
+  }, [status, queryClient])
   const active = !!run && !isTerminal(run.status)
   const now = useNow(active)
 
@@ -153,8 +164,8 @@ export default function AnalysisProgress({ runId, pollIntervalMs }: { runId: str
           <p className="font-mono text-label-sm uppercase tracking-wider text-muted">Aggregate progress</p>
           {progress ? (
             <div className="mt-1 space-y-1">
-              <p className="text-body-md">{progress.done} of {progress.total} analyzers finished</p>
-              <ProgressBar value={progress.done} max={progress.total} label="Analyzers finished" />
+              <p className="text-body-md">{progress.done} of {progress.total} listed analyzers finished</p>
+              <ProgressBar value={progress.done} max={progress.total} label="Listed analyzers finished" />
             </div>
           ) : (
             <p className="mt-1 text-body-md text-muted">Measured while analyzers run</p>

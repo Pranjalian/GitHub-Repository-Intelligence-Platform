@@ -108,7 +108,7 @@ export default function FindingDetailPanel({
       {finding.suggestedNextStep && (
         <section aria-label="Suggested next step" className="rounded-lg border border-line bg-canvas p-3">
           <h4 className="font-mono text-label-sm uppercase tracking-wider text-muted">Suggested next step</h4>
-          <p className="mt-1 text-body-md">{finding.suggestedNextStep}</p>
+          <p className="mt-1 text-body-md [overflow-wrap:anywhere]">{finding.suggestedNextStep}</p>
         </section>
       )}
 

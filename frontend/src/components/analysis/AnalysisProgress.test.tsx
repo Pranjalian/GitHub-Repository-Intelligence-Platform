@@ -82,7 +82,7 @@ describe('AnalysisProgress', () => {
     )
     renderProgress()
     expect(await screen.findByLabelText('Analyzer counts')).toHaveTextContent('5 Configured · 1 Completed · 1 Running · 1 Failed · 1 Not configured')
-    expect(screen.getByText('3 of 5 analyzers finished')).toBeInTheDocument()
+    expect(screen.getByText('3 of 5 listed analyzers finished')).toBeInTheDocument()
     expect(screen.getByText('5.2s')).toBeInTheDocument()
     // the failed trace is hidden until expanded, and shows only the summary
     expect(screen.queryByText('PMD crashed: token [REDACTED]')).toBeNull()

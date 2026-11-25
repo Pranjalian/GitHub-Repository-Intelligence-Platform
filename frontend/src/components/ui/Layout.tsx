@@ -22,12 +22,12 @@ export function Card({
   as?: 'section' | 'div' | 'article'
 }) {
   return (
-    <Tag className={`rounded-lg border border-line ${tier === 1 ? 'bg-surface' : 'bg-raised'} ${className ?? ''}`}>
+    <Tag className={`min-w-0 rounded-lg border border-line ${tier === 1 ? 'bg-surface' : 'bg-raised'} ${className ?? ''}`}>
       {(title || actions) && (
         <header className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3 pb-2">
           <div className="flex min-w-0 items-center gap-2">
             {icon && <Icon name={icon} size={18} className="text-fg-2" />}
-            {title && <h2 className="truncate text-headline-md font-semibold tracking-tight">{title}</h2>}
+            {title && <h2 className="min-w-0 break-words text-headline-md font-semibold tracking-tight">{title}</h2>}
             {meta && <span className="text-body-sm text-muted">{meta}</span>}
           </div>
           {actions && <div className="flex items-center gap-2">{actions}</div>}

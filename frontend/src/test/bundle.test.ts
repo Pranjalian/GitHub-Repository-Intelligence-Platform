@@ -32,6 +32,8 @@ describe.skipIf(!built)('production bundle', () => {
     expect(assets.some((a) => /geist.*\.woff2$/i.test(a))).toBe(true)
     expect(assets.some((a) => /jetbrains-mono.*\.woff2$/i.test(a))).toBe(true)
     expect(css.join('')).toMatch(/Geist Variable/)
+    // a data: font is blocked by the CSP (default-src 'self'; data: is only allowed for images): the bug the browser check found
+    for (const text of css) expect(text).not.toMatch(/url\(\s*["']?data:(font|application\/(font|x-font))/)
   })
 
   it('no script or stylesheet mentions a CDN, font or icon host', () => {

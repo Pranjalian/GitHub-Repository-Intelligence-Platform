@@ -68,11 +68,11 @@ export function Pagination({ page, totalPages, totalElements, shown, onPage }: {
   if (totalElements === 0) return null
   const from = page * Math.max(shown, 1) + 1
   return (
-    <nav aria-label="Pagination" className="flex items-center justify-between gap-2 text-body-md text-fg-2">
+    <nav aria-label="Pagination" className="flex flex-wrap items-center justify-between gap-2 text-body-md text-fg-2">
       <span>
         Showing {from}-{Math.min(from + shown - 1, totalElements)} of {totalElements}
       </span>
-      <span className="flex items-center gap-2">
+      <span className="flex flex-wrap items-center gap-2">
         <Button variant="secondary" disabled={page <= 0} onClick={() => onPage(page - 1)} icon="chevron-left">
           Prev
         </Button>

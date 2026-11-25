@@ -326,7 +326,7 @@ export default function FindingsList({
                                   <span className="font-mono text-body-sm text-muted">{first.analyzerId}</span>
                                   <ConfidenceBadge confidence={first.confidence} />
                                 </div>
-                                <p className="mt-1 font-mono text-body-sm text-fg-2" title={first.filePath ?? undefined}>
+                                <p className="mt-1 font-mono text-body-sm text-fg-2 [overflow-wrap:anywhere]" title={first.filePath ?? undefined}>
                                   {middleTruncate(first.filePath ?? 'No file')}
                                   {first.startLine != null ? `:${first.startLine}` : ''}
                                 </p>

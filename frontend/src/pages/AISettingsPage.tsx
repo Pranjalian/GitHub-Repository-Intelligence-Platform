@@ -304,7 +304,7 @@ function HowTo({ url }: { url: string | null }) {
         <EnvBlock title="Hosted (Gemini or OpenRouter): environment variables" lines={HOSTED_ENV_LINES} />
         <p className="text-body-sm text-muted">
           Read the provider&apos;s current terms, quotas and data-use policy first. Hosted providers need the acknowledgement variable (
-          <code className="font-mono">AI_PROVIDERS_&lt;ID&gt;_DATA_HANDLING_ACKNOWLEDGED=true</code>); repository excerpts, with secrets removed, are sent. No model is assumed to be free.
+          <code className="break-all font-mono">AI_PROVIDERS_&lt;ID&gt;_DATA_HANDLING_ACKNOWLEDGED=true</code>); repository excerpts, with secrets removed, are sent. No model is assumed to be free.
         </p>
         <p className="text-body-sm text-fg-2">See the README section &quot;AI insights (optional)&quot; for every setting.</p>
         {url && url.startsWith('https://') && (

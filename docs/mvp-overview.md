@@ -1,4 +1,4 @@
-# MVP Overview (MVP 1 to MVP 5): Steps, Flow and Decisions
+# MVP Overview (MVP 1 to MVP 5 and MVP 7): Steps, Flow and Decisions
 
 A short guide to what was built in MVP 1 (repository analysis), MVP 2 (architecture intelligence), MVP 3 (optional AI insights) MVP 4 (search and Q&A) and MVP 5 (change-impact analysis), and how a repository flows through the platform. This file was called `mvp1-mvp2-overview.md` until MVP 4 and is now `mvp-overview.md`, so one name covers every MVP. For full detail see [implementationPlan.md](implementationPlan.md), [architecture.md](architecture.md) and the completion reports for [MVP 1](mvp1-completion-report.md) and [MVP 2](mvp2-completion-report.md).
 
@@ -364,6 +364,45 @@ The graph result never depends on AI. A path is only as strong as its weakest li
 
 ---
 
+## 4d. MVP 7 steps: UI redesign (Google Stitch designs)
+
+The whole frontend was rebuilt from the Stitch designs without changing what any analyzer, search or impact rule does. MVP 6 (agents) does not exist yet, so the Investigations screens (Step 7.13) and the investigation parts of Step 7.3 are not built.
+
+| Step | Title | One-liner |
+|---|---|---|
+| 7.0 | Design intake | No code: which screens exist, which design elements break product rules (invented telemetry, fake percentages, test status) and what replaces them. |
+| 7.1 | Design foundation | Tokens as CSS variables (light and dark, checked against WCAG AA by a test), self-hosted Geist and JetBrains Mono, an inline-SVG icon set, the theme provider (applied before first paint) and the primitives (badges, buttons, tabs, drawer, table, code block, charts, states), plus the dev-only `/dev/components` sheet. |
+| 7.2 | App shell | Sidebar (workspace, active context, report tabs as Diagnostics with real badges, analytical engine), header (breadcrumb, AI status pill, theme toggle), responsive overlay below 1280 px, lazy routes, designed not-found. |
+| 7.3 | Backend additions | `summary` per repository and `GET /repositories/stats` (batch queries), report run duration and `dependencyCount`, execution `reason`, findings `analyzer` and `q` filters. |
+| 7.4 | Dashboard, Add Repository | KPI tiles, filterable rows with severity chips and index state, retry for failed runs; a focused add form with examples and inline validation. |
+| 7.5 | Analysis progress | Stepper, analyzer table with reasons, local elapsed timer, aggregate progress, confirmed cancel, failed / cancelled / rate-limited variants. |
+| 7.6 | Report header, Overview | Header chips and snapshot selector, six summary cards, the seven-column capability matrix, stack with evidence, repository anatomy by files, entry points, limitations, optional module summary. |
+| 7.7 | Findings | One component for Code Quality and Security: URL-synced filters, grouped list or table, redacted secrets, an inspector drawer with evidence, previous / next and the separate AI explanation. |
+| 7.8 | Dependencies, Tests | Filterable dependency table with version-source labels; test inventory and coverage that says "unavailable" instead of 0%. |
+| 7.9 | Architecture | Pan / zoom / full-screen diagram cards that follow the theme, layer accordions with per-type AI actions, endpoint filters, entities, DI chains, cycles, patterns, the Python "not supported" state. |
+| 7.10 | AI card and settings | The shared insight card in every state (idle, asking with Cancel, success variants, five failures, AI off) and an AI Settings page with the real environment variable names. |
+| 7.11 | Search and Ask | One live index bar, URL-synced search with highlighted matches, Q&A with clickable citations, insufficient-evidence and degraded-mode cards. |
+| 7.12 | Impact | Scope panel with hop control and view filters, risk bands and factor tiles, grouped components, tests table without execution status, suggested command as text, Export JSON. |
+| 7.13 | Investigations | Not built (needs MVP 6); routes show an explicit placeholder. |
+| 7.14 | Cross-cutting | axe checks on every main page in both themes, the Python "not supported" states, a production-bundle scan for external hosts, an optional Playwright smoke test. |
+| 7.15 | Documentation | README, architecture, this overview and the completion report. |
+
+```mermaid
+flowchart TD
+    T["styles/globals.css tokens<br/>light :root, dark .dark"] --> P["components/ui primitives"]
+    P --> SH["Shell: Sidebar, Header"]
+    SH --> PG["Pages (lazy per route)"]
+    API["Existing API + 7.3 additions"] --> Q["TanStack Query hooks"]
+    Q --> PG
+    Q --> CTX["useRepoContext: repo, snapshot, report"]
+    CTX --> SH
+    PG --> AI["AI card (violet surface only)"]
+```
+
+Full detail, deviations from the designs and verification: [mvp7-completion-report.md](mvp7-completion-report.md).
+
+---
+
 ## 5. Tools
 
 | Area | Tool | Used for | Since |
@@ -393,6 +432,8 @@ The graph result never depends on AI. A path is only as strong as its weakest li
 | AI (optional) | Ollama `/api/embed`, Gemini `batchEmbedContents` | Embeddings, separate from the chat model; off by default | MVP 4 |
 | Impact (no new library) | PostgreSQL recursive queries, JavaParser (test references), Mermaid (chain) | Dependency graph, impact analysis | MVP 5 |
 | Frontend | react-markdown 10.1.0 | AI text as Markdown, without raw HTML, images or links | MVP 3 |
+| Frontend | @fontsource-variable/geist, @fontsource-variable/jetbrains-mono | Self-hosted fonts (SIL OFL 1.1), served from the app origin | MVP 7 |
+| Testing | vitest-axe, axe-core; @playwright/test (optional) | Accessibility checks in unit tests; optional real-browser smoke test | MVP 7 |
 | CI | GitHub Actions | Backend, frontend and Docker image jobs on every push to `main` | MVP 1 |
 
 ## 6. Quick start
