@@ -172,10 +172,11 @@ public class ReportService {
 	}
 
 	public PageResponse<FindingDTO> findings(UUID repositoryId, UUID snapshotId, AnalysisCategory category,
-			Severity severity, String module, String file, String sort, int page, int size) {
+			Severity severity, String module, String file, String analyzer, String text, String sort,
+			int page, int size) {
 		Resolved resolved = resolve(repositoryId, snapshotId, null);
 		var spec = ReportSpecifications.findings(snapshotId, resolved.run().getId(), category, severity, module, file,
-				sort);
+				analyzer, text, sort);
 		TrackedRepository repository = resolved.snapshot().getRepository();
 		String sha = resolved.snapshot().getCommitSha();
 		return PageResponse.from(findings.findAll(spec, PageRequest.of(page, size)),

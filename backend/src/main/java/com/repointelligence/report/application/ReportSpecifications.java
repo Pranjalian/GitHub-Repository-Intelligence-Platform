@@ -29,7 +29,7 @@ final class ReportSpecifications {
 	}
 
 	static Specification<AnalysisFinding> findings(UUID snapshotId, UUID runId, AnalysisCategory category,
-			Severity severity, String module, String file, String sort) {
+			Severity severity, String module, String file, String analyzer, String text, String sort) {
 		String sortKey = sort == null || sort.isBlank() ? SORT_SEVERITY : sort.trim().toLowerCase();
 		if (!FINDING_SORTS.contains(sortKey)) {
 			throw new BadRequestException("Unknown sort '" + sort + "'. Allowed: " + String.join(", ", FINDING_SORTS) + ".");
@@ -51,6 +51,16 @@ final class ReportSpecifications {
 				String path = file.trim();
 				where.add(cb.or(cb.equal(root.get("filePath"), path),
 						cb.like(root.get("filePath"), escapeLike(path.endsWith("/") ? path : path + "/") + "%", '\\')));
+			}
+			if (analyzer != null && !analyzer.isBlank()) {
+				where.add(cb.equal(root.get("analyzerId"), analyzer.trim()));
+			}
+			if (text != null && !text.isBlank()) {
+				// case-insensitive substring over what the findings list shows: title, rule id and path
+				String pattern = "%" + escapeLike(text.trim().toLowerCase()) + "%";
+				where.add(cb.or(cb.like(cb.lower(root.get("title")), pattern, '\\'),
+						cb.like(cb.lower(root.get("ruleId")), pattern, '\\'),
+						cb.like(cb.lower(cb.coalesce(root.<String>get("filePath"), "")), pattern, '\\')));
 			}
 			// Count queries must not carry an ORDER BY.
 			if (query != null && query.getResultType() != Long.class && query.getResultType() != long.class) {

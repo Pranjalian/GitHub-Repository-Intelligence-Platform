@@ -37,18 +37,22 @@ const ThemeContext = createContext<ThemeValue>({ choice: 'dark', resolved: 'dark
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [choice, setChoiceState] = useState<ThemeChoice>(readChoice)
-  const [resolved, setResolved] = useState<'light' | 'dark'>(() => resolveTheme(readChoice()))
+  const [systemDark, setSystemDark] = useState<boolean>(systemPrefersDark)
+  const resolved: 'light' | 'dark' = choice === 'system' ? (systemDark ? 'dark' : 'light') : choice
 
   useEffect(() => {
-    setResolved(applyTheme(choice))
-    if (choice !== 'system' || typeof window.matchMedia !== 'function') {
+    document.documentElement.classList.toggle('dark', resolved === 'dark')
+  }, [resolved])
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') {
       return
     }
     const query = window.matchMedia('(prefers-color-scheme: dark)')
-    const listener = () => setResolved(applyTheme('system'))
+    const listener = () => setSystemDark(query.matches)
     query.addEventListener('change', listener)
     return () => query.removeEventListener('change', listener)
-  }, [choice])
+  }, [])
 
   const setChoice = useCallback((next: ThemeChoice) => {
     try {

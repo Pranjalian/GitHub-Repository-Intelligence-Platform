@@ -54,3 +54,11 @@ export function formatDuration(ms: number | null | undefined): string | null {
   const whole = Math.round(seconds)
   return `${Math.floor(whole / 60)}m ${whole % 60}s`
 }
+
+/** Shortens a long path in the middle, keeping the start and the file name: "src/main/.../OwnerController.java". */
+export function middleTruncate(text: string, max = 48): string {
+  if (text.length <= max) return text
+  const keepEnd = Math.ceil((max - 3) * 0.6)
+  const keepStart = max - 3 - keepEnd
+  return `${text.slice(0, keepStart)}...${text.slice(text.length - keepEnd)}`
+}

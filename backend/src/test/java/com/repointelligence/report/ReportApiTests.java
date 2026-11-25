@@ -214,6 +214,26 @@ class ReportApiTests {
 	}
 
 	@Test
+	void findingsCanBeFilteredByAnalyzerAndSearchedByTitleRuleAndPath() throws Exception {
+		mockMvc.perform(get(base(repository) + "/snapshots/" + snapshot.getId() + "/findings?analyzer=analyzer-CODE_QUALITY"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.totalElements").value(4));
+		mockMvc.perform(get(base(repository) + "/snapshots/" + snapshot.getId() + "/findings?analyzer=analyzer-STRUCTURE"))
+			.andExpect(jsonPath("$.totalElements").value(1));
+		mockMvc.perform(get(base(repository) + "/snapshots/" + snapshot.getId() + "/findings?analyzer=nope"))
+			.andExpect(jsonPath("$.totalElements").value(0));
+		// rule id, title and path; case-insensitive; LIKE wildcards in the input are literal
+		mockMvc.perform(get(base(repository) + "/snapshots/" + snapshot.getId() + "/findings?q=godclass"))
+			.andExpect(jsonPath("$.totalElements").value(1));
+		mockMvc.perform(get(base(repository) + "/snapshots/" + snapshot.getId() + "/findings?q=WEB/SRC"))
+			.andExpect(jsonPath("$.totalElements").value(1));
+		mockMvc.perform(get(base(repository) + "/snapshots/" + snapshot.getId() + "/findings?q=%25"))
+			.andExpect(jsonPath("$.totalElements").value(0));
+		mockMvc.perform(get(base(repository) + "/snapshots/" + snapshot.getId() + "/findings?q=OtherRepoFinding"))
+			.andExpect(jsonPath("$.totalElements").value(0));
+	}
+
+	@Test
 	void aSnapshotFromAnotherRepositoryIs404() throws Exception {
 		mockMvc.perform(get(base(repository) + "/reports/" + otherSnapshot.getId())).andExpect(status().isNotFound());
 		mockMvc.perform(get(base(repository) + "/snapshots/" + otherSnapshot.getId() + "/findings"))

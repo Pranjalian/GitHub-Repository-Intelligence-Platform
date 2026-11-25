@@ -49,12 +49,12 @@ describe('RepositoryOverviewPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'octo/demo' })).toBeInTheDocument()
     expect(await screen.findByRole('region', { name: 'Technology stack' })).toBeInTheDocument()
-    expect(screen.getByText(SHA_NEW)).toBeInTheDocument()
+    expect(screen.getByTitle(SHA_NEW)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: `Copy SHA ${SHA_NEW}` })).toBeInTheDocument()
     const tech = screen.getByRole('region', { name: 'Technology stack' })
     expect(within(tech).getByText('Java')).toBeInTheDocument()
-    expect(within(tech).getByText('Likely')).toBeInTheDocument()
-    expect(within(tech).getByText('Detected')).toBeInTheDocument()
+    expect(within(tech).getAllByText('Likely').length).toBeGreaterThan(0)
+    expect(within(tech).getAllByText('Detected').length).toBeGreaterThan(0)
     expect(screen.getByRole('region', { name: 'Structure' })).toHaveTextContent('12 files')
     expect(screen.getByRole('region', { name: 'Capability matrix' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Limitations' })).toHaveTextContent('semgrep is not installed')
@@ -78,7 +78,7 @@ describe('RepositoryOverviewPage', () => {
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Snapshot' }), SNAP_OLD)
 
     await waitFor(() => expect(requested).toContain(SNAP_OLD))
-    expect(await screen.findByText(SHA_OLD)).toBeInTheDocument()
+    expect(await screen.findByTitle(SHA_OLD)).toBeInTheDocument()
     expect(screen.getByTestId('location')).toHaveTextContent(`?snapshot=${SNAP_OLD}`)
   })
 
@@ -86,7 +86,7 @@ describe('RepositoryOverviewPage', () => {
     const requested = stubRepository()
     renderOverview(`?snapshot=${SNAP_OLD}`)
 
-    expect(await screen.findByText(SHA_OLD)).toBeInTheDocument()
+    expect(await screen.findByTitle(SHA_OLD)).toBeInTheDocument()
     await waitFor(() => expect(requested).toEqual([SNAP_OLD]))
   })
 
@@ -95,7 +95,7 @@ describe('RepositoryOverviewPage', () => {
     server.use(http.get(`/api/v1/analysis-runs/${RUN_ID}`, () => HttpResponse.json(run('ANALYZING', { phase: 'ANALYZING' }))))
     renderOverview()
 
-    expect(await screen.findByText(SHA_OLD)).toBeInTheDocument()
+    expect(await screen.findByTitle(SHA_OLD)).toBeInTheDocument()
     await waitFor(() => expect(requested).toEqual([SNAP_OLD]))
   })
 

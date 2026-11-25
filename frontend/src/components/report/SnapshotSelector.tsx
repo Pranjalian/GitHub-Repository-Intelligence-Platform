@@ -1,5 +1,6 @@
 import { formatDateTime, shortSha } from '../../lib/format'
 import type { Snapshot } from '../../types/api'
+import { Select } from '../ui/Controls'
 
 const statusText: Record<string, string> = {
   QUEUED: 'Queued',
@@ -11,6 +12,7 @@ const statusText: Record<string, string> = {
   CANCELLED: 'Cancelled',
 }
 
+/** Each option shows the short SHA, the date and the run status; the first (newest) is marked Latest. */
 export default function SnapshotSelector({
   snapshots,
   selectedId,
@@ -21,21 +23,14 @@ export default function SnapshotSelector({
   onSelect: (snapshotId: string) => void
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="font-medium">Snapshot</span>
-      <select
-        value={selectedId ?? ''}
-        onChange={(event) => onSelect(event.target.value)}
-        className="rounded border border-slate-300 bg-white px-2 py-1 text-sm"
-      >
-        {snapshots.map((snapshot) => (
-          <option key={snapshot.id} value={snapshot.id}>
-            {`${shortSha(snapshot.commitSha)} · ${formatDateTime(snapshot.createdAt)} · ${
-              snapshot.latestRun ? statusText[snapshot.latestRun.status] : 'Not analyzed'
-            }`}
-          </option>
-        ))}
-      </select>
-    </label>
+    <Select label="Snapshot" value={selectedId ?? ''} onChange={(event) => onSelect(event.target.value)} className="font-mono">
+      {snapshots.map((snapshot, index) => (
+        <option key={snapshot.id} value={snapshot.id}>
+          {`${shortSha(snapshot.commitSha)} · ${formatDateTime(snapshot.createdAt)} · ${
+            snapshot.latestRun ? statusText[snapshot.latestRun.status] : 'Not analyzed'
+          }${index === 0 ? ' (Latest)' : ''}`}
+        </option>
+      ))}
+    </Select>
   )
 }

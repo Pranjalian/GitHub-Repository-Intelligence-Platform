@@ -18,7 +18,8 @@ describe('App', () => {
       ),
     )
     render(<App />)
-    expect(await screen.findByRole('heading', { name: 'GitHub Repository Intelligence Platform' })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'RepoIntel home' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Skip to content' })).toBeInTheDocument()
     expect(await screen.findByText('No repositories analyzed yet')).toBeInTheDocument()
   })
 })
@@ -26,9 +27,11 @@ describe('App', () => {
 describe('Sidebar', () => {
   it('renders the navigation items', () => {
     render(
-      <MemoryRouter>
-        <Sidebar />
-      </MemoryRouter>,
+      <QueryClientProvider client={makeQueryClient()}>
+        <MemoryRouter>
+          <Sidebar />
+        </MemoryRouter>
+      </QueryClientProvider>,
     )
     expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Add Repository' })).toHaveAttribute('href', '/repositories/new')

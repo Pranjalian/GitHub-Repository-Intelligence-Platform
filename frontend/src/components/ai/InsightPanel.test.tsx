@@ -69,7 +69,8 @@ describe('InsightPanel', () => {
   it('is disabled with the reason and a link to the AI settings when AI is unavailable', async () => {
     renderPage(panel())
 
-    expect(await screen.findByText(/AI is disabled \(ai\.enabled=false\)/)).toBeInTheDocument()
+    // the reason appears in the line beside the button and in the button's tooltip
+    expect((await screen.findAllByText(/AI is disabled \(ai\.enabled=false\)/)).length).toBeGreaterThanOrEqual(1)
     expect(screen.getByRole('button', { name: 'Explain' })).toBeDisabled()
     expect(screen.getByRole('link', { name: 'AI settings and setup guide' })).toHaveAttribute('href', '/settings/ai')
   })

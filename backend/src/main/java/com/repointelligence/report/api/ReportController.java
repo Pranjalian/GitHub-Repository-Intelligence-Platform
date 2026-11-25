@@ -36,15 +36,17 @@ public class ReportController {
 		return service.generate(repositoryId, snapshotId, runId);
 	}
 
-	@Operation(summary = "Findings of a snapshot", description = "Filter by category, severity, module and file; sort by severity, file, category or rule.")
+	@Operation(summary = "Findings of a snapshot", description = "Filter by category, severity, module, file or folder, analyzer and a text search over title, rule and path; sort by severity, file, category or rule.")
 	@GetMapping("/snapshots/{snapshotId}/findings")
 	public PageResponse<FindingDTO> findings(@PathVariable UUID repositoryId, @PathVariable UUID snapshotId,
 			@RequestParam(required = false) AnalysisCategory category,
 			@RequestParam(required = false) Severity severity, @RequestParam(required = false) String module,
-			@RequestParam(required = false) String file, @RequestParam(required = false) String sort,
+			@RequestParam(required = false) String file, @RequestParam(required = false) String analyzer,
+			@RequestParam(required = false) String q, @RequestParam(required = false) String sort,
 			@RequestParam(defaultValue = "0") @Min(0) int page,
 			@RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
-		return service.findings(repositoryId, snapshotId, category, severity, module, file, sort, page, size);
+		return service.findings(repositoryId, snapshotId, category, severity, module, file, analyzer, q, sort, page,
+				size);
 	}
 
 	@Operation(summary = "Dependency inventory of a snapshot", description = "vulnerable=false means 'not known to be vulnerable', never 'safe'.")

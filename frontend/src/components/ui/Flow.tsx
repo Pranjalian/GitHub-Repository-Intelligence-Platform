@@ -52,6 +52,7 @@ export function Drawer({
   children,
   overlay = false,
   returnFocusTo,
+  ariaLabel = 'Inspector',
 }: {
   open: boolean
   onClose: () => void
@@ -59,8 +60,16 @@ export function Drawer({
   children: ReactNode
   overlay?: boolean
   returnFocusTo?: HTMLElement | null
+  ariaLabel?: string
 }) {
   const ref = useRef<HTMLElement>(null)
+  // Latest callbacks without re-running the focus effect on every parent render.
+  const closeRef = useRef(onClose)
+  const returnRef = useRef(returnFocusTo)
+  useEffect(() => {
+    closeRef.current = onClose
+    returnRef.current = returnFocusTo
+  })
 
   useEffect(() => {
     if (!open) return
@@ -69,7 +78,7 @@ export function Drawer({
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.stopPropagation()
-        onClose()
+        closeRef.current()
         return
       }
       if (event.key === 'Tab' && overlay && node) {
@@ -87,12 +96,11 @@ export function Drawer({
       }
     }
     document.addEventListener('keydown', onKey)
-    const previous = returnFocusTo
     return () => {
       document.removeEventListener('keydown', onKey)
-      previous?.focus()
+      returnRef.current?.focus()
     }
-  }, [open, overlay, onClose, returnFocusTo])
+  }, [open, overlay])
 
   if (!open) return null
   const aside = (
@@ -100,7 +108,7 @@ export function Drawer({
       ref={ref}
       role={overlay ? 'dialog' : 'complementary'}
       aria-modal={overlay || undefined}
-      aria-label="Inspector"
+      aria-label={ariaLabel}
       className={`flex flex-col border-l border-line bg-surface ${overlay ? 'fixed inset-y-0 right-0 z-40 w-[min(480px,100vw)] shadow-overlay' : 'w-[420px] shrink-0 self-start'}`}
     >
       <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-2">

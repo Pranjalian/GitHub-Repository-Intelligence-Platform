@@ -18,15 +18,18 @@ function readCollapsed(): boolean {
 export default function MainLayout() {
   const desktop = useIsDesktop()
   const [collapsed, setCollapsed] = useState(readCollapsed)
-  const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
+  // The overlay menu is open for one path only: navigating anywhere closes it.
+  const [openAt, setOpenAt] = useState<string | null>(null)
+  const menuOpen = openAt === location.pathname
+  const setMenuOpen = (open: boolean) => setOpenAt(open ? location.pathname : null)
 
-  useEffect(() => setMenuOpen(false), [location.pathname])
   useEffect(() => {
     if (!menuOpen) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [menuOpen])
 
   function toggle() {

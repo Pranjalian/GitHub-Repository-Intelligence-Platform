@@ -44,7 +44,7 @@ function repo(id: string, name: string, status: RunStatus, over: Partial<Reposit
 
 const stats = { repositoriesTotal: 2, repositoriesAnalyzed: 1, indexedForSearch: 1, openFindings: 25, activeRuns: 1 }
 
-function serve(items: Repository[], s: unknown = stats) {
+function serve(items: Repository[], s: object = stats) {
   server.use(
     http.get('/api/v1/repositories', () => HttpResponse.json(page(items))),
     http.get('/api/v1/repositories/stats', () => HttpResponse.json(s)),

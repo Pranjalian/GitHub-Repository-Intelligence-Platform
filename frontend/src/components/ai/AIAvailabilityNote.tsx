@@ -8,12 +8,12 @@ export default function AIAvailabilityNote() {
     return null
   }
   if (providers.data.available) {
-    return <p className="text-xs text-slate-600">AI explanations are available; every answer is marked AI-generated.</p>
+    return <p className="text-body-sm text-muted">AI explanations are available; every answer is marked AI-generated.</p>
   }
   return (
-    <p role="note" className="text-xs text-slate-600">
+    <p role="note" className="text-body-sm text-muted">
       AI explanations are unavailable: {providers.data.unavailableReason ?? 'no provider is configured.'}{' '}
-      <Link to="/settings/ai" className="text-blue-700 hover:underline">
+      <Link to="/settings/ai" className="text-primary-text underline">
         AI settings and setup guide
       </Link>
     </p>

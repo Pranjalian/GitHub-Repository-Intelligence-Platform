@@ -313,6 +313,10 @@ export interface FindingFilters {
   severity?: Severity | ''
   module?: string
   file?: string
+  /** Analyzer id (exact). */
+  analyzer?: string
+  /** Case-insensitive text over title, rule id and path (server side). */
+  q?: string
   sort?: 'severity' | 'file' | 'category' | 'rule'
   page?: number
   size?: number
