@@ -66,4 +66,31 @@ class SecretRedactorTests {
 		assertThat(SecretRedactor.redact(once)).isEqualTo(once);
 	}
 
+	@Test
+	void masksCookieAndCsrfHeadersAndSessionCookiesByName() {
+		assertThat(SecretRedactor.redact("Cookie: REPOINTEL_SESSION=ABCDEF0123456789; XSRF-TOKEN=11111111-2222"))
+			.isEqualTo("Cookie: " + MASK);
+		assertThat(SecretRedactor.redact("Set-Cookie: REPOINTEL_SESSION=ABCDEF0123456789; Path=/; HttpOnly"))
+			.isEqualTo("Set-Cookie: " + MASK);
+		assertThat(SecretRedactor.redact("X-XSRF-TOKEN: 11111111-2222-3333")).isEqualTo("X-XSRF-TOKEN: " + MASK);
+		assertThat(SecretRedactor.redact("Proxy-Authorization: Basic dXNlcjpwYXNzd29yZA==")).isEqualTo("Proxy-Authorization: " + MASK);
+		assertThat(SecretRedactor.redact("replayed REPOINTEL_SESSION=ABCDEF0123456789 after logout"))
+			.isEqualTo("replayed REPOINTEL_SESSION=" + MASK + " after logout");
+		assertThat(SecretRedactor.redact("JSESSIONID=ABCDEF0123456789")).isEqualTo("JSESSIONID=" + MASK);
+	}
+
+	@Test
+	void masksBcryptHashesWhereverTheyAppear() {
+		String hash = "$2a$12$" + "abcdefghijklmnopqrstuu" + "abcdefghijklmnopqrstuvwxyz01234".substring(0, 31);
+		assertThat(hash).hasSize(60);
+		assertThat(SecretRedactor.redact("loaded " + hash + " from env")).isEqualTo("loaded " + MASK + " from env");
+		assertThat(SecretRedactor.redact("AUTH_PASSWORD_HASH=" + hash)).isEqualTo("AUTH_PASSWORD_HASH=" + MASK);
+	}
+
+	@Test
+	void masksPasswordFieldsInJsonBodiesIncludingLoginRequests() {
+		assertThat(SecretRedactor.redact("{\"username\":\"operator\",\"password\":\"hunter2\"}"))
+			.isEqualTo("{\"username\":\"operator\",\"password\":\"" + MASK + "\"}");
+	}
+
 }

@@ -5,7 +5,29 @@ logging:
     json:
       customizer: com.repointelligence.common.logging.RedactingJsonMembersCustomizer
 
+# Only the health check is exposed (Railway's healthcheck); /actuator/info and the rest do not exist.
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health
   endpoint:
     health:
       show-details: never
+
+# Behind Railway's proxy: honour X-Forwarded-Proto/-For (Spring's ForwardedHeaderFilter) so the throttle sees the
+# client address and the XSRF-TOKEN cookie is Secure. That filter does NOT make Tomcat mark its own session
+# cookie Secure (measured in MVP 8), so the session cookie is Secure unconditionally: production is HTTPS only.
+server:
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        secure: true
+
+# No API documentation and no actuator beyond the health check in production.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

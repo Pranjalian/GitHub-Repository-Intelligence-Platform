@@ -2,14 +2,17 @@ package com.repointelligence.common.exception;
 
 import org.springframework.http.HttpStatus;
 
-/** The caller submitted too many analyses in a short time (429 with Retry-After). */
+/** A client-side rate limit was exceeded (429 with Retry-After), for example too many analysis submissions. */
 public class SubmissionRateLimitException extends ApiException {
 
 	private final long retryAfterSeconds;
 
 	public SubmissionRateLimitException(long retryAfterSeconds) {
-		super(HttpStatus.TOO_MANY_REQUESTS,
-				"Too many analysis submissions. Try again in " + retryAfterSeconds + " seconds.");
+		this("Too many analysis submissions. Try again in " + retryAfterSeconds + " seconds.", retryAfterSeconds);
+	}
+
+	protected SubmissionRateLimitException(String message, long retryAfterSeconds) {
+		super(HttpStatus.TOO_MANY_REQUESTS, message);
 		this.retryAfterSeconds = retryAfterSeconds;
 	}
 

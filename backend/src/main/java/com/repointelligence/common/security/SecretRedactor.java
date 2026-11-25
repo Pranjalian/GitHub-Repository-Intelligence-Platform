@@ -25,7 +25,20 @@ public final class SecretRedactor {
 			// Slack and Stripe style tokens
 			Pattern.compile("\\bxox[abprs]-[A-Za-z0-9-]{10,}\\b"), Pattern.compile("\\b[sr]k_(?:live|test)_[A-Za-z0-9]{16,}\\b"),
 			// JSON Web Tokens
-			Pattern.compile("\\beyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\b"));
+			Pattern.compile("\\beyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\b"),
+			// BCrypt hashes (the operator's AUTH_PASSWORD_HASH)
+			Pattern.compile("\\$2[aby]\\$\\d{2}\\$[./A-Za-z0-9]{53}"));
+
+	/**
+	 * Cookie and CSRF headers: the whole header value is masked. ({@code Authorization} is handled by
+	 * {@link #AUTH_SCHEME}, which keeps the scheme.)
+	 */
+	private static final Pattern SENSITIVE_HEADER = Pattern.compile(
+			"(?i)(?<key>\\b(?:Set-Cookie|Cookie|Proxy-Authorization|X-XSRF-TOKEN|X-CSRF-TOKEN)\\s*[:=]\\s*)(?<value>[^\\r\\n]+)");
+
+	/** Session and CSRF cookies by name, wherever they appear (a header, a URL, a message). */
+	private static final Pattern SESSION_COOKIE = Pattern.compile(
+			"(?i)(?<key>\\b(?:REPOINTEL_SESSION|JSESSIONID|XSRF-TOKEN)\\s*=\\s*)(?<value>[^\\s;,\"']+)");
 
 	/** "Bearer xxx" / "Basic xxx": keep the scheme, mask the credential. */
 	private static final Pattern AUTH_SCHEME = Pattern.compile("(?i)\\b(Bearer|Basic)(\\s+)[A-Za-z0-9._~+/=-]{8,}");
@@ -45,6 +58,8 @@ public final class SecretRedactor {
 		for (Pattern pattern : WHOLE_MATCH) {
 			result = pattern.matcher(result).replaceAll(Matcher.quoteReplacement(MASK));
 		}
+		result = SENSITIVE_HEADER.matcher(result).replaceAll(match -> Matcher.quoteReplacement(match.group("key") + MASK));
+		result = SESSION_COOKIE.matcher(result).replaceAll(match -> Matcher.quoteReplacement(match.group("key") + MASK));
 		result = AUTH_SCHEME.matcher(result).replaceAll("$1$2" + Matcher.quoteReplacement(MASK));
 		return KEY_VALUE.matcher(result).replaceAll(match -> {
 			String value = match.group("value");

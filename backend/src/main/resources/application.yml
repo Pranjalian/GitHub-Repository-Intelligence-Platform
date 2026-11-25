@@ -25,6 +25,15 @@ spring:
 
 server:
   port: 8080
+  servlet:
+    session:
+      # Server-side session cookie (MVP 8). Only ever issued by a successful login. The idle timeout is
+      # also set per session from auth.session.idle-timeout; Secure is added when the request is HTTPS.
+      cookie:
+        name: REPOINTEL_SESSION
+        http-only: true
+        same-site: lax
+      timeout: ${AUTH_SESSION_IDLE_TIMEOUT:PT2H}
   tomcat:
     max-http-form-post-size: 1MB
   max-http-request-header-size: 16KB
@@ -41,6 +50,22 @@ management:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+# Login (MVP 8). Off by default: the application is open and meant for local use only. Never expose an
+# instance with auth.enabled=false. With true, every /api/** call except the auth endpoints needs a session,
+# and the application refuses to start unless the account below is set.
+auth:
+  enabled: ${AUTH_ENABLED:false}
+  username: ${AUTH_USERNAME:}
+  # BCrypt hash (cost 12). Never the password itself, and never commit a real one. See README, Authentication.
+  password-hash: ${AUTH_PASSWORD_HASH:}
+  session:
+    idle-timeout: ${AUTH_SESSION_IDLE_TIMEOUT:PT2H}
+    absolute-timeout: ${AUTH_SESSION_ABSOLUTE_TIMEOUT:PT12H}
+  throttle:
+    # Failures per client address and per username before that key is locked for the window (429 + Retry-After).
+    max-failures: 5
+    window: PT15M
 
 analysis:
   jobs:

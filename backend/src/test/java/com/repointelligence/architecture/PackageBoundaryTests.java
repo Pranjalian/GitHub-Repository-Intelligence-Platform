@@ -113,6 +113,37 @@ class PackageBoundaryTests {
 		}
 	}
 
+	@Test
+	void theSecurityPackageDependsOnlyOnCommon() throws IOException {
+		try (Stream<Path> files = Files.walk(MAIN.resolve("common/security"))) {
+			List<String> violations = files.filter(p -> p.toString().endsWith(".java"))
+				.filter(p -> read(p).lines()
+					.anyMatch(line -> line.startsWith("import com.repointelligence.")
+							&& !line.startsWith("import com.repointelligence.common.")))
+				.map(Path::toString)
+				.toList();
+
+			assertThat(violations).as("login code reaches no feature package").isEmpty();
+		}
+	}
+
+	@Test
+	void featurePackagesNeverDependOnTheLoginCode() throws IOException {
+		try (Stream<Path> files = Files.walk(MAIN)) {
+			List<String> violations = files.filter(p -> p.toString().endsWith(".java"))
+				.filter(p -> !p.toString().replace('\\', '/').contains("/common/security/"))
+				.filter(p -> read(p).lines()
+					.anyMatch(line -> line.startsWith("import com.repointelligence.common.security.")
+							&& !line.equals("import com.repointelligence.common.security.SecretRedactor;")))
+				.map(Path::toString)
+				.toList();
+
+			assertThat(violations)
+				.as("only the filter chain knows about authentication; features see just the shared SecretRedactor")
+				.isEmpty();
+		}
+	}
+
 	private static boolean importsAPack(Path file) {
 		return read(file).contains("import com.repointelligence.analysis.packs.");
 	}

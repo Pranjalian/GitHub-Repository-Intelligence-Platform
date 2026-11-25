@@ -49,7 +49,7 @@ class ApiDocumentationAndHealthTests {
 			.andExpect(jsonPath("$.info.version").value("0.0.1"))
 			.andExpect(jsonPath("$.info.description").isNotEmpty())
 			// only the endpoints the UI needs, no placeholders for future phases
-			.andExpect(jsonPath("$.paths", aMapWithSize(23)))
+			.andExpect(jsonPath("$.paths", aMapWithSize(26)))
 			.andExpect(jsonPath("$.paths['/api/v1/repositories/analyze']").exists())
 			.andExpect(jsonPath("$.paths['/api/v1/repositories']").exists())
 			// MVP 7 (Step 7.3): dashboard KPI tiles
@@ -78,6 +78,22 @@ class ApiDocumentationAndHealthTests {
 			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/impact-analysis']").exists())
 			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/impact-analysis/symbols']").exists())
 			.andExpect(jsonPath("$.paths['/api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/impact-analysis/suggestions']").exists());
+	}
+
+	@Test
+	void authEndpointsAreDocumentedAndProtectedOnesListThe401() throws Exception {
+		mockMvc.perform(get("/v3/api-docs"))
+			.andExpect(status().isOk())
+			// MVP 8
+			.andExpect(jsonPath("$.paths['/api/v1/auth/session'].get").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/auth/login'].post.responses['401']").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/auth/login'].post.responses['429']").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/auth/logout'].post").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/repositories'].get.responses['401']").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/repositories/analyze'].post.responses['401']").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/ai/providers'].get.responses['401']").exists())
+			.andExpect(jsonPath("$.paths['/api/v1/auth/session'].get.responses['401']").doesNotExist())
+			.andExpect(jsonPath("$.components.securitySchemes.sessionCookie.in").value("cookie"));
 	}
 
 	@Test
