@@ -10,7 +10,7 @@
 
 ## 1. Authentication: a real login, enforced by the backend (MVP 8)
 
-The product was a single-user local tool with no authentication. Putting the backend on a public Railway URL means **anyone who finds the URL can**:
+The app was built as a single-user local tool; MVP 8 adds the login this deployment needs. Without it, putting the backend on a public Railway URL means **anyone who finds the URL can**:
 
 - submit analyses of any public repository (CPU, memory and disk on your Railway bill),
 - spend your **GitHub token's** 5,000 requests per hour,
@@ -66,7 +66,7 @@ One Railway project, **three** services (names matter because variables referenc
 | `backend` | GitHub repo, **Root Directory `/backend`**, Dockerfile build | See 3.3 |
 | (volume) | Attached to `backend`, mount path `/workspace` | See 3.4 |
 
-The `frontend` Dockerfile and `nginx.conf` are **not** deployed (Vercel serves the static build and proxies `/api`).
+The `frontend` Dockerfile and `nginx.conf` are **not** deployed (Vercel serves the static build and rewrites `/api` to Railway).
 
 ### 3.2 PostgreSQL: with or without pgvector
 
@@ -141,7 +141,7 @@ Read Google's current terms, quotas and data-use policy for your key type before
 **Networking.**
 - Generate a Railway public domain for `backend` only (for example `repointel-backend.up.railway.app`). Keep the project's private network for `backend` to `postgres`.
 - Railway's healthcheck calls `/actuator/health` from its own host name; MVP 8 leaves that path open (and only that actuator path).
-- Optional hardening: no custom domain for the backend at all. Only the Vercel proxy needs to know the URL.
+- Optional hardening: no custom domain for the backend at all. Only the Vercel rewrite in `vercel.json` needs to know the URL.
 
 ### 3.4 Workspace volume
 
@@ -159,7 +159,7 @@ Deployment-only additions on top of MVP 8: `backend/railway.toml` (3.3) and the 
 
 ---
 
-## 4. Vercel (frontend and API proxy)
+## 4. Vercel (frontend and `/api` rewrite)
 
 ### 4.1 Project settings
 
@@ -207,7 +207,7 @@ Reproduces what `nginx.conf` did: the security headers and the SPA fallback. The
 
 Notes:
 - The fallback excludes `/api/` and `/assets/` so API calls reach the `/api` rewrite and missing assets return 404 instead of HTML.
-- The font files added by MVP 7 are emitted under `/assets/` by Vite, so `font-src` falls under `default-src 'self'`. No CSP change is needed (check again after MVP 7 lands).
+- The font files added by MVP 7 are emitted under `/assets/` by Vite, so `font-src` falls under `default-src 'self'`. No CSP change is needed (MVP 7 is already merged).
 - Add `Strict-Transport-Security` only if you use a custom domain you control **(verify)**; Vercel already serves HTTPS.
 
 ### 4.3 The `/api` rewrite (no proxy function)
