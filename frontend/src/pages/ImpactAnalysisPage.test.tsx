@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
-import { REPO_ID, SHA_NEW, SNAP_NEW, aiProvidersDisabled, aiProvidersEnabled, repository, snapshot } from '../test/fixtures'
+import { REPO_ID, SHA_NEW, SNAP_NEW, aiProvidersDisabled, aiProvidersEnabled, report, repository, snapshot } from '../test/fixtures'
 import { server } from '../test/server'
 import { renderPage } from '../test/utils'
 import type { ImpactAnalysis, ImpactRequest, SymbolPickerResponse, TargetSuggestions } from '../types/api'
@@ -158,6 +158,7 @@ function stub(options: { aiEnabled: boolean; picker?: SymbolPickerResponse; resu
   server.use(
     http.get(BASE, () => HttpResponse.json(repository())),
     http.get(`${BASE}/snapshots`, () => HttpResponse.json(page([snapshot(SNAP_NEW, SHA_NEW, 'COMPLETED')]))),
+    http.get(`${BASE}/reports/${SNAP_NEW}`, () => HttpResponse.json(report(SNAP_NEW, SHA_NEW))),
     http.get(`${SNAPSHOT}/impact-analysis/symbols`, () => HttpResponse.json(options.picker ?? pickerOk)),
     http.post(`${SNAPSHOT}/impact-analysis`, async ({ request }) => {
       requests.push((await request.json()) as ImpactRequest)
@@ -180,17 +181,17 @@ describe('Impact analysis page', () => {
     renderPage(<ImpactAnalysisPage />, route)
 
     expect(await screen.findByRole('button', { name: 'Analyze impact' })).toBeDisabled()
-    await userEvent.selectOptions(await screen.findByLabelText('Depth'), '4')
+    await userEvent.click(await screen.findByRole('radio', { name: 'Full (6)' }))
     await pickAndAnalyze()
 
     await waitFor(() => expect(requests).toHaveLength(1))
-    expect(requests[0]).toMatchObject({ targetSymbolId: TARGET_ID, depth: 4, includeAiSummary: false, changeDescription: null })
+    expect(requests[0]).toMatchObject({ targetSymbolId: TARGET_ID, depth: 6, includeAiSummary: false, changeDescription: null })
 
     const components = await screen.findByRole('region', { name: 'Affected components' })
     expect(within(components).getByText('OrderService.checkout(Order order)')).toBeInTheDocument()
     expect(within(components).getAllByText('Detected')[0]).toBeInTheDocument()
     // the controller is nested under the service it calls, with its weaker confidence and a source link only when one exists
-    const nested = within(components).getByText('OrderController.place(Order order)').closest('li')
+    const nested = within(components).getByRole('button', { name: 'Inspect OrderController.place(Order order)' }).closest('li')
     expect(nested?.parentElement?.closest('li')).toHaveTextContent('OrderService.checkout')
     expect(within(nested as HTMLElement).getByText('Possible')).toBeInTheDocument()
     expect(within(components).getByRole('link', { name: /OrderService\.java:12/ })).toHaveAttribute('href', expect.stringContaining('#L12'))
@@ -202,9 +203,10 @@ describe('Impact analysis page', () => {
 
     const risk = screen.getByRole('region', { name: 'Risk factors' })
     expect(within(risk).getByTestId('risk-score')).toHaveTextContent('37')
-    expect(within(risk).getByText(/not a probability/)).toBeInTheDocument()
+    expect(within(risk).getByText('Heuristic risk score, not a probability.')).toBeInTheDocument()
     expect(within(risk).getByText('Dependency depth')).toBeInTheDocument()
-    expect(within(risk).getByText('10 / 15')).toBeInTheDocument()
+    expect(within(risk).getByText(/10 \/ 15/)).toBeInTheDocument()
+    expect(within(risk).getByText('MEDIUM')).toBeInTheDocument()
 
     const limitations = screen.getByRole('region', { name: 'Limitations' })
     expect(limitations).toHaveTextContent('Reflection, runtime proxies and AOP')
@@ -218,6 +220,7 @@ describe('Impact analysis page', () => {
     expect(await screen.findByRole('search')).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: /PaymentService\.calculatePayment/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Analyze impact' })).toBeInTheDocument()
+    expect(screen.getByText('Change description needs AI, which is unavailable. Pick a symbol instead.')).toBeInTheDocument()
     await waitFor(() => expect(screen.getByText(/AI explanations are unavailable/)).toBeInTheDocument())
     expect(screen.queryByLabelText('Change description')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Suggest symbols' })).not.toBeInTheDocument()
@@ -322,5 +325,88 @@ describe('Impact analysis page', () => {
 
     expect(await screen.findByText(/exists for Java and Spring repositories only/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Analyze impact' })).toBeDisabled()
+  })
+
+  it('view filters hide items without changing the underlying result, and Export JSON equals the response', async () => {
+    const result = impact()
+    stub({ aiEnabled: false, result })
+    let exported = ''
+    const originalCreate = URL.createObjectURL
+    URL.createObjectURL = (blob: Blob) => {
+      void blob.text().then((t) => (exported = t))
+      return 'blob:test'
+    }
+    URL.revokeObjectURL = () => {}
+    try {
+      renderPage(<ImpactAnalysisPage />, route)
+      await pickAndAnalyze()
+      await screen.findByRole('region', { name: 'Tests' })
+      expect(screen.getByRole('region', { name: 'Endpoints' })).toHaveTextContent('/orders')
+
+      await userEvent.click(screen.getByLabelText('Include test callers'))
+      expect(screen.getByRole('region', { name: 'Tests' })).toHaveTextContent('No test was linked')
+      await userEvent.click(screen.getByLabelText('HTTP endpoint ingress'))
+      expect(screen.getByRole('region', { name: 'Endpoints' })).toHaveTextContent('No REST endpoint handler')
+      await userEvent.click(screen.getByLabelText('Include test callers'))
+      expect(screen.getByRole('region', { name: 'Tests' })).toHaveTextContent('PaymentServiceTests')
+
+      await userEvent.click(screen.getByRole('button', { name: 'Export JSON' }))
+      await waitFor(() => expect(exported).not.toBe(''))
+      expect(JSON.parse(exported)).toEqual(JSON.parse(JSON.stringify(result)))
+    } finally {
+      URL.createObjectURL = originalCreate
+    }
+  })
+
+  it('tabs show counts and filter the groups; the tests table has no execution status and the command is text only', async () => {
+    stub({ aiEnabled: false })
+    server.use(http.get(`${BASE}/reports/${SNAP_NEW}`, () => HttpResponse.json({ ...report(SNAP_NEW, SHA_NEW), technologies: [{ name: 'Maven', kind: 'BUILD_TOOL', version: null, confidence: 'DETECTED', sharePercent: null, detectorId: 'x', evidence: [] }] })))
+    renderPage(<ImpactAnalysisPage />, route)
+    await pickAndAnalyze()
+    const region = await screen.findByRole('region', { name: 'Affected components' })
+    expect(within(region).getByRole('tab', { name: /Routes/ })).toHaveTextContent('1')
+    expect(within(region).getByRole('tab', { name: /Callers/ })).toHaveTextContent('2')
+    await userEvent.click(within(region).getByRole('tab', { name: /Routes/ }))
+    expect(within(region).queryByText('OrderService.checkout(Order order)')).toBeNull()
+
+    const tests = screen.getByRole('region', { name: 'Tests' })
+    expect(within(tests).getByRole('table')).not.toHaveTextContent(/passing|failed|run test/i)
+    expect(within(tests).queryByRole('button', { name: /Run/ })).toBeNull()
+    expect(tests).toHaveTextContent('Suggested command (not run by RepoIntel)')
+    expect(tests).toHaveTextContent('./mvnw test -Dtest=PaymentServiceTests')
+    expect(tests).toHaveTextContent('1 detected')
+  })
+
+  it('a negative risk factor is labelled as reducing risk, and the band bar and permanent notice are present', async () => {
+    stub({
+      aiEnabled: false,
+      result: impact({
+        risk: {
+          label: 'Heuristic',
+          score: 72,
+          maxScore: 100,
+          level: 'HIGH',
+          factors: [
+            { id: 'A', label: 'Public API exposure', value: 'yes', points: 20, maxPoints: 20, explanation: 'exposed' },
+            { id: 'B', label: 'Test dampener', value: '3 tests', points: -12, maxPoints: 15, explanation: 'tests exist' },
+          ],
+          note: 'static only',
+        },
+      }),
+    })
+    renderPage(<ImpactAnalysisPage />, route)
+    await pickAndAnalyze()
+    const risk = await screen.findByRole('region', { name: 'Risk factors' })
+    expect(within(risk).getByText('HIGH')).toBeInTheDocument()
+    expect(within(risk).getByText('Heuristic risk score, not a probability.')).toBeInTheDocument()
+    expect(within(risk).getByText('reduces risk')).toBeInTheDocument()
+    expect(within(risk).getByLabelText(/Risk bands/)).toBeInTheDocument()
+  })
+
+  it('says nothing depends on the symbol when there are no dependents', async () => {
+    stub({ aiEnabled: false, result: impact({ components: [], endpoints: [], relatedData: [], tests: [], totalDependents: 0 }) })
+    renderPage(<ImpactAnalysisPage />, route)
+    await pickAndAnalyze()
+    expect(await screen.findByText('Nothing depends on this symbol in this snapshot.')).toBeInTheDocument()
   })
 })
