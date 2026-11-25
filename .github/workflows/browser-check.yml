@@ -1,0 +1,48 @@
+name: Browser check (manual)
+
+# Optional (plan Step 7.14 item 7): opens the main screens in both themes against the Docker Compose stack
+# and fails on console errors, CSP violations, external requests or unrendered diagrams. It needs Docker
+# and a browser, so it is NOT part of the main CI jobs; run it from the Actions tab.
+# NOTE: written for MVP 7 and not yet run in GitHub Actions; the same spec was run locally against a
+# static server that serves frontend/dist with the headers of frontend/nginx.conf.
+on:
+  workflow_dispatch:
+    inputs:
+      repository_url:
+        description: Public GitHub repository to analyse first
+        default: https://github.com/spring-projects/spring-petclinic
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Start the stack
+        run: |
+          cp .env.example .env
+          docker compose up --build -d
+          for i in $(seq 1 60); do curl -sf http://localhost:8080/actuator/health | grep -q UP && break; sleep 5; done
+      - name: Analyse one repository
+        run: |
+          RUN=$(curl -s -X POST http://localhost:5173/api/v1/repositories/analyze -H 'Content-Type: application/json' \
+            -d "{\"url\":\"${{ inputs.repository_url }}\",\"forceRescan\":true}" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).analysisRunId")
+          for i in $(seq 1 60); do
+            curl -s http://localhost:5173/api/v1/analysis-runs/$RUN | node -e "process.exit(JSON.parse(require('fs').readFileSync(0,'utf8')).completedAt?0:1)" && break
+            sleep 5
+          done
+      - name: Run the Playwright checks
+        working-directory: frontend
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          npx playwright install --with-deps chromium
+          pnpm e2e
+      - name: Stop the stack
+        if: always()
+        run: docker compose down
