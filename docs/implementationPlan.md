@@ -4,7 +4,7 @@
 **Derived from:** [problemStatement.md](file:///d:/Pranjali_projects/Github_code_analyser/docs/problemStatement.md) · [architecture.md](file:///d:/Pranjali_projects/Github_code_analyser/docs/architecture.md)  
 **Delivery model:** Phased MVPs. Each phase ends with a working, tested, demonstrable application  
 **Rule:** Do **not** start the next MVP until the current one passes all exit criteria  
-**Revision:** v2. Revised after review: tarball ingestion, snapshot workspace, commit-scoped APIs, `AnalysisContext` SPI, generic security scanning, vertical-slice ordering, Testcontainers instead of H2, current dependency versions. v3: **no Docker dependency**. Tests use embedded PostgreSQL binaries (zonky `embedded-postgres`) instead of Testcontainers; local dev uses embedded PostgreSQL via `spring-boot:test-run` or a native PostgreSQL install instead of Docker Compose. v4: **Docker Compose is the recommended way to run the app locally** (PostgreSQL + backend + frontend, Step 1.19). Build, tests and CI still need no Docker, and the embedded/native PostgreSQL paths stay supported
+**Revision:** v5 adds MVP 7 (UI redesign from the Google Stitch designs in `stitch_repointel_ui_platform/`). Earlier: v2. Revised after review: tarball ingestion, snapshot workspace, commit-scoped APIs, `AnalysisContext` SPI, generic security scanning, vertical-slice ordering, Testcontainers instead of H2, current dependency versions. v3: **no Docker dependency**. Tests use embedded PostgreSQL binaries (zonky `embedded-postgres`) instead of Testcontainers; local dev uses embedded PostgreSQL via `spring-boot:test-run` or a native PostgreSQL install instead of Docker Compose. v4: **Docker Compose is the recommended way to run the app locally** (PostgreSQL + backend + frontend, Step 1.19). Build, tests and CI still need no Docker, and the embedded/native PostgreSQL paths stay supported
 
 ---
 
@@ -1349,7 +1349,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 
 **Sub-tasks:**
 1. `POST /api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/investigations` with `{type: "TOP_RISKS" | "FULL_REVIEW" | …}` → `202` + run id (async); `GET /api/v1/investigations/{id}` for status and result
-2. `InvestigationPage`: request investigation, progress per step, consolidated report with specialist sections, step-by-step audit trail, expandable evidence
+2. `InvestigationPage`: request investigation, progress per step, consolidated report with specialist sections, step-by-step audit trail, expandable evidence. Build it functionally here; the visual design (start/history, report, audit trail from the Stitch designs) is specified in Step 7.13 and applied in MVP 7
 
 ---
 
@@ -1377,30 +1377,506 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 
 ---
 
+# MVP 7: UI Redesign (Google Stitch Designs)
+
+> **Goal:** Re-skin and restructure the whole frontend to the Google Stitch designs in [`stitch_repointel_ui_platform/`](../stitch_repointel_ui_platform/), without weakening any product rule (evidence first, honest "unavailable", AI clearly marked, commit-scoped, no external assets). Backend work is limited to the small additions the designs need (Step 7.3).
+>
+> **Prerequisites:** MVP 0–5 complete (done). The Investigations screens (Step 7.13) additionally need MVP 6 (Steps 6.1–6.2); every other step can ship without it.
+>
+> **Design source of truth:** `stitch_repointel_ui_platform/<screen>/screen.png` (the picture), `.../code.html` (a rough markup reference only, never copied as is, see 7.0.2) and `repointel_design_system/DESIGN.md` (tokens, typography, components). The prompts that produced the designs are in [ui-design-stitch-prompt.md](ui-design-stitch-prompt.md).
+
+---
+
+### Step 7.0: Design Intake: What Was Delivered, What Must Change
+
+This step has no code. It fixes the decisions that every later step relies on.
+
+#### 7.0.1 Screen inventory and where each lands
+
+| Stitch folder | Screen | Route (existing or new) | Built in | Backing MVP |
+|---|---|---|---|---|
+| `repointel_design_system`, `repointel_design_system_component_specification_sheet` | Tokens (`DESIGN.md`) and component sheet | n/a | 7.1 | n/a |
+| `repointel_repositories_dashboard_refined` (and `repointel_repositories_dashboard`, an earlier variant) | Repositories dashboard + empty state | `/` | 7.4 | 1 |
+| `repointel_add_repository` | Add Repository | `/repositories/new` | 7.4 | 1 |
+| `repointel_analysis_progress_spring_petclinic` | Analysis progress (running; failed, cancelled, rate-limited variants) | shown on the report route while a run is active | 7.5 | 1 |
+| `repointel_report_overview_petclinic_refined` (also `repointel_report_overview_refined`, `repointel_report_overview_spring_petclinic`, earlier variants) | Report header + Overview tab | `/repositories/:id?tab=overview` | 7.6 | 1 |
+| `repointel_findings_code_quality_refined` | Code Quality findings: AI debt summary, filter bar, grouped list, drawer | `/repositories/:id?tab=quality` | 7.7 | 1, 3 |
+| `repointel_code_quality_finding_drawer_spring_petclinic` | Table-style findings list + inspector drawer (alternative layout) | same | 7.7 | 1, 3 |
+| `repointel_architecture_tab_spring_boot_refined` | Architecture (diagrams, layered types, endpoints, entities, DI chains, cycles, patterns, Python "not supported") | `/repositories/:id/arch` | 7.9 | 2, 3 |
+| `repointel_ai_insight_card_specification_state_matrix` | AI insight card, every state | component | 7.10 | 3 |
+| `repointel_ai_settings_settings_ai` | AI Settings (+ AI-disabled variant) | `/settings/ai` | 7.10 | 3 |
+| `repointel_code_search_spring_petclinic` | Code Search | `/repositories/:id/search` | 7.11 | 4 |
+| `repointel_ask_q_a_spring_petclinic` | Ask (Q&A) + fallback states | `/repositories/:id/qa` | 7.11 | 4 |
+| `repointel_impact_analysis_spring_petclinic` | Impact analysis | `/repositories/:id/impact` | 7.12 | 5 |
+| `repointel_investigations_start_history` | Investigations: start + history | `/repositories/:id/investigations` (new) | 7.13 | 6 |
+| `repointel_investigations_final_report` | Investigation consolidated report | `/investigations/:investigationId` (new) | 7.13 | 6 |
+| `repointel_investigations_audit_trail` | Investigation audit trail | `/investigations/:investigationId/audit` (new) | 7.13 | 6 |
+
+**Not delivered by Stitch** (built in the same visual language from the design system, using the existing page content as the spec):
+
+| Missing design | Built in |
+|---|---|
+| Dependencies tab, Security tab (findings use the 7.7 list; the "Security coverage" panel is new), Tests & Coverage tab | 7.7, 7.8 |
+| Report "Not analyzed / Not supported" state for a non-Java repository (only the Architecture "Python" reference tile exists) | 7.6, 7.9, 7.14 |
+| Investigation **progress** screen (steps by specialist, cancel, budget exceeded). Only the start page, report and audit trail exist | 7.13 |
+| Light theme (every screen is dark; `DESIGN.md` lists the light values) | 7.1 |
+| Tablet and mobile layouts (`DESIGN.md` gives the rules) | 7.2, 7.14 |
+
+Two screens exist in several variants (dashboard x2, Overview x3). Use the **refined** one as the target and the earlier ones only to settle a detail the refined one hides. In the Overview "refined" variants the capability matrix is cut off at the right edge; the finished matrix must show all seven category columns (7.6).
+
+#### 7.0.2 Decisions (apply to every step)
+
+1. **Tokens, not markup.** Every `code.html` loads the Tailwind CDN script and `fonts.googleapis.com` (Material Symbols) and assumes Geist and JetBrains Mono from a CDN. The nginx CSP (`default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:`) blocks all of it, and the PNGs show a serif fallback only because those fonts never loaded. Use the PNGs and `DESIGN.md` as the specification and rebuild each screen as React + Tailwind 4 components. Never paste Stitch HTML.
+2. **Fonts and icons are self-hosted.** Geist and JetBrains Mono are bundled by Vite (the `@fontsource-variable/geist` and `@fontsource-variable/jetbrains-mono` packages, so the fonts load from the app's own origin and satisfy `default-src 'self'`). Check that both licences (SIL OFL) allow it and record them in the README. The stacks are `Geist, ui-sans-serif, system-ui, ...` and `"JetBrains Mono", ui-monospace, ...`, so a font that fails to load degrades to system fonts. Material Symbols is **not** used; icons are a local set of inline SVG components (`components/ui/icons`, list in 7.1).
+3. **Dark-first with a real light theme.** Dark is the default look from the designs. Light uses the `DESIGN.md` light values. Theme choice: `light` / `dark` / `system`, persisted in `localStorage`, applied as a class on `<html>` before first paint. Inline scripts are blocked by `script-src 'self'`, so apply it in `main.tsx` before `createRoot`.
+4. **Honesty rules override the mock data.** Some Stitch sample data was invented and breaks product rules. Always bind to real API fields; never copy a sample number. The design elements to change or drop are listed in 7.0.3.
+5. **Behaviour stays.** This MVP changes presentation, layout, navigation and a few small API additions. It must not change what the analyzers, AI gateway, search, impact engine or security rules do. Existing routes and query strings (`?tab=`, `?snapshot=`) keep working so old links stay valid.
+6. **Reuse before rewrite.** Existing components (`InsightPanel`, `InsightResult`, `FindingDetailPanel`, `CapabilityMatrix`, `MermaidDiagram`, `SnapshotSelector`, `IndexStatusPanel`, ...) are restyled and extended in place. Update tests that assert old markup so they assert behaviour (roles, text), not class names.
+
+#### 7.0.3 Design elements that must be changed, replaced or dropped
+
+| Where in the designs | Problem | Decision |
+|---|---|---|
+| Sidebar badges: Code Quality **94%**, Tests **88.2%**, Security **0 vuln** | No "code quality %" metric exists. Coverage is **unavailable** for spring-petclinic (the Overview card itself says so). "0 vuln" is wrong when the vulnerability lookup is not configured (it is "Not checked") | Code Quality: open finding count. Tests & Coverage: line coverage only when a committed report exists, otherwise no badge. Security: finding count; "Not checked" is never rendered as 0. Dependencies: real count (the mock shows 48 in the sidebar and 46 in the card) |
+| Header and sidebar footer: "Daemon • Safe read-only", "Local Engine Idle / Sandboxed / Host Memory 1.4 GB", "Daemon PID", "SQLite WAL", "Daemon warnings", "worker node-04", "WORKER MEMORY 21%" | No such telemetry exists, and the database is PostgreSQL | Drop. Keep a static notice "Local tool · no authentication · code is never executed" (required by the prompt) |
+| User avatar button | There is no login | Drop |
+| Dashboard: "Sync All", "Snapshot baseline: HEAD / latest", SLOC ("24.8k SLOC"), "Daemon warnings" tile, "Local Database: SQLite..." footer, "Analyze Sample" input in the empty state | No sync-all feature, SLOC is not computed, no daemon, no SQLite | Drop them. Keep a language filter (from the primary language the report already computes). The empty state links to Add Repository, with the spring-petclinic example chip |
+| Dashboard: sample repositories (`pallets/flask`, `vercel/next.js`, `facebook/react`, `django/django`) | Placeholder data only | Never hard-coded; real list from the API |
+| Analysis progress: "Daemon Logs", "Background Run", **live stdout/stderr stream**, "Exit Code 137 (OOM Killer)", "Webhook Push" trigger, run id `#RUN-2025-0914`, per-analyzer telemetry ("32 compilation units parsed", "Active: .../OwnerController.java"), Git blame and licence analyzers, CycloneDX SBOM | None of these exist: the run exposes phase, executions (status, duration, error summary) and `retryAfter` only | Build the stepper, the executions table, elapsed time, cancel and the three failure variants. The telemetry column shows the analyzer's real `errorSummary` or skip reason. No log stream (follow-up C.7). "Background Run" is just navigating away; the run continues |
+| Overview: "Static Engine v1.4.2" | Only if the API exposes a version | Show an analyzer-set version only if the report carries it; wall-clock is `completedAt - startedAt` |
+| Overview: "Repository Anatomy" donut labelled **3.4k LINES** | Lines are not counted; file counts by extension are | Donut by **files** (share of files by type), labelled "files" |
+| Overview: "Resolved Entry Points" with code snippets, fixed "AST VERIFIED" badge | The structure report has entry points with a path and a signal; snippets need symbol data | Show path + signal + the real confidence. Show a snippet only when it comes from architecture/symbol data |
+| Overview: "Analytical Boundaries & Guardrails" shows 3 fixed cards (incl. "46 DIRECT / ~110 ESTIMATED", tests inventoried "from **bytecode**") | Transitive counts are not computed; tests come from source parsing, not bytecode | Render the limitations the API returns, one card each (any number), with the real wording |
+| Findings: "OWASP Top 10" filter, "Export SARIF", "Configure Rules", "100% DETECTED" percentages, "Remediation Effort ~20m", "1 file affected" | Findings carry no OWASP tag; no SARIF export; rules are vendored, not configurable; confidence is a category, not a percentage; the debt-summary schema has no time estimate | Drop OWASP filter, SARIF and Configure Rules. Confidence shows `DETECTED / LIKELY / POSSIBLE` only. Drop remediation time; show "files affected" only when the structured output lists files. SARIF export is a follow-up (C.7) |
+| Findings drawer: `#FINDING-0941` | Findings have a UUID / fingerprint | Show the short fingerprint |
+| Findings drawer: "Suggested refactor diff" + "Copy Diff" | The explain-finding schema has no patch field | Render a diff block when the AI Markdown contains a fenced `diff` block (red/green lines, Copy button); no schema change |
+| Impact: "Export JSON", "Compare: main", "Memory: 41.2 MB retained", risk bands **Critical 81–100**, "Moderate–High risk", test status "**Passing (120ms)**" and **"Run Test"** | Compare is not built; memory is not reported; the engine has 3 levels (LOW < 30, MEDIUM < 60, HIGH); **tests are never executed**, so pass/fail and timing do not exist | Keep Export JSON (client-side download of the response). Drop Compare and memory. The score bar uses the 3 backend levels. Test table has no status and no Run Test; it offers "Copy command" |
+| Impact: toggles "Include Test Callers / Cross-Module Traversal / HTTP Endpoint Ingress" | The request has only `depth` | Implemented as **view filters** on the returned result (the engine always computes everything) |
+| Impact / Investigations: "Suggested Next Step: ./mvnw test -Dtest=..." | Fine as text; must never be run by the app | Built deterministically from the affected tests (Maven projects only), shown as copyable text labelled "Suggested command (not run by RepoIntel)" |
+| Ask: "Follow-ups" chips ("Show @EntityGraph fix") | The answer has no follow-up field | Omit in this MVP; optional later addition (needs schema and prompt-version bump, C.7) |
+| Ask: "Hard Evidence" label on the sources panel | Sources are evidence but the answer text is AI | Label the panel "Sources"; keep the AI-generated badge on the answer; "Grounded in N files" is computed from `sources` |
+| AI Settings: **"Save Policy"**, "Test Connection", usage sparkline "4K/1K Cap" | Settings are environment-driven, not editable; only the preferred provider is a (browser-local) choice | Drop Save Policy and the sparkline. "Test Connection" becomes **"Re-check health"** (refetch of provider health). Limits are read-only tiles |
+| AI Settings: **env vars `REPOINTEL_AI_ENABLE`, `REPOINTEL_AI_PROVIDER`, `OLLAMA_HOST`, `GEMINI_API_KEY`** | Wrong names. Real ones: `AI_ENABLED`, `AI_PROVIDERS_OLLAMA_ENABLED`, `OLLAMA_CHAT_MODEL`, and for hosted providers `AI_PROVIDERS_<ID>_DATA_HANDLING_ACKNOWLEDGED=true` | Use the real names (the current `AISettingsPage` text is the source). "Copy Quickstart" copies the real block |
+| AI insight card: thumbs up/down, shortcuts (⌘E, ⌘R, ⌘D), live probe "GET localhost:11434/api/tags", "Retry with 30s timeout", "Re-ask with strict prompt", "Increase call budget" as an action | No feedback store; no shortcuts defined; timeouts and budgets are server config | Keep Copy and Regenerate (only if the insight API supports refresh; else only "Try again"). Drop the rest. "Increase call budget" becomes a link to AI Settings explaining `AI_MAX_CALLS_PER_ANALYSIS` |
+| Investigations: "Confidence: 96.4% Deterministic", "Code Health 94/100", "by developer / by CI Daemon", "Share", "Re-run Diff vs main", "Locate" (exported file), "View AST patch & Diff", latency estimates "2m 45s Local / 45s Cloud", **"Merkle root"**, "SEALED RECORD" | Invented scores and features; there are no users; no sharing; latency cannot be known ahead | Drop percentages, health score, user attribution, Share and diff actions. Budgets on the start page come from configuration (`GET .../investigations/types`), not estimates. "Sealed / verified" wording only with the hash chain from 7.3 item 4; otherwise "Recorded" |
+| Investigations: report KPI "CVE COUNT 0 Clean POM" | Same problem as "0 vuln" when the lookup is off | Show "Not checked" |
+| Investigations: third history row "Security & Hotspot Check, 3 specialists" | Implies a third type | An optional type (`SECURITY_HOTSPOTS`) may exist in MVP 6; the UI renders whatever types the API lists |
+| Design sheet: "Purge Snapshot" danger button, "Run Analysis" button | No delete feature | Keep the danger-button *style* in the component sheet; build no delete feature |
+
+---
+
+### Step 7.1: Design Foundation (tokens, fonts, icons, theme, primitives)
+
+**Sub-tasks:**
+1. **Tokens** in `frontend/src/styles/globals.css` using Tailwind 4 `@theme` and CSS variables, with `:root` (light) and `.dark` sets, from `DESIGN.md`:
+   - Surfaces: canvas `#090D16`, surface `#0F172A`, raised `#1E293B`, overlay `#334155` (dark) and `#FFFFFF`, `#F8FAFC`, `#F1F5F9`, `#E2E8F0` (light). Borders: 1 px hairline `rgba(255,255,255,.08)` / `rgba(0,0,0,.08)`; stronger `#334155` / `#CBD5E1`. Text: primary, secondary, muted (`#F8FAFC / #94A3B8 / #64748B` dark; `#0F172A / #475569 / #94A3B8` light). **Check every pair against WCAG AA and adjust those that fail** (muted text is the likely one); record changes.
+   - Primary `#2563EB`, focus ring `0 0 0 1px #2563EB`. The Material-style role names in the `DESIGN.md` front matter (`surface-container-*`, `on-surface`, `primary-container`, `tertiary`) are mapped to short semantic names (`bg-canvas`, `bg-surface`, `bg-raised`, `text-muted`, `bg-primary`, `bg-ai`) so components do not depend on Stitch's names.
+   - Semantic palettes, each with background (12% alpha), border (24–28% alpha) and text colour: **severity** (CRITICAL `#F43F5E`, HIGH `#F97316`, MEDIUM `#FBBF24`, LOW `#38BDF8`, INFO `#94A3B8`), **confidence** (DETECTED `#10B981`, LIKELY `#6366F1`, POSSIBLE `#A855F7`), **run/analyzer status** (success `#10B981`, running/queued `#0284C7`, warning `#EAB308`, failed `#EF4444`, skipped/neutral `#475569`, and "Not analyzed / Not configured / Not supported / Unavailable" as one deliberate neutral style), **capability depth** (Deep, Basic, Generic, Unsupported, Unavailable), **vulnerability status**, **HTTP methods** (GET, POST, PUT, PATCH, DELETE), **provider** (Local, Hosted).
+   - **AI surface** (violet `#A855F7` family): tinted gradient `rgba(168,85,247,.08)` to `rgba(99,102,241,.04)`, 1 px violet border, sparkle glyph, soft glow on hover only; plus a distinct **light-theme lavender** variant (spec sheet "Light Theme Duality", contrast about 8:1). This treatment is used for AI text and nowhere else.
+2. **Typography scale** from `DESIGN.md`: headline-xl 32/40, headline-lg 24/32, headline-md 18/24, body-lg 15/22, body-md 13/18, body-sm 12/16, code-lg 13/20, code-md 12/16, code-sm 11/14, label-md 11 (mono, 600, +0.04em), label-sm 10 (mono, uppercase, +0.06em). **Tabular numbers** everywhere (`font-variant-numeric: tabular-nums`). Monospace for paths, SHAs, rule ids, versions, routes, symbols and env vars. The prompt asks for a readable 14 px base while `DESIGN.md` uses 13 px: use 14 px for prose and form text and 13 px only inside dense tables and lists.
+3. **Shape, spacing, elevation:** radii 4 px (badges, inputs), 8 px (cards, code blocks), 12 px (dialogs); 4/8 px grid; spacing tokens from `DESIGN.md`; four surface tiers, shadow only on tier 3 (`0 8px 24px -4px rgba(0,0,0,.45)`); table rows 32 px (28 px dense).
+4. **Self-hosted fonts and the icon set** as in 7.0.2. Icon list (inline SVG, 16/20 px, `currentColor`, `aria-hidden` unless it carries meaning): logo, dashboard, add, tune, lock, commit, copy, check-circle, error, warning, info, hourglass, spinner, skip, search, search-index, sparkle (AI), chat, impact, investigation, overview, dependencies, code-quality, shield, tests, architecture, chevrons, arrows, external-link, close, filter, sort, group, download, refresh, play, stop, moon, sun, monitor, github, key, database, globe, link, file, folder, package, class, method, interface, config, route, entity, cycle, expand, collapse, zoom-in, zoom-out, fit, fullscreen, menu.
+5. **Theme provider:** `light | dark | system`, persisted, applied before first paint; the toggle sits in the header. Mermaid follows it (7.9).
+6. **Primitives** in `components/ui` (each unit-tested, each with a visible focus ring), covering the component sheet:
+   - Badges: `SeverityBadge`, `RunStatusLabel`/`StatusLabel` (every status in the prompt's list), `ConfidenceBadge` (solid check = DETECTED, dashed outline = LIKELY, sparkle = POSSIBLE), `CapabilityBadge`, `VulnerabilityStatusBadge`, `HttpMethodBadge`, `ProviderBadge` (Local / Hosted / AI unavailable), `AIGeneratedBadge` (existing, restyled, keeps its tooltip), `KindBadge` (METHOD, CLASS, INTERFACE, CONFIG, ...). Every badge pairs colour with **text and an icon**; an unknown value renders a neutral badge, never throws.
+   - Controls: `Button` (primary, secondary, ghost, danger style, AI-violet variant, busy state), `IconButton`, `CopyButton` (existing), `SegmentedControl`, `Tabs` (with count badges), `FilterChip`, `Select`, `Checkbox`, `Input` (optional keyboard hint such as `/` or `⌘K`; shortcuts are real only where a step says so), `Tooltip`, `Accordion`.
+   - Surfaces and data: `Card` (header pattern: icon, title, meta, actions), `StatCard`, `DataTable` (dense rows, sticky header, hover tint, no layout shift), `Pagination`, `CodeBlock` (line numbers, highlighted lines, copy, diff colouring), `KeyValueList`, `Skeleton`, `ProgressBar`, `Stepper`, `Timeline`, `Drawer` (right inspector, overlay sheet below 1280 px, focus trap, Esc closes), `EmptyState`, `ErrorState`, `UnavailableState` (neutral informative state: reason + optional link, used for "Not analyzed / Not supported / AI unavailable"), `Notice` (info / warning).
+   - Charts are plain inline SVG: `Donut` (files by type), `SegmentedBar` (language share, risk score), `BarList` (files by type).
+7. **Component sheet page for developers:** a dev-only route `/dev/components` (included only when `import.meta.env.DEV`) that renders every primitive in every state in both themes. It is the visual reference against `repointel_design_system_component_specification_sheet/screen.png`.
+
+**Tests:**
+- [ ] Unit: each badge renders text + icon for every enum value; an unknown value renders a neutral fallback
+- [ ] Unit: theme provider applies the class, persists, follows `system`
+- [ ] Unit: `Drawer` traps focus and closes on Esc; `Tabs`, `Accordion`, `SegmentedControl` are keyboard operable (correct roles and `aria-*`)
+- [ ] Automated contrast check over the token pairs (text/background, badge text/tint) for both themes at AA (4.5:1 text, 3:1 graphics); results go in the completion report
+- [ ] Build check: the production bundle makes no request to an external origin (scan `dist/` for external hosts), fonts are emitted as local assets
+- [ ] `nginx.conf` CSP unchanged
+
+---
+
+### Step 7.2: App Shell, Navigation and Routing
+
+Stitch screens: every screen shows the same shell.
+
+**Sub-tasks:**
+1. **Sidebar** (240 px, collapsible to an icon rail, remembers its state; below 1280 px it is an overlay opened from a header menu button), in the groups shown by the designs:
+   - Brand: logo + "RepoIntel", a `LOCAL` tag and "Local single-user · no auth" (the mock's "v1.4" is replaced by the real build version or omitted).
+   - **Global workspace:** Dashboard, Add Repository, AI Settings.
+   - **Active context** card (only when a repository is open): `owner/name`, short SHA of the selected snapshot, the word "snapshot", a lock icon (the context is commit-pinned). Clicking it opens the report.
+   - **Diagnostics** (the report tabs as navigation, each linking to `/repositories/:id?tab=...&snapshot=...`; the active item follows `tab`): Overview, Dependencies, Code Quality, Security, Tests & Coverage, Architecture (hidden unless the architecture analyzer ran for this commit, as today). Right-aligned micro-badges from the cached report query, real values only (7.0.3). A category that was **not analyzed** shows no number (a "not analyzed" dot with a tooltip), never 0.
+   - **Analytical engine:** Code Search, Ask (Q&A) with an `AI` marker, Impact Analysis, Investigations with an `AI` marker. Items stay visible when unavailable and give the reason in a tooltip/secondary line (index not built, AI off, not supported for this technology).
+   - Footer: a quiet line showing whether an analysis is running (count of active runs); no machine telemetry.
+2. **Header:** breadcrumb `owner / repo : <short SHA> (copy) · <analyzed date> · <run status>` (global pages show the page name), the **AI status pill** (`AI off` / `Local: Ollama (llama3.2)` / `Hosted: Gemini (model)` / `AI unavailable`, from `GET /api/v1/ai/providers`, linking to `/settings/ai`), the theme toggle, and a static "Local · read-only analysis" notice. No avatar.
+3. **Snapshot context:** the selected snapshot lives in the URL (`?snapshot=`) as today; sidebar and header read it. Switching it (the selector in the report header) updates every nav link, so a search, a question and an investigation always belong to the commit shown.
+4. **Routes:** keep all existing routes. Add (placeholders until 7.13): `/repositories/:repositoryId/investigations`, `/investigations/:investigationId`, `/investigations/:investigationId/audit`. Unknown routes get a designed "not found" state. Lazy-load pages by route so Mermaid loads only where used.
+5. **Responsive rules** from `DESIGN.md`: desktop (≥ 1280 px) sidebar + stage + inspector drawer open by default; tablet (768–1279 px) inspector becomes an overlay sheet; below 768 px a single column with the sidebar as an overlay. The product is desktop-first at 1440 px; mobile must be usable, not pretty.
+6. **Accessibility:** skip-to-content link, landmarks (`nav`, `main`, `header`), `aria-current` on the active item, collapsed items keep accessible names.
+
+**Tests:**
+- [ ] Unit: repository group only inside a repository; Architecture item only when the analyzer ran; badges never show 0 for "not analyzed"
+- [ ] Unit: AI pill states (off, local, hosted, unavailable) from the providers response
+- [ ] Unit: switching snapshot rewrites nav links and the header SHA
+- [ ] Unit: collapse state persists; overlay mode on a narrow viewport
+- [ ] Existing route tests still pass (old URLs resolve)
+
+---
+
+### Step 7.3: Backend Additions Required by the Designs
+
+Small, additive, tested like any other backend change (Flyway migration numbered when written, tests on embedded PostgreSQL). New fields are added; none are removed or changed incompatibly.
+
+**Sub-tasks:**
+1. **Repository list summary** (Dashboard rows and KPI tiles). Extend `GET /api/v1/repositories` items with `summary` (null when the repository has no completed run): `primaryLanguage`, `primaryLanguageShare`, `frameworks[]` (top 2), `dependencyCount`, `findingsBySeverity` (null per category when not analyzed, never zeros), `indexStatus` (state from MVP 4), `latestRunStatus`, `analysisDurationMs`. One aggregate query per page, not N+1 (measure and record). Add `GET /api/v1/repositories/stats` for the KPI tiles: repositories analyzed, indexed for search / total, open findings (latest snapshots), active runs.
+2. **Report header extras** (only if missing from `ConsolidatedReport`): wall-clock duration and, if available, the analyzer-set hash/version; `dependencyCount` if not derivable from existing sections. Sidebar badges reuse the report sections.
+3. **Analysis run display data:** `AnalysisRun` already has `phase`, `executions`, `retryAfter`, `failureReason`. Add per-phase timestamps **only if** already stored; otherwise the stepper shows overall elapsed time and no per-phase durations. Add an optional `reason` on each execution (the capability-matrix reason already exists) so a Skipped / Not configured analyzer can say why.
+4. **Investigations (needs MVP 6):**
+   - `GET /api/v1/investigations/types`: each type's id, title, description, specialist roles and the **configured** budgets (max AI calls, tokens, tool invocations, wall-clock limit).
+   - `GET /api/v1/repositories/{repositoryId}/snapshots/{snapshotId}/investigations`: history for one commit (type, requestedAt, status, specialist count, AI calls, tokens, cost when configured, duration, partial flag).
+   - Audit integrity: store `record_hash` per `agent_step` (SHA-256 over the canonical JSON of the step plus the previous step's hash) and a run-level `ledger_hash` set when the run ends. `GET /api/v1/investigations/{id}` returns `ledgerHash` and `chainVerified` (recomputed on read). No "Merkle root" claim; a hash chain is what exists.
+   - `GET /api/v1/investigations/{id}/audit?format=json|csv` for the full export, next to the paged audit list the UI uses.
+   - Priority items expose the numbers behind their rank (`criteria`: each factor and value, and `score`) so the report can show the "Priority ranking model" from data.
+5. **Insight refresh (optional):** insight requests accept `refresh: true` (skip the cache for this call; still counted against the budget and usage). If not wanted, the UI has no Regenerate button.
+
+**Tests:**
+- [ ] Repository list summary: correct for a Java repo, a generic repo, a repo with no completed run (null, not zeros) and one with a failed run; query count does not grow with page size
+- [ ] Report: a category with no analyzer reports `null` counts; dependency count matches the dependencies endpoint
+- [ ] Investigation types reflect configured budgets; history is snapshot-scoped (no cross-commit leakage)
+- [ ] Hash chain: tampering with one stored step makes `chainVerified` false; export contains every step
+- [ ] Secrets never appear in the audit export (fixture with a planted secret)
+- [ ] OpenAPI documents all additions
+
+---
+
+### Step 7.4: Dashboard and Add Repository
+
+Stitch: `repointel_repositories_dashboard_refined`, `repointel_add_repository`.
+
+**Dashboard (`/`):**
+1. Heading "Repositories" with the eyebrow "Workspace / N local snapshots", a filter input (`/` focuses it) and the primary **Add Repository** button.
+2. **Four KPI tiles:** Total analyzed; Indexed for search (`3 / 4` with a small ring); Active findings (total with a small severity bar); Engine status (count of running analyses, "Idle" when none). Values from 7.3 item 1; a tile whose data is unavailable says "Unavailable", not 0.
+3. **Repository rows** (row cards): `owner / name` (owner muted, name bold) with a primary-language chip; short SHA chip with copy and relative "Analyzed 2 hours ago" (absolute time on hover); **run status badge**; **findings by severity** chips (`0 Crit  2 High  8 Med  14 Low`, text + colour, "--" while running, "Not analyzed" when null); **search index** marker (`Indexed for search`, `Indexing...`, `Not indexed`). A running row shows a mini progress (the run phase). Clicking the row opens the report; the SHA copy button does not navigate. Failed rows show the failure reason and a **Retry** that resubmits.
+4. Filters and sort: text filter (owner/name/SHA), status chips (All / Completed / Active / Failed), language select. Newest analysis first. Pagination from the existing page API.
+5. **States:** loading skeleton rows; the empty state ("No repositories analyzed yet. Submit a public GitHub repository to see its technology stack, structure and findings." + Add Repository); error with retry; "nothing matches the filter" with Clear.
+
+**Add Repository (`/repositories/new`):**
+1. One focused card: eyebrow "Ingestion pipeline", title, a `READ-ONLY` tag, a URL field with a link icon (placeholder `https://github.com/owner/repo`, also accepts `/tree/<branch>`), helper text, **example chips** (`spring-projects/spring-petclinic`, `pallets/flask`, `expressjs/express`) that fill the field, the **Force full rescan** checkbox ("Bypass cached analysis for this commit") and the **Analyze** button (busy: "Analyzing...").
+2. **Inline validation** as today (malformed URL, unsupported host, not public / not found, rate limited with reset time) under the field with `aria-describedby` and an error icon.
+3. Information strip: public repositories only; code is never executed (read-only static analysis); a GitHub token raises the limit **60 to 5,000 requests per hour**. The design's "Configure in Settings" link is changed: a token is an environment setting, so the link goes to the README section, not an input.
+4. After submit, navigate to the report route, which shows the progress screen (7.5), as today.
+
+**Tests:**
+- [ ] Unit: rows for each run status; severity chips never show 0 for null; index marker states; copy does not navigate
+- [ ] Unit: filters (text, status, language) and the three non-data states
+- [ ] Unit: Add Repository validation messages, example chip fill, busy state, force-rescan flag in the request, error mapping (4xx, 429 with retry time)
+- [ ] Existing dashboard and add-repository tests adapted and green
+
+---
+
+### Step 7.5: Analysis Progress
+
+Stitch: `repointel_analysis_progress_spring_petclinic`.
+
+**Sub-tasks:**
+1. **Header:** eyebrow "RUN" + short run id, commit chip `500158f (main)`; title "`<repo>` Analysis"; **Cancel Analysis** (confirm; busy "Cancelling..."; disabled once terminal). "Daemon Logs" and "Background Run" are dropped.
+2. **Status strip (3 tiles):** Status ("RUNNING (Stage 4 of 5)", mapped from `phase`), Elapsed time (ticks locally while active; final duration when done), Aggregate progress (a coarse value: completed executions / total executions during ANALYZING; the formula is documented in the code). The worker tile is dropped.
+3. **Stepper:** Queued, Fetching code, Detecting technologies, Running analyzers, Finished. Completed steps get a check (and a duration only if 7.3 item 3 stored one); the active step pulses; later steps are muted. An ordered list with `aria-current="step"`.
+4. **Dispatched analyzers** table with header counts (`8 Configured · 4 Completed · 2 Running · 1 Failed · 1 Not configured`): analyzer name and version (from the analyzer id and capability matrix), **execution state** badge (Queued, Running, Completed, Completed with warnings, Failed, Skipped, Not configured, Not supported, Timed out, Cancelled), duration (`42.4s elapsed` while running, final after), and a telemetry/reason column. Failed rows are tinted and show the redacted `errorSummary` with a **View trace** expander that shows only that summary (no stack traces). Skipped and Not-configured rows show the reason and, when useful, a setup link (the design's "Configure test report generation" goes to the README) and are not styled as errors.
+5. **Polling** as today (refetch interval while not terminal, stop at terminal); pause when the tab is hidden.
+6. **Terminal variants (real states, not a demo switcher):** *Completed*: "View report" and transition to the report. *Failed*: `failureReason`, failed analyzers, **Retry** (resubmit with force rescan). *Cancelled*: when it stopped and **Re-run**. *Rate-limited* (GitHub): "GitHub rate limit reached. Retry after 18:24" from `retryAfter`, Retry disabled until then, plus the token tip. The design's "Execution State Variations" tab strip is a design reference only.
+7. A phase with no per-phase time shows no duration (never `0`).
+
+**Tests:**
+- [ ] Unit: stepper for every `phase`; header counts match executions; running timer
+- [ ] Unit: failed row (redacted summary, expander), skipped row with reason, "Not configured" not styled as an error
+- [ ] Unit: cancel flow ("Cancelling...", disabled when terminal); retry-after rendering; failed and cancelled variants
+- [ ] Unit: polling stops at terminal status
+
+---
+
+### Step 7.6: Report Header and Overview Tab
+
+Stitch: `repointel_report_overview_petclinic_refined` (primary), `repointel_report_overview_refined`.
+
+**Sub-tasks:**
+1. **Report header:** chips for branch (`main`), commit SHA (copy), **Snapshot selector** (`SNAPSHOT 2025-02-28 (Latest)`; each option shows short SHA, date and status; restyle `SnapshotSelector`), "Analyzed: <date time> <timezone>", run status with wall-clock ("Analysis Completed · 18.4s"), a **Re-analyze** button (analyze endpoint with `forceRescan=true`, then the progress screen), repository URL and a GitHub link.
+2. **Summary cards (6, one row at 1440 px, wrapping below):** *Primary stack* (language + share, framework + version, build tool target); *Code footprint* (source files, modules, root path; "files", not SLOC); *Dependencies* (direct count, "Transitives omitted" note); *Diagnostic findings* (total plus CRIT/HIGH/MED/LOW tiles, source line "Semgrep (n) · PMD (n)" from the sections, "Not analyzed" when null); *Unit & IT suite* (test count, "Static inventory only", framework); *Coverage* ("Unavailable" with "No committed JaCoCo report", never 0).
+3. **Capability matrix** (the honesty element): technology rows x **seven** category columns (Technology, Structure, Dependencies, Code quality, Security, Tests, Architecture) with a legend (Deep / Basic / Generic / Unsupported / Unavailable); each cell a tinted tile with depth + a short status ("Complete", "Warnings", "Clean 0" only when the scanner really ran, "N/A"); the **reason on hover and keyboard focus** (tooltip + `aria-describedby`); sticky first column and horizontal scroll that never hides a column silently (visible scroll shadow). Unsupported / Unavailable are neutral and informative, not red.
+4. **Technology stack & evidence**, grouped by kind (Languages with a stacked share bar and percentages, Frameworks, Build tools & package managers, Databases & persistence, Test frameworks, Deployment): name, version, confidence badge and an accordion with the evidence (`pom.xml:21: matched rule spring-boot-starter-parent`, path + signal in monospace, plain text).
+5. **Repository anatomy:** donut of files by type with a legend (files and %), top-level directories, "Files by type" bars, **modules table** (module, path, build file, ecosystem), configuration files.
+6. **Resolved entry points** list (path, signal, confidence) and a **"Deep dive" card** linking to the Dependencies tab and Code Quality (with its finding count).
+7. **Module summary (AI, optional):** violet AI card with the module picker, "N module(s)", **Summarize module**, and the line "Generates a short summary using <provider> (<model>). Deterministic facts above are untouched." ("Nothing leaves your machine" only when the provider is Local). It uses the shared insight card (7.10) and must stay visually lighter than the deterministic content.
+8. **Analytical boundaries (limitations):** one card per limitation from the API, with the analyzer name, in a responsive grid.
+9. **Not analyzed / Not supported:** a non-Java repository shows the same page with the capability matrix explaining each `UNSUPPORTED` row, summary cards saying "Not analyzed" where applicable, and a pointer to what is available (structure, language share, secret scan). Other tabs show `UnavailableState` with the reason.
+10. Loading skeletons per card; error with retry; a run still in progress shows the progress screen (7.5).
+
+**Tests:**
+- [ ] Unit: each summary card for a Java report and a generic report (null counts show "Not analyzed", coverage "Unavailable")
+- [ ] Unit: matrix renders all seven columns, tooltips carry reasons, unsupported cells are neutral
+- [ ] Unit: stack grouping, confidence badges, evidence expansion (a `<script>` in evidence is shown as text)
+- [ ] Unit: Re-analyze sends `forceRescan=true`; snapshot switch updates `?snapshot=`
+- [ ] Unit: module summary card states per AI availability
+
+---
+
+### Step 7.7: Findings (Code Quality and Security) and the Finding Drawer
+
+Stitch: `repointel_findings_code_quality_refined`, `repointel_code_quality_finding_drawer_spring_petclinic`. One component set serves the Code Quality and Security tabs.
+
+**Sub-tasks:**
+1. **Page header:** "Code Quality & Security Findings" (title adapts to the tab), an issue-count chip, a method chip (real analyzer names; "AST parsed" only for parser-based analyzers), a target line (`repo @ sha · N source files · M active analyzers`) and **Re-analyze snapshot**. ("Export SARIF" and "Configure Rules" are not built, 7.0.3.)
+2. **Technical debt summary** card (Code Quality tab only), AI-violet: title, "AI-generated · optional" badge, meta "Synthesized in 1.4s via <provider>", the note "An optional AI summary of the deduplicated findings of every analyzer (no source code is sent)", **Summarize technical debt** and (if 7.3 item 5) **Regenerate**. The result shows the **Priorities** as up to three priority cards (rank, area tag, title, text, only the counts the structured output contains) and a **Suggestions** list; no time estimates. Built on the shared insight card (7.10).
+3. **Filter bar:** search (rule, message, path; `/` and `⌘F` focus it), **severity chips with counts** (All, Critical, High, Medium, Low, Info), selects for Analyzer, Module and File, **Group** (None / Severity / Rule) and **Sort** (Severity desc/asc, File). Filter state is in the URL so a list can be shared and survives reload. **Reset filters** action.
+4. **List:** grouped by severity with collapsible group headers (`HIGH SEVERITY · 3 findings` and a one-line meaning; Low collapsed by default) or by rule. Each row: severity badge, title, rule id (monospace chip), analyzer (+ method), `file:line` (middle-truncated, full path in a tooltip), confidence badge (`DETECTED / LIKELY / POSSIBLE`, no percentages); secrets show a **redacted preview** row (`jwt_secret = "eyJhbGci...****"` with a REDACTED tag; the raw value is never in the API or the DOM). The second screen's table layout (columns Severity, Finding & target, Analyzer, Confidence; "Showing 1-5 of 22", Prev/Next) is the **same component** with a List / Table toggle over the same data. Pagination for large result sets.
+5. **Security tab extras:** a one-line note "Findings are indications that need review, not proof of exploitability", the findings list, then the **Security coverage** panel (no Stitch screen; built from the design system): scanners that ran (secret scanner, Semgrep version), languages and rule files scanned, files scanned vs skipped, and the dependency **vulnerability status** (`Not checked` / `Not checkable` / `No known vulnerabilities` / `Vulnerable`). This is the existing `SecuritySection` content, restyled.
+6. **Finding drawer / inspector** (right, 360–480 px; open by default at ≥ 1280 px with the first finding selected; overlay sheet below): header `#<short fingerprint>` + analyzer, **previous / next** (arrow keys or `J`/`K` while the list has focus) and close; severity and confidence badges; title; **File & anchor** (path:line in monospace and **View on GitHub @ <sha>** built by the existing `githubUrl` helper, never from raw repository text); **Rule id**, **Module**, **Analyzer & method** (Deterministic scanner / Parser / Heuristic / Graph inference); **Evidence excerpt** as a `CodeBlock` with line numbers, range label ("Lines 38-46"), the matched line highlighted with a `>>>` marker, horizontal scroll for long lines and Copy; **Suggested next step** box; then **Explain** and its AI result in a clearly separate "AI explanation" section (insight card, 7.10) with fenced-diff rendering and "Copy diff". The AI part is visually and structurally separate from the deterministic part above it.
+7. **States:** loading skeleton; **"No findings"** ("All N files analyzed; scanners returned no findings", snapshot sha shown); **"No findings match these filters"** with Reset; **"Not analyzed"** for a category without an analyzer (with reason); error with retry.
+8. All repository text (titles, paths, evidence, messages) is plain text (no `dangerouslySetInnerHTML`; the ESLint rule stays on).
+
+**Tests:**
+- [ ] Unit: filters, group, sort and URL sync; severity counts equal the visible total; Reset
+- [ ] Unit: list and table layouts show the same rows; Low group collapsed by default
+- [ ] Unit: redacted secret never shows a raw value (fixture with an obviously fake secret)
+- [ ] Unit: drawer content, prev/next, GitHub link, evidence highlight, Esc closes and focus returns to the row
+- [ ] Unit: Explain in the drawer: idle, available, unavailable, failure states
+- [ ] Unit: debt summary with structured priorities; unavailable state links to AI Settings
+- [ ] Unit: Security coverage statuses; `Not checked` never shown as "0 vulnerabilities"
+
+---
+
+### Step 7.8: Dependencies and Tests & Coverage Tabs
+
+No Stitch screens: build with the design-system primitives, keeping current content (`DependencyTable` and the tests components).
+
+**Sub-tasks:**
+1. **Dependencies:** filter bar (ecosystem All/Maven/npm, module, scope, vulnerability status, search) and a dense `DataTable` with the columns of the prompt: dependency (monospace `group:artifact`), module, declared version, resolved version, **version source** (Declared, From a property, Managed by a local parent, "Managed by a remote parent or BOM (not resolved)", Unresolved), scope, **vulnerability status badge**, management-entry marker. Unresolved versions are visibly labelled, never hidden. Sort by name/scope; pagination; the note "Transitive dependencies are not included".
+2. **Tests & Coverage:** stat cards (test classes, test methods, methods by framework); **Coverage** card: lines / branches / methods per scope with `SegmentedBar`s, the report path and a "may be stale" note; when absent, **"Coverage unavailable: no committed JaCoCo report"** (never 0%); **Test inventory** table (class, framework, method count, expandable method names); **"Production classes without an obvious test (by naming convention)"** with the note "These classes may still be tested under another name."
+3. Each tab shows `UnavailableState` when its category was not analyzed or is not supported.
+
+**Tests:**
+- [ ] Unit: filters, sort, pagination; every version-source label; the remote-BOM label visible
+- [ ] Unit: coverage present vs absent (absent never renders "0%"); naming-convention note
+- [ ] Unit: unsupported and not-analyzed states
+
+---
+
+### Step 7.9: Architecture
+
+Stitch: `repointel_architecture_tab_spring_boot_refined`.
+
+**Sub-tasks:**
+1. **Header:** "Application Architecture", a method chip ("AST + graph inference"), a stack chip (`Java / Spring Boot`), right-aligned `Java 17 · Spring Boot 3.2.4 · 500158f`; **summary chips**: controllers, repositories (plus services, DTOs, configuration when non-zero), entities, endpoints, and an **unresolved / ambiguous** warning chip (`2 unresolved edges`) that scrolls to the limitation notes.
+2. **Diagram cards, 2-column grid** (Layers, API flow, Entity relationships, Modules): header with icon, title and a **truncation note** (`Capped at 45 nodes`); toolbar `-` `+` `Fit` `Full screen` `Copy source`; a canvas with the dot grid (1 px dots on 16 px centres, 4% opacity); a collapsible **Mermaid source** (monospace, copyable). Pan and zoom by drag/wheel and buttons; full screen as an overlay, Esc exits; the toolbar is keyboard operable. Mermaid stays in **strict** mode; no click callbacks.
+3. **Mermaid theming:** a theme config built from the design tokens (node fill by layer, edges `#475569` with arrowheads, the self-hosted fonts), re-initialised and re-rendered when the theme toggles; node ids sanitised as today; a render failure shows an error state with the source still visible.
+4. **Layered types:** grouped accordion sections (Controllers (6), Services, Repositories (3), Entities (9), DTOs, Configuration, Infrastructure) with a right-aligned layer signature (e.g. `org.springframework.stereotype.Controller`). Each type row: name (monospace), **confidence badge**, **"How"** tag (`@Controller`, `Spring Data interface`, `package name`, from `LayerMethod`), method count and an expand arrow. Expanded: **injected dependencies** (chips linking to their type), **Methods (N)** (`processCreationForm(Owner, BindingResult)`), each with **Explain method**; type-level **Explain class** and **Suggest refactoring** (violet AI buttons, disabled with the reason when AI is unavailable). Insight results open inline under the row via the shared card (7.10).
+5. **Endpoints table:** coloured `HttpMethodBadge`, route in monospace (`/owners/{ownerId}/pets/new`), handler `Class.method`, request / response types (`PathVariable(int) -> ModelAndView`), a "**path not resolved**" marker; filter by method, text search; "17 mapped routes".
+6. **JPA entities:** a card per entity (name, `table: owners`, "Managed by `OwnerRepository`", relationship chips such as `OneToMany Owner.pets -> Pet`).
+7. **DI chains:** horizontal chains `OwnerController -> OwnerRepository -> Owner (Entity)` with arrow connectors, wrapping on narrow widths (CSS only).
+8. **Dependency cycles:** warning cards (`VisitController <-> PetRepository (field cycle)`, WARN tag, the classes in the cycle, evidence `file:line`); an empty "No cycles detected" line. Warning palette, not the error one.
+9. **Design pattern candidates:** list with pattern, type, **confidence badge** (DETECTED / LIKELY / POSSIBLE) and expandable evidence.
+10. **Unsupported state:** "Architecture analysis is not supported for this technology", the detected technologies as chips (`Python 3.12`, `Flask`, `CSS`) and links to what is available (Overview, Dependencies, Code Quality, Security, Code Search). The tab itself appears only when the analyzer ran (existing behaviour); the sidebar item stays visible with a reason.
+11. Keep `/repositories/:id/arch` and the report-tab behaviour as today.
+
+**Tests:**
+- [ ] Unit: all sections render from a fixture; confidence and "How" present; endpoints with the unresolved marker; entity chips; chains; cycles; patterns
+- [ ] Unit: diagram card toolbar (zoom, fit, full screen, copy source), collapsible source, truncation note
+- [ ] Unit: Mermaid re-renders on theme change; strict mode retained; hostile label text stays text
+- [ ] Unit: AI actions disabled with a reason when AI is off; results appear inline
+- [ ] Unit: not-supported state lists the detected technologies
+
+---
+
+### Step 7.10: AI Insight Card and AI Settings
+
+Stitch: `repointel_ai_insight_card_specification_state_matrix`, `repointel_ai_settings_settings_ai`.
+
+**A. The reusable insight card** (restyle and extend `InsightPanel`, `InsightResult`, `AIGeneratedBadge`, `AIAvailabilityNote`, `MarkdownText`; one component for the finding drawer, architecture types and methods, module summary, technical debt summary and impact summary):
+
+1. **Stage 1, triggers and in flight.** *Idle*: restrained pill buttons per action (Explain, Explain class, Explain method, Suggest refactoring, Summarize module, Summarize technical debt) and a note that the deterministic view stays unchanged and nothing runs until clicked. *Checking availability*: "Checking whether AI is available..." with a spinner (no technical probe text). *Asking*: skeleton, elapsed counter and **Cancel** (client side: the request is abandoned and a late result ignored; the tooltip says so).
+2. **Stage 2, success.** The violet AI surface with the **AI-generated** badge (tooltip: "Written by an AI model from the evidence listed below. It can be wrong; check the evidence."); a meta line `Local: Ollama · llama3.2 · prompt v2.4 · 1.2s`; tags **cached**, **fallback provider**, **truncated**; numbered sections as the data provides (`01 Explanation`, `02 Key points`, `03 Suggestions / Priorities`, Responsibilities, Key types); simple Markdown only (paragraphs, lists, bold, inline code, code blocks; code blocks use the `CodeBlock` look, fenced `diff` gets red/green lines and a Copy button); a **Missing evidence** callout (what the model said it could not see); a **Source evidence** list (`file:line-range`, "N fragments", token count when known, **View source evidence** to GitHub at the commit); muted **Insight notes** (warnings and limitations); footer actions Copy and (if 7.3 item 5) Regenerate. No thumbs up/down.
+3. **Stage 2 variants:** *Cached* ("served from cache, no model call"); *Fallback provider* ("The primary provider did not answer; answered by OpenRouter (hosted). Excerpts were scrubbed of secrets before sending"); *Truncated* ("The evidence exceeded the model's limit; N parts were omitted, so the answer may be incomplete").
+4. **Stage 3, failures**, each with a plain reason and one sensible action: *Timed out* ("The AI provider did not answer in time", **Try again**); *Rate-limited* ("The AI provider is rate-limited", reset time when known, and "Use local Ollama" only when a local provider is available and permitted: it sets the per-browser preferred provider); *Provider failed* ("The AI provider failed"; for a refused connection the command `ollama serve` in a copyable block and **Check again**); *Invalid answer* ("The model returned an invalid answer, so it is not shown", **Try again**); *Skipped* ("Call limit for this analysis reached", link to AI Settings explaining `AI_MAX_CALLS_PER_ANALYSIS`). Styling is neutral or amber; red only for a genuine provider failure.
+5. **Stage 4, AI off or not configured.** The trigger stays visible but disabled, with the tooltip "AI insights are unavailable. <reason>" and a link to AI Settings. When AI **is** available: "AI explanations are available; every answer is marked AI-generated." Every AI entry point shows the same pattern and nothing else on the page changes.
+6. **Stage 5, light theme:** the lavender variant (7.1) at AA contrast.
+7. The insight API behaviour is unchanged. The card never renders HTML from model output.
+
+**B. AI Settings (`/settings/ai`):**
+1. **Status banner:** "AI Insights: Enabled & Available" with a `HEALTHY` chip and "Local Ollama (llama3.2) is reachable. Nothing leaves your machine." (for a hosted default: what is sent); a "Local-first active" chip only when the default provider is local. Disabled variant: "AI Insights: Disabled" and "All deterministic analysis remains fully functional", the sections dimmed and labelled Suspended / Inactive.
+2. **Model providers table:** provider (Ollama, Gemini, OpenRouter), state (Enabled / Disabled), **health** (Healthy, Ready (API key), Unconfigured, Down, Rate-limited; detail on hover), **data handling** (Local: no external egress; Hosted: excerpts sent with secrets scrubbed, acknowledgement required, and whether it was acknowledged), model, **capability tags** (Explain, Refactor, Summarize, Q&A, Embeddings; derived from the provider capabilities and feature routing), **Default** marker.
+3. **Routing policy:** the preferred-provider select (among permitted providers; stays a browser-local preference as today) and the note about the deterministic fallback.
+4. **Guardrails & budget limits:** read-only tiles (Calls per analysis, Max input tokens, Max output tokens, Timeout, Max retries); shown, not edited.
+5. **Usage telemetry** table (When, Feature, Provider / model, Status, Input / Output tokens marked `reported` or `estimated`, Latency, Cost only when pricing is configured, Cache hit) with a "Total cost" figure only when pricing exists, paging, and the empty state **"No AI calls yet."** ("AI insights are only triggered on demand. Deterministic analysis runs without AI.").
+6. **How to enable AI insights:** two columns (CLI: `ollama serve`, `ollama pull llama3.2`; environment variables with the **real names**, 7.0.3), a copy button per line, **Copy Quickstart**, the hosted-provider acknowledgement variable and the link "See the README section 'AI insights (optional)'".
+7. Buttons: **Re-check health** (refetch). No "Save Policy".
+
+**Tests:**
+- [ ] Unit: every insight state of the matrix (idle, checking, asking, success, cached, fallback, truncated, five failures, AI off) shows the right text and actions; Cancel ignores a late result
+- [ ] Unit: Markdown safety (script / img / html in model text is not rendered); fenced diff coloured; copy works
+- [ ] Unit: evidence links point to the commit; missing-evidence and notes sections
+- [ ] Unit: AI Settings enabled, disabled and mixed-health variants; usage table reported vs estimated; empty state; env var names come from the same constants as the README text
+- [ ] Manual: both themes of the card against the spec sheet
+
+---
+
+### Step 7.11: Code Search and Ask (Q&A)
+
+Stitch: `repointel_code_search_spring_petclinic`, `repointel_ask_q_a_spring_petclinic`. Restyle `SearchPage`, `QAPage`, `IndexStatusPanel`, `SearchResultsList`, `AnswerView`, `SourceLink`.
+
+**Shared index status bar** (both pages), one component with the states **Not indexed** (button **Index this snapshot** and the note that indexing is optional and separate from analysis), **Indexing** (progress bar and counts `64% · 910/1,420 chunks`, polling), **Indexed** (chunk count, embedding model, indexing time, **Re-index**), **Completed with warnings**, **Failed** (reason, retry), **Embeddings not configured** (keyword and symbol search still work). The design stacks these states as a preview; ship one live bar.
+
+**Search (`/repositories/:id/search`):**
+1. Search input with a magnifier and `⌘K` / `/` focus hint; a **Symbol / Text** segmented toggle; filter rows **Lang** (All, Java, XML, Properties...), **Module**, **Type** (All, Source, Config, Test), built from what the index contains; filters live in the URL.
+2. Result summary "Showing 5 symbol matches for `findOwnerPets` (18 ms)" (time only if the API reports it), a "Commit 500158F" label and the retrieval source actually used (symbol graph / keyword index).
+3. **Result cards:** kind badge (METHOD, INTERFACE, CLASS, CONFIG, FIELD), qualified name (monospace, bold), `path:line`, **Open on GitHub (sha)**, and a code context with line numbers, the **matched line highlighted** and the term emphasised. Redacted chunks show the redaction marker. Text results show path, line range and snippet.
+4. **States:** not indexed (say what still works, e.g. symbol search from the graph), no results (with tips), loading, error.
+
+**Ask (`/repositories/:id/qa`):**
+1. Top bar: the index bar and **New conversation**. A question box with a sparkle icon ("Ask a question about `spring-petclinic` (500158f)..."), `⌘K` hint and a violet **Ask** button; **example question chips**.
+2. **Conversation:** user bubbles and AI answers (kept in memory as today; server-side reload is C.5). An answer: violet surface, **AI-generated** badge with tooltip, provider / model, "Grounded in N files", Markdown body with **inline citation markers** `[1] [2]` that scroll to and highlight the matching source; a collapsible **Sources (N)** panel (each: `[n] path:start-end`, line-numbered snippet, **Open on GitHub (sha)**); notes and limitations muted below.
+3. **Insufficient evidence** answer style: an "INSUFFICIENT EVIDENCE" label (neutral, not an error), the honest sentence, a "Searched" box (what was searched, the terms and number of chunks, from `searched` / `terms`), the **clarifying question** if any and the "missing evidence" list.
+4. **Degraded modes** (cards in place of an answer): **AI unavailable** (reason, e.g. "Local Ollama is unreachable", the deterministic search results for the question terms and **Open in Code Search**) and **No embedding provider configured** ("Vector index disabled; falling back to keyword search", results, **Configure AI Settings**, **Go to Code Search**). Both reuse `searchResults` from the answer.
+5. Follow-up chips are not built (7.0.3). Ask is disabled for an empty question; a very long question shows a counter at the backend limit.
+
+**Tests:**
+- [ ] Unit: index bar for every state; polling stops when done
+- [ ] Unit: search toggle, filters, URL sync, symbol and text cards, highlighted line, redaction marker, empty and not-indexed states
+- [ ] Unit: answer with citations (clicking `[1]` focuses the source), sources panel, insufficient-evidence style, both degraded cards with search results
+- [ ] Unit: new conversation clears the thread; example chips fill the question
+- [ ] Existing search and Q&A tests adapted and green
+
+---
+
+### Step 7.12: Impact Analysis
+
+Stitch: `repointel_impact_analysis_spring_petclinic`. Restyle `ImpactAnalysisPage` and `ImpactResultView`.
+
+**Sub-tasks:**
+1. **Header:** "Change Impact Analysis", chips "AST static analysis + call graph resolution" and "Deterministic graph", a target line (`repo @ sha · N source files`), actions **Export JSON** (client-side download of the response) and **Re-run analysis**.
+2. **Scope panel:** **Target symbol** picker (search-backed combobox showing kind badge, qualified name and file path, `⌘K` hint, keyboard navigable; uses the existing picker API); **Propagation traversal** segmented control `1 Hop | 2 Hops | 3 Hops | Full (N)` mapped to `depth` and its bound; the three **view-filter** checkboxes (Include test callers, Cross-module traversal, HTTP endpoint ingress; 7.0.3); the **Optional change intent** textarea ("AI context layer"; hidden with the note "Change description needs AI, which is unavailable. Pick a symbol instead." when AI is unavailable; when AI maps text to symbols the user **confirms** the proposed list before analysis); **Clear selection** and **Analyze impact**. After a run: "Analyzed in 380 ms (deterministic graph walk)" if the API reports the time.
+3. **AI-generated impact digest** (violet card, shared insight card): summary with inline symbol code, a **Suggested next step** as a copyable command (7.0.3), "cached" tag. Absent when AI is off or the summary is `UNAVAILABLE`; the rest of the page is identical.
+4. **Heuristic risk score:** large `68 / 100`, the level chip (LOW / MEDIUM / HIGH), a segmented bar with the band thresholds (0–29, 30–59, 60+) and a marker, the permanent notice "**Heuristic risk score, not a probability**" and the API `note`; below, **every risk factor as a tile** (`Dependency depth 15/20 · 3 hops`, `Dependents 20/25 · 14 affected nodes`, `Public API exposure`, `Security relevance`, `Test dampener -12/15`, and the other factor the engine reports), each with its value, points/max and explanation on expand; negative points use a distinct "reduces risk" style.
+5. **Affected components:** tabs **All / Routes / Callers / Repos** with counts; grouped sections **[1] HTTP endpoint ingress**, **[2] Direct callers**, indirect dependents, **[3] Downstream repositories & entities**, **[4] Impacted modules & subsystems**; each node: icon by type, name, confidence badge (DETECTED / LIKELY / POSSIBLE), edge type and `file:line` evidence (linked to GitHub); selecting a node fills the inspector below the graph. Dynamic-dispatch implementations are listed as POSSIBLE.
+6. **Dependency graph card:** the Mermaid card from 7.9 (zoom, fit, source, size cap and "capped at N nodes" note), target highlighted, nodes grouped (ingress, target, persistence). The inspector ("Active node") shows symbol type, visibility/modifiers, file and line range for the **selected list item** (diagram click handlers stay disabled in strict mode); complexity only if the API provides it.
+7. **Affected tests & suggested regression scope:** table (test method + `file:line`, **classification** DETECTED / LIKELY, **detection rationale** from `relation` / `via` such as "Direct MockMvc invocation of POST /owners/new" or "Naming convention", copy-command action); header chips `3 DETECTED · 3 LIKELY · 0 UNTESTED CODEPATHS`; **Suggested regression areas** (endpoint, test, component, module and the explicit **GAP** items where no test reaches). Tests are never run: no status column and no Run button.
+8. **Static analysis soundness & known limitations:** one card per limitation from the API (unresolved edges with counts, reflection, dynamic dispatch, generated code, runtime wiring: profiles, conditional beans, AOP), with an icon per kind; data driven, not a fixed four.
+9. **Not supported** (non-Java), **no results** ("Nothing depends on this symbol in this snapshot"), loading and error states.
+
+**Tests:**
+- [ ] Unit: picker -> request (target, depth); description hidden with the note when AI is unavailable; confirmation step for AI-mapped symbols
+- [ ] Unit: risk score for LOW / MEDIUM / HIGH and a negative factor; the "not a probability" text is always present
+- [ ] Unit: components grouped and tab counts; view filters hide items without changing the underlying result
+- [ ] Unit: tests table has no execution status; the suggested command is text only
+- [ ] Unit: limitations rendered from data; not-supported state; Export JSON equals the response
+
+---
+
+### Step 7.13: Investigations (requires MVP 6 and Step 7.3 item 4)
+
+Stitch: `repointel_investigations_start_history`, `repointel_investigations_final_report`, `repointel_investigations_audit_trail`. **Progress has no Stitch screen** (7.0.1).
+
+**A. Start and history (`/repositories/:id/investigations`):**
+1. Header "Automated Code Investigations" with a subtitle (deterministic tools first, bounded AI synthesis), the provider pill (`ollama/llama3.2`, or "AI unavailable") and a **Bounded synthesis** chip.
+2. **Type cards** (two columns, from the types endpoint): *Top Risks Investigation* ("Triage", "Recommended"), *Full Review Investigation* ("Comprehensive"); description; a **budget box** with the configured **AI call cap**, **token cap**, tool-invocation cap and time limit (not estimates); **scope covered** chips (Security, Architecture, Code Quality, Impact; "All 8 specialists"); **Start** button. With AI off, Start stays enabled and the card says "AI synthesis unavailable: deterministic summary only" (the fallback of Step 6.3).
+3. **Specialist pool** panel: the eight roles as tiles (Repository, Architecture, Code Quality, Security, Performance, Impact, Test, Documentation) and the note "All specialists use read-only tools. They cannot change files, git history or the environment."
+4. **Commit audit ledger** (history for this commit): type, initiated (relative time; no "by user"), specialist count, **status** (Completed, Running, Budget reached with "Stopped at 45 calls cap; partial findings saved", Failed, Cancelled), **resource ledger** (calls · tokens · cost when pricing is configured), duration, actions **View report** (or **Partial report**) and **Audit trail**. Empty state "No investigations for this commit yet".
+
+**B. Progress** (built from design-system parts; shown on the report route while running): header with type and status, **Cancel** (confirm, "Cancelling..."), budget meters (calls used / cap, tokens used / cap, elapsed / limit), and a **step list by specialist** (role icon, status Queued / Running / Completed / Skipped / Failed, duration, tools used as chips, tokens); a **budget-exceeded** state ("Stopped: call cap reached; partial report available"). Polls until terminal, then shows the report.
+
+**C. Report (`/investigations/:investigationId`):**
+1. Header: breadcrumb, title "Investigation Report: <type>", status badge (`FINAL`, or "Partial" for budget stops), meta line (duration, `38/45 AI calls`, `8 specialists`, "Read-only"), actions **Export** (JSON / Markdown, client-side) and **Run again**.
+2. **Executive abstract:** the summary text with the deterministic facts and the AI-written wording **distinguished** (AI paragraphs use the AI surface), a provenance line "N deterministic facts · M AI-written statements", and a KPI block (CVE count or **Not checked**, test coverage or **Unavailable**, findings by severity). No "confidence %" and no health score.
+3. **Priority ranking model:** the transparent criteria returned by the backend (formula text and factor values), then **priority cards** (paged beyond three): severity tag, rank, score, area, title, description, **evidence anchor** (file:line and counts), **required remedy** (the suggested step) and "Open evidence" link(s) (finding, impact analysis or search).
+4. **Epistemic provenance panel:** two columns side by side, **Deterministic fact extract** (evidence excerpt, symbol reference) and **AI contextual reasoning** (violet, model, latency), so a reader sees what is proven and what is inferred.
+5. **Specialist analysis matrix:** eight accordion rows (`01 Repository Structure` ... `08 Documentation & Spec`), each with a status chip (**PASS / ATTENTION / N ISSUES / UNAVAILABLE**, derived from that specialist's result by a documented rule) and a one-line summary; **Expand all / Collapse all**; the expanded body shows findings, evidence references and the tools used.
+6. **Uncertainty & static boundaries** list (what could not be determined, e.g. dynamic proxies, runtime networking, unparsed XML) and **Suggested verification next steps** (copyable commands built from templates: targeted test run, coverage report; shown, never executed).
+7. Link to the **Audit trail**.
+
+**D. Audit trail (`/investigations/:investigationId/audit`):**
+1. Header: "Investigation Audit Trail", breadcrumb, record id, **Copy raw SHA-256** (ledger hash), **Export JSON** and **CSV**. "Sealed record" and the hash line appear only when `chainVerified` is true; otherwise "Recorded".
+2. **Read-only guarantee** banner: "All tools run read-only: no filesystem, git or environment writes", with the ledger hash.
+3. **Stat cards:** execution steps (N calls), probabilistic tokens, **write invocations** (computed from the steps; normally `0`), total elapsed time.
+4. **Filter bar:** specialist chips with counts (All, Repo, Arch, Quality, Security, Perf, Impact, Test, Docs), search across inputs, **Tool type** filter (deterministic / AI), pagination ("38 of 38 events verified").
+5. **Step rows:** `#step`, offset time, specialist chip, tool name and engine, **DETERMINISTIC** or **AI specialist** badge, status (SUCCESS, WARN (n), FAILED), duration; two panes **Invocation inputs** (JSON, copy) and **Resolved evidence / inferred output** (text, evidence reference link such as `OWNERCONTROLLER.JAVA:98`, tokens). AI steps show the redacted prompt payload (model, temperature, prompt hash, evidence tokens), the synthesized output, tokens in / out, cache hit or miss and the context limit. Inputs and outputs shown are the stored, secret-redacted versions.
+
+**Tests:**
+- [ ] Unit: type cards show configured budgets; Start with AI off shows the deterministic note; history statuses including budget reached
+- [ ] Unit: progress list updates and cancel; budget-exceeded state
+- [ ] Unit: report with and without AI statements (deterministic vs AI styling), partial report, priority cards from data, "Not checked" KPI, export content
+- [ ] Unit: audit trail filters, pagination, AI vs deterministic rows, hash line only when verified, no raw secret in a fixture with a planted secret
+- [ ] Integration (frontend + mock API): start -> progress -> report -> audit trail navigation
+
+---
+
+### Step 7.14: Cross-Cutting States, Accessibility, Security and Verification
+
+**Sub-tasks:**
+1. **Every screen has designed loading, empty, error and unavailable states** (a checklist in the completion report). "Not analyzed / Unavailable / Not supported / AI unavailable" always look deliberate (neutral, with a reason and a setup link where useful), never like errors.
+2. **"AI off" everywhere:** with AI disabled every AI entry point shows the same calm disabled pattern with a link to AI Settings and nothing else changes (verify page by page).
+3. **"Not supported" for a Python repository:** Overview, Dependencies, Code Quality, Security, Tests, Architecture and Impact show what is not supported and what is available instead (use a Python + JavaScript fixture).
+4. **Accessibility (WCAG AA):** the contrast check from 7.1 on both themes; visible focus on every interactive element; keyboard operation of tabs, accordions, drawers, menus, the sidebar and the diagram toolbar; status, severity and confidence never conveyed by colour alone; `prefers-reduced-motion` disables pulsing and shimmer; 14 px prose base. Add an automated check (`vitest-axe`) on the main pages.
+5. **Security rules re-verified:** no `dangerouslySetInnerHTML` (the ESLint rule still fails the build), AI text only through `MarkdownText`, Mermaid strict, repository text always plain, no external requests (fonts, icons, scripts), CSP unchanged. Check the production build, the Docker stack's response headers and the browser console for CSP violations on every page.
+6. **Performance:** route-level code splitting; Mermaid loaded only where diagrams are drawn; paging or virtualisation for lists above a few hundred rows; record bundle sizes before and after.
+7. **Browser check** (closes C.3 item 3 and the impact check in C.6): a Playwright smoke test against `docker compose` that opens the dashboard, a report, the architecture page, search, the impact page and AI settings in both themes and fails on console CSP errors. It is an optional CI job; local builds and the main CI jobs stay free of Docker and browsers.
+8. **Responsive checks** at 1440, 1024 and 390 px for the shell, dashboard, report, findings drawer and a diagram card.
+
+**Tests / verification:**
+- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` green; backend `mvnw clean verify` green (Step 7.3)
+- [ ] Accessibility checks green on the main pages in both themes
+- [ ] Docker stack rebuilt (`docker compose up --build`); spring-petclinic analysed through nginx; every screen of 7.0.1 opened in both themes with no CSP or console errors and fonts served from the app origin
+- [ ] Side-by-side review of each implemented screen against its `screen.png`, with a checklist in the completion report listing every deliberate deviation from 7.0.3
+
+---
+
+### Step 7.15: Documentation and Completion Report
+
+**Sub-tasks:**
+1. Update the README (UI tour with screenshots from the **built** app, theme switch, fonts and licences, how the design maps to routes) and [ui-design-stitch-prompt.md](ui-design-stitch-prompt.md) section 3 (routes, new components, "design implemented in MVP 7").
+2. Update `docs/architecture.md` (frontend structure, design tokens, the endpoints of 7.3) and the OpenAPI docs.
+3. Write the MVP 7 completion report with the deviation list, contrast results, bundle sizes and the screen-by-screen checklist.
+4. Review Appendix C.7 and mark which follow-ups were done.
+
+---
+
+### MVP 7: Exit Criteria Checklist
+
+- [ ] All screens of 7.0.1 implemented in dark and light themes, matching the Stitch designs except the documented deviations (7.0.3)
+- [ ] Screens Stitch did not deliver (Dependencies, Security coverage, Tests & Coverage, Python "not supported", Investigation progress) built in the same system
+- [ ] No design element violates a product rule: no invented metrics, no "0" for unavailable data, no percentage confidence, no test execution status, no fake telemetry
+- [ ] AI text appears only in the AI-violet treatment with the badge, provider / model and evidence; deterministic and AI content never look alike
+- [ ] No external fonts, scripts, icons or images; CSP unchanged; no violations in the browser console; fonts self-hosted
+- [ ] AI Settings uses the real environment variable names
+- [ ] Everything works with AI disabled; every AI entry point shows the same disabled pattern
+- [ ] WCAG AA contrast, visible focus and keyboard operation verified; status never conveyed by colour alone
+- [ ] All existing routes and query strings still work; all previous MVP features still work
+- [ ] README, architecture and API docs updated
+
+---
+
 # Cross-MVP Verification Matrix
 
 After each MVP, verify that **all prior exit criteria still pass**:
 
-| Test | MVP 0 | MVP 1 | MVP 2 | MVP 3 | MVP 4 | MVP 5 | MVP 6 |
-|---|---|---|---|---|---|---|---|
-| App starts without AI | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Health check works | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Migrations apply cleanly (embedded PostgreSQL) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| App runs via `docker compose up --build` | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Java repo analyzed | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Non-Java repo generic analysis | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Capability matrix accurate | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Results scoped to one commit | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Failed analyzer doesn't block others | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Secrets redacted (reports, logs, prompts) | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Malicious archive handled safely | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Architecture diagrams render | | | ✅ | ✅ | ✅ | ✅ | ✅ |
-| AI insights work (when enabled) | | | | ✅ | ✅ | ✅ | ✅ |
-| Deterministic search works without AI | | | | | ✅ | ✅ | ✅ |
-| Q&A returns grounded answers | | | | | ✅ | ✅ | ✅ |
-| Impact analysis returns evidence | | | | | | ✅ | ✅ |
-| Agentic investigation works | | | | | | | ✅ |
-| CI is green | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Test | MVP 0 | MVP 1 | MVP 2 | MVP 3 | MVP 4 | MVP 5 | MVP 6 | MVP 7 |
+|---|---|---|---|---|---|---|---|---|
+| App starts without AI | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Health check works | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Migrations apply cleanly (embedded PostgreSQL) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| App runs via `docker compose up --build` | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Java repo analyzed | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Non-Java repo generic analysis | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Capability matrix accurate | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Results scoped to one commit | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Failed analyzer doesn't block others | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Secrets redacted (reports, logs, prompts) | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Malicious archive handled safely | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Architecture diagrams render | | | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| AI insights work (when enabled) | | | | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Deterministic search works without AI | | | | | ✅ | ✅ | ✅ | ✅ |
+| Q&A returns grounded answers | | | | | ✅ | ✅ | ✅ | ✅ |
+| Impact analysis returns evidence | | | | | | ✅ | ✅ | ✅ |
+| Agentic investigation works | | | | | | | ✅ | ✅ |
+| UI honours CSP (no external fonts, scripts, icons) | | | | | | | | ✅ |
+| Light and dark themes meet WCAG AA | | | | | | | | ✅ |
+| CI is green | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
@@ -1415,7 +1891,8 @@ After each MVP, verify that **all prior exit criteria still pass**:
 | **MVP 4** | 4 steps (4.1–4.4) | Deterministic search, RAG indexing, Q&A |
 | **MVP 5** | 3 steps (5.1–5.3) | Dependency graph + impact analysis |
 | **MVP 6** | 3 steps (6.1–6.3) | Agentic workflows |
-| **Total** | **47 steps** | |
+| **MVP 7** | 16 steps (7.0–7.15) | UI redesign from the Google Stitch designs (design intake, tokens, shell, every screen, small backend additions, verification) |
+| **Total** | **63 steps** | |
 
 # Appendix B: Revision Notes (v1 → v2)
 
@@ -1520,3 +1997,14 @@ After each MVP, verify that **all prior exit criteria still pass**:
 - Calibrate the risk weights on real change history (for example files that later needed fixes), keeping the factor-by-factor display.
 - Tests from earlier runs: runs made before V9 need a forced rescan to get test references; offer a "refresh test links" action that does not repeat the whole analysis.
 - A Playwright check of the impact page and its Mermaid chain behind nginx (see C.3).
+
+### C.7 MVP 7 follow-ups (UI redesign)
+
+**Status:** recommended, not scheduled. These came out of the Stitch review (Step 7.0.3) as designed features that have no backend today.
+- **Live analysis log stream:** the progress designs show a stdout/stderr stream. Add a redacted, bounded, per-run event log (analyzer started/finished, counts) streamed over SSE; never raw process output without secret scrubbing.
+- **SARIF export** of findings (and optional OWASP/CWE tags on findings so the "OWASP Top 10" filter becomes possible).
+- **Follow-up question suggestions** in Q&A (schema field plus a prompt-version bump), and a Regenerate button for insights if 7.3 item 5 was skipped.
+- **Per-phase timings and per-analyzer summaries** while a run is active (counts such as files parsed), if the progress screen should show more than status and duration.
+- **Changed-line risk:** a "Compare with branch" view for impact analysis (the design shows a Compare action).
+- **Visual regression tests** (screenshots of each screen in both themes) once the design is stable.
+
