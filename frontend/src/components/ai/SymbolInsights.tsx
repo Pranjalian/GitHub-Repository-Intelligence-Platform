@@ -26,7 +26,7 @@ export default function SymbolInsights({
         <InsightPanel repositoryId={repositoryId} snapshotId={snapshotId} type="SUGGEST_REFACTORING" targetId={symbolId} actionLabel="Suggest refactoring" compact />
       </div>
       <div>
-        <h5 className="font-mono text-label-sm uppercase tracking-wider text-muted">Methods ({symbol.data ? methods.length : '…'})</h5>
+        <h4 className="font-mono text-label-sm uppercase tracking-wider text-muted">Methods ({symbol.data ? methods.length : '…'})</h4>
         {symbol.isPending && <p role="status" className="text-body-sm text-muted">Loading methods…</p>}
         {symbol.error && <p role="alert" className="text-body-sm text-[color:var(--t-failed-fg)]">{symbol.error.message}</p>}
         {symbol.data && methods.length === 0 && <p className="text-body-sm text-muted">No methods.</p>}

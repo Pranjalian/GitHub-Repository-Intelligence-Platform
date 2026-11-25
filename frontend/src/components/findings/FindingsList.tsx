@@ -284,7 +284,7 @@ export default function FindingsList({
           {data && data.items.length > 0 && view === 'list' && (
             <div
               aria-label="Findings"
-              role="list"
+              role="group"
               className="space-y-3"
               onKeyDown={(e) => {
                 const target = e.target as HTMLElement
@@ -296,7 +296,7 @@ export default function FindingsList({
               {grouped.map((g) => {
                 const isCollapsed = group === 'none' ? false : !!collapsed[g.key]
                 return (
-                  <section key={g.key} aria-label={g.label || 'Findings'} className="space-y-1.5" role="listitem">
+                  <section key={g.key} aria-label={g.label || 'Findings'} className="space-y-1.5">
                     {g.label && (
                       <h3>
                         <button

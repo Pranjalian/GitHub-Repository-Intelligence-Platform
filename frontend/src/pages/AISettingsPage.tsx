@@ -38,7 +38,7 @@ function tokens(reported: number | null, estimated: number | null) {
 function EnvBlock({ title, lines }: { title: string; lines: string[] }) {
   return (
     <div className="space-y-1">
-      <h4 className="font-mono text-label-sm uppercase tracking-wider text-muted">{title}</h4>
+      <h3 className="font-mono text-label-sm uppercase tracking-wider text-muted">{title}</h3>
       <ul className="space-y-1">
         {lines.map((line) => (
           <li key={line} className="flex items-center justify-between gap-2 rounded bg-code px-2 py-1 font-mono text-code-md">

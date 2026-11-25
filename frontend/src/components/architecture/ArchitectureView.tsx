@@ -74,11 +74,11 @@ function SourceLink({ url, children }: { url: string | null; children: ReactNode
 function Section({ title, children, count, icon }: { title: string; children: ReactNode; count?: number; icon?: string }) {
   return (
     <section aria-label={title} className="space-y-2">
-      <h3 className="flex items-center gap-2 text-headline-md font-semibold">
+      <h2 className="flex items-center gap-2 text-headline-md font-semibold">
         {icon && <Icon name={icon} size={18} className="text-fg-2" />}
         {title}
         {count != null && <span className="text-body-md font-normal text-muted">({count})</span>}
-      </h3>
+      </h2>
       {children}
     </section>
   )
@@ -242,7 +242,8 @@ function CycleWarnings({ cycles }: { cycles: ArchitectureCycle[] }) {
     <Section title="Dependency cycles" count={cycles.length}>
       <ul className="space-y-2">
         {cycles.map((cycle) => (
-          <li key={cycle.rule + cycle.members.join(',')} role="alert" className="tone tone-warning space-y-1 rounded-lg p-3 text-body-md">
+          <li key={cycle.rule + cycle.members.join(',')}>
+            <div role="alert" className="tone tone-warning space-y-1 rounded-lg p-3 text-body-md">
             <div className="flex flex-wrap items-center gap-2 text-fg">
               <Badge tone="warning" icon="warning">WARN</Badge>
               <SeverityBadge severity={cycle.severity} />
@@ -258,6 +259,7 @@ function CycleWarnings({ cycles }: { cycles: ArchitectureCycle[] }) {
                 </li>
               ))}
             </ul>
+            </div>
           </li>
         ))}
       </ul>
@@ -292,7 +294,7 @@ function TypeRow({ cls, injections, repositoryId, snapshotId }: { cls: LayerClas
       {open && (
         <div className="space-y-3 border-t border-line px-3 py-2">
           <div>
-            <h5 className="font-mono text-label-sm uppercase tracking-wider text-muted">Injected dependencies</h5>
+            <h4 className="font-mono text-label-sm uppercase tracking-wider text-muted">Injected dependencies</h4>
             {deps.length === 0 ? (
               <p className="text-body-sm text-muted">No injected dependencies were found for this type.</p>
             ) : (
@@ -414,10 +416,10 @@ function EntityView({ entities }: { entities: ArchitectureEntity[] }) {
         <div className="grid gap-3 lg:grid-cols-2">
           {entities.map((entity) => (
             <Card key={entity.fullyQualifiedName} as="article" className="text-body-md">
-              <h4 className="font-semibold">
+              <h3 className="font-semibold">
                 <SourceLink url={entity.sourceUrl}>{entity.name}</SourceLink>
                 {entity.table && <span className="ml-2 font-mono text-body-sm font-normal text-muted">table {entity.table}</span>}
-              </h4>
+              </h3>
               {entity.relationships.length > 0 && (
                 <ul className="mt-1 space-y-0.5 font-mono text-code-md">
                   {entity.relationships.map((relation) => (

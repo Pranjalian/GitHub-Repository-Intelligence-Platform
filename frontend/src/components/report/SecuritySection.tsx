@@ -63,7 +63,7 @@ export default function SecuritySection({
             })}
           </ul>
           <div className="mt-4 space-y-1 border-t border-line pt-3">
-            <h4 className="font-mono text-label-sm uppercase tracking-wider text-muted">Dependency vulnerability status</h4>
+            <h3 className="font-mono text-label-sm uppercase tracking-wider text-muted">Dependency vulnerability status</h3>
             {overall ? (
               <p className="flex flex-wrap items-center gap-2 text-body-md">
                 <VulnerabilityStatusBadge status={overall.status} />
