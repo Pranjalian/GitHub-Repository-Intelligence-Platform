@@ -142,6 +142,23 @@ class InsightE2eTests extends E2eTestBase {
 	}
 
 	@Test
+	void refreshSkipsTheCacheAsksTheModelAgainAndCountsTheCall() throws Exception {
+		Analysis analysis = analyze("acme", "shop", SHA, fixture("spring-boot-architecture").build());
+		String symbolId = symbolId(analysis, "com.example.shop.service.OrderService");
+		insight(analysis, "EXPLAIN_CLASS", symbolId);
+
+		String refreshed = insight(analysis, "EXPLAIN_CLASS", symbolId, true);
+		String afterwards = insight(analysis, "EXPLAIN_CLASS", symbolId);
+
+		assertThat((String) JsonPath.read(refreshed, "$.status")).isEqualTo("OK");
+		assertThat((Boolean) JsonPath.read(refreshed, "$.fromCache")).isFalse();
+		assertThat((Boolean) JsonPath.read(afterwards, "$.fromCache")).isTrue();
+		OLLAMA.verify(2, postRequestedFor(urlEqualTo("/api/chat")));
+		assertThat(jdbc.queryForList("SELECT cache_hit FROM ai_usage_record ORDER BY created_at", Boolean.class))
+			.containsExactly(false, false, true);
+	}
+
+	@Test
 	void injectedInstructionsAndSecretsInTheCodeStayDataAndNeverReachTheModel() throws Exception {
 		Analysis analysis = analyze("acme", "shop", SHA, fixture("spring-boot-architecture")
 			.file("src/main/java/com/example/shop/service/AuditTrail.java", HOSTILE)
@@ -250,8 +267,13 @@ class InsightE2eTests extends E2eTestBase {
 	}
 
 	private String insight(Analysis analysis, String type, String targetId) throws Exception {
-		String body = targetId == null ? "{\"type\":\"" + type + "\"}"
-				: "{\"type\":\"" + type + "\",\"targetId\":\"" + targetId + "\"}";
+		return insight(analysis, type, targetId, false);
+	}
+
+	private String insight(Analysis analysis, String type, String targetId, boolean refresh) throws Exception {
+		String body = "{\"type\":\"" + type + "\""
+				+ (targetId == null ? "" : ",\"targetId\":\"" + targetId + "\"")
+				+ (refresh ? ",\"refresh\":true" : "") + "}";
 		return mockMvc
 			.perform(post("/api/v1/repositories/" + analysis.repositoryId() + "/snapshots/" + analysis.snapshotId()
 					+ "/insights").contentType(MediaType.APPLICATION_JSON).content(body))

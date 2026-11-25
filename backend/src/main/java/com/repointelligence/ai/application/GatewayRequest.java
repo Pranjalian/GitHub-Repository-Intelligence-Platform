@@ -16,14 +16,28 @@ import java.util.function.LongSupplier;
  * @param hostedPermitted the repository's policy for hosted providers
  * @param budget a call budget other than the per-run insight budget (e.g. Q&A per snapshot); null for the
  * per-run budget
+ * @param refresh skip the cache lookup for this call (the fresh answer still replaces the cached one; the call
+ * is counted against the budget and recorded as usage like any other)
  */
 public record GatewayRequest(PromptTemplate template, List<EvidenceBlock> evidence, UUID repositoryId,
 		UUID snapshotId, UUID runId, String commitSha, String preferredProvider, boolean hostedPermitted,
-		CallBudget budget) {
+		CallBudget budget, boolean refresh) {
 
 	public GatewayRequest(PromptTemplate template, List<EvidenceBlock> evidence, UUID repositoryId, UUID snapshotId,
 			UUID runId, String commitSha, String preferredProvider, boolean hostedPermitted) {
-		this(template, evidence, repositoryId, snapshotId, runId, commitSha, preferredProvider, hostedPermitted, null);
+		this(template, evidence, repositoryId, snapshotId, runId, commitSha, preferredProvider, hostedPermitted, null,
+				false);
+	}
+
+	public GatewayRequest(PromptTemplate template, List<EvidenceBlock> evidence, UUID repositoryId, UUID snapshotId,
+			UUID runId, String commitSha, String preferredProvider, boolean hostedPermitted, CallBudget budget) {
+		this(template, evidence, repositoryId, snapshotId, runId, commitSha, preferredProvider, hostedPermitted, budget,
+				false);
+	}
+
+	public GatewayRequest withRefresh(boolean refresh) {
+		return new GatewayRequest(template, evidence, repositoryId, snapshotId, runId, commitSha, preferredProvider,
+				hostedPermitted, budget, refresh);
 	}
 
 	/**

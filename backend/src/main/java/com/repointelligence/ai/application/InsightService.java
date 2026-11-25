@@ -94,7 +94,7 @@ public class InsightService {
 		}
 
 		GatewayResult result = gateway.execute(new GatewayRequest(template, evidence, repositoryId, snapshotId,
-				scope.runId(), scope.commitSha(), request.provider(), hostedPermitted));
+				scope.runId(), scope.commitSha(), request.provider(), hostedPermitted).withRefresh(request.refreshRequested()));
 		int requested = evidence.size();
 		if (result.status() == AIStatus.OK && result.evidence().size() < requested) {
 			limitations.add((requested - result.evidence().size())

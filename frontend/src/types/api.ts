@@ -489,6 +489,8 @@ export interface InsightRequest {
   type: InsightType
   targetId?: string | null
   provider?: string | null
+  /** true skips the server cache for this call; it still counts against the call budget. Omitted otherwise. */
+  refresh?: boolean
 }
 
 export interface InsightEvidence {

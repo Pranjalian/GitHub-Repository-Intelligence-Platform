@@ -49,6 +49,35 @@ describe('InsightPanel', () => {
     expect(within(evidence).getByText(/1 line\(s\)/)).toBeInTheDocument()
   })
 
+  it('regenerates with refresh:true, shows the new answer and leaves other requests without the flag', async () => {
+    const requests = aiEnabled()
+    renderPage(panel())
+
+    const button = await screen.findByRole('button', { name: 'Explain' })
+    await waitFor(() => expect(button).toBeEnabled())
+    await userEvent.click(button)
+    const article = await screen.findByRole('article', { name: 'AI insight' })
+    expect(requests).toEqual([{ type: 'EXPLAIN_CLASS', targetId: 'sym-1', provider: null }])
+
+    await userEvent.click(within(article).getByRole('button', { name: 'Regenerate' }))
+
+    await waitFor(() => expect(requests).toHaveLength(2))
+    expect(requests[1]).toEqual({ type: 'EXPLAIN_CLASS', targetId: 'sym-1', provider: null, refresh: true })
+    expect(await screen.findByRole('article', { name: 'AI insight' })).toBeInTheDocument()
+  })
+
+  it('offers no Regenerate button when there is no answer', async () => {
+    aiEnabled({ ...insightOk, status: 'TIMEOUT', aiGenerated: false, explanation: null, structured: null, reason: 'Too slow.' })
+    renderPage(panel())
+
+    const button = await screen.findByRole('button', { name: 'Explain' })
+    await waitFor(() => expect(button).toBeEnabled())
+    await userEvent.click(button)
+
+    expect(await screen.findByText('Too slow.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Regenerate' })).toBeNull()
+  })
+
   it('renders Markdown but never raw HTML, images, scripts or model-supplied links', async () => {
     aiEnabled()
     const { container } = renderPage(panel())

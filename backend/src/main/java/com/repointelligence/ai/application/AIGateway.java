@@ -154,7 +154,8 @@ public class AIGateway {
 		// 5. cache
 		String key = AIResponseCache.key(service.getProviderId(), model, promptVersion, request.commitSha(), system, user,
 				schemaJson);
-		Optional<AICacheEntry> hit = cache.lookup(key);
+		// refresh: the caller asked for a new answer, so the stored one is not served (it is replaced at step 10)
+		Optional<AICacheEntry> hit = request.refresh() ? Optional.empty() : cache.lookup(key);
 		if (hit.isPresent()) {
 			AICacheEntry entry = hit.get();
 			record(request, service.getProviderId(), entry.getAnsweredModel(), AIStatus.OK, true, null, null,

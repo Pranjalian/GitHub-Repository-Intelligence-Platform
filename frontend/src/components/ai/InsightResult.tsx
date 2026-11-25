@@ -115,7 +115,18 @@ export function InsightFailure({
 }
 
 /** One insight: the AI answer on the AI surface with its badge, provider and evidence, or why there is none. */
-export default function InsightResult({ insight, onRetry, onUseLocal }: { insight: Insight; onRetry?: () => void; onUseLocal?: () => void }) {
+export default function InsightResult({
+  insight,
+  onRetry,
+  onUseLocal,
+  onRegenerate,
+}: {
+  insight: Insight
+  onRetry?: () => void
+  onUseLocal?: () => void
+  /** Asks the model again, bypassing the server cache. Shown on an answer only; the call counts against the budget. */
+  onRegenerate?: () => void
+}) {
   if (insight.status !== 'OK' || !insight.aiGenerated) {
     return <InsightFailure insight={insight} onRetry={onRetry} onUseLocal={onUseLocal} />
   }
@@ -135,6 +146,17 @@ export default function InsightResult({ insight, onRetry, onUseLocal }: { insigh
         {insight.fromCache && <Badge tone="neutral" icon="database">cached</Badge>}
         {insight.fallback && <Badge tone="warning" icon="refresh">fallback provider</Badge>}
         {truncated > 0 && <Badge tone="warning" icon="warning">truncated</Badge>}
+        {onRegenerate && (
+          <Button
+            variant="ghost"
+            icon="refresh"
+            onClick={onRegenerate}
+            className="ml-auto"
+            title="Ask the model again and skip the cached answer. This is a new model call and counts against the call limit."
+          >
+            Regenerate
+          </Button>
+        )}
       </header>
       {insight.fromCache && <p className="text-body-sm text-muted">Served from cache: no model call was made.</p>}
       {insight.fallback && (

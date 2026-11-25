@@ -131,6 +131,43 @@ class AIGatewayTests {
 	}
 
 	@Test
+	void aRefreshSkipsTheCacheCallsTheProviderAgainAndReplacesTheStoredAnswer() {
+		List<EvidenceBlock> evidence = List.of(source("src/A.java", 1, "class A {}"));
+		gateway.execute(request(evidence));
+		provider.answering(r -> AIResponse.ok("ollama", "llama-test",
+				"{\"summary\":\"A second opinion.\",\"evidenceRefs\":[\"E1\"]}", 120, 30));
+
+		GatewayResult refreshed = gateway.execute(request(evidence).withRefresh(true));
+		GatewayResult afterwards = gateway.execute(request(evidence));
+
+		assertThat(refreshed.status()).isEqualTo(AIStatus.OK);
+		assertThat(refreshed.fromCache()).isFalse();
+		assertThat(refreshed.structured()).isEqualTo(Map.of("summary", "A second opinion.", "evidenceRefs", List.of("E1")));
+		assertThat(provider.requests).hasSize(2);
+		assertThat(afterwards.fromCache()).isTrue();
+		assertThat(afterwards.structured()).isEqualTo(refreshed.structured());
+		assertThat(jdbc.queryForObject("SELECT count(*) FROM ai_cache", Integer.class)).isEqualTo(1);
+		assertThat(jdbc.queryForList("SELECT cache_hit FROM ai_usage_record ORDER BY created_at", Boolean.class))
+			.containsExactly(false, false, true);
+	}
+
+	@Test
+	void aRefreshStillCountsAgainstTheCallBudget() {
+		List<EvidenceBlock> evidence = List.of(source("src/A.java", 1, "class A {}"));
+		for (int i = 0; i < 3; i++) {
+			gateway.execute(request(evidence).withRefresh(true));
+		}
+
+		GatewayResult fourth = gateway.execute(request(evidence).withRefresh(true));
+		GatewayResult cached = gateway.execute(request(evidence));
+
+		assertThat(fourth.status()).isEqualTo(AIStatus.SKIPPED);
+		assertThat(cached.status()).isEqualTo(AIStatus.OK);
+		assertThat(cached.fromCache()).isTrue();
+		assertThat(provider.requests).hasSize(3);
+	}
+
+	@Test
 	void differentEvidenceIsACacheMiss() {
 		gateway.execute(request(List.of(source("src/A.java", 1, "class A {}"))));
 		gateway.execute(request(List.of(source("src/B.java", 1, "class B {}"))));

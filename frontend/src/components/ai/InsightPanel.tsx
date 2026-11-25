@@ -12,7 +12,8 @@ import InsightResult from './InsightResult'
 /**
  * The shared AI card trigger for every AI entry point. Stages: idle (a restrained pill, nothing runs until
  * clicked), checking availability, asking (skeleton, elapsed counter, client-side Cancel: the request is
- * abandoned and a late answer ignored), the result, or the failure. When AI is unavailable the trigger
+ * abandoned and a late answer ignored), the result, or the failure. A result has a Regenerate button that
+ * asks again with `refresh: true` (the server skips its cache; the call still counts against the budget). When AI is unavailable the trigger
  * stays visible but disabled with the reason and a link to AI Settings; nothing else on the page changes.
  */
 export default function InsightPanel({
@@ -53,7 +54,7 @@ export default function InsightPanel({
     return () => clearInterval(id)
   }, [asking])
 
-  function ask(provider: string | null = readPreferredProvider()) {
+  function ask(provider: string | null = readPreferredProvider(), refresh = false) {
     const id = ++current.current
     setOpen(true)
     setAsking(true)
@@ -61,7 +62,7 @@ export default function InsightPanel({
     setResult(null)
     setFailure(null)
     insight.mutate(
-      { type, targetId: targetId ?? null, provider },
+      { type, targetId: targetId ?? null, provider, ...(refresh ? { refresh: true } : {}) },
       {
         onSuccess: (data) => {
           if (current.current !== id) return // cancelled: the late answer is ignored
@@ -136,6 +137,7 @@ export default function InsightPanel({
           <InsightResult
             insight={result}
             onRetry={() => (result.status === 'ERROR' ? providers.refetch() : ask())}
+            onRegenerate={() => ask(readPreferredProvider(), true)}
             onUseLocal={
               local
                 ? () => {
