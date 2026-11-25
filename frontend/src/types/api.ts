@@ -88,6 +88,32 @@ export interface Repository {
   createdAt: string
   updatedAt: string
   latestSnapshot: Snapshot | null
+  /** From the latest completed run; null while the repository has none (Step 7.3). */
+  summary: RepositorySummary | null
+}
+
+/** Null values mean "not analyzed", never zero. */
+export interface RepositorySummary {
+  snapshotId: string
+  commitSha: string
+  primaryLanguage: string | null
+  primaryLanguageShare: number | null
+  frameworks: string[]
+  dependencyCount: number | null
+  findingsBySeverity: Partial<Record<'CODE_QUALITY' | 'SECURITY', Record<Severity, number> | null>>
+  openFindings: number | null
+  indexStatus: IndexState
+  latestRunStatus: RunStatus
+  analysisDurationMs: number | null
+  analyzedAt: string | null
+}
+
+export interface RepositoryStats {
+  repositoriesTotal: number
+  repositoriesAnalyzed: number
+  indexedForSearch: number
+  openFindings: number | null
+  activeRuns: number
 }
 
 export interface Execution {
@@ -98,6 +124,8 @@ export interface Execution {
   completedAt: string | null
   durationMs: number | null
   errorSummary: string | null
+  /** Why it produced no result (skipped, not configured, unsupported); null when there is nothing to say. */
+  reason?: string | null
 }
 
 export type RunPhase = 'QUEUED' | 'INGESTING' | 'DETECTING' | 'ANALYZING' | 'FINISHED'
@@ -168,12 +196,21 @@ export interface Limitation {
 export interface ConsolidatedReport {
   repository: { id: string; owner: string; name: string; url: string }
   snapshot: { id: string; commitSha: string; branch: string | null; analyzedAt: string | null }
-  run: { id: string; status: RunStatus; completedAt: string | null }
+  run: {
+    id: string
+    status: RunStatus
+    completedAt: string | null
+    startedAt?: string | null
+    durationMs?: number | null
+    analyzerSetHash?: string | null
+  }
   technologies: Technology[]
   structure: Structure
   capabilityMatrix: CapabilityMatrixRow[]
   sections: ReportSection[]
   limitations: Limitation[]
+  /** Null when no dependency analyzer completed. */
+  dependencyCount?: number | null
 }
 
 export interface AnalyzerSummary {

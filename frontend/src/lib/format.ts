@@ -24,3 +24,33 @@ export function formatBytes(bytes: number): string {
   }
   return `${value.toFixed(1)} ${units[unit]}`
 }
+
+/** "2 hours ago" style text; the absolute time belongs in a title attribute. */
+export function relativeTime(iso: string | null | undefined, now: number = Date.now()): string {
+  if (!iso) return 'not yet'
+  const then = new Date(iso).getTime()
+  if (Number.isNaN(then)) return 'unknown'
+  const seconds = Math.round((then - now) / 1000)
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ['year', 31536000],
+    ['month', 2592000],
+    ['day', 86400],
+    ['hour', 3600],
+    ['minute', 60],
+  ]
+  const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+  for (const [unit, size] of units) {
+    if (Math.abs(seconds) >= size) return formatter.format(Math.round(seconds / size), unit)
+  }
+  return 'just now'
+}
+
+/** 18400 -> "18.4s", 250 -> "250 ms", 125000 -> "2m 5s". Null stays null: no duration is never 0. */
+export function formatDuration(ms: number | null | undefined): string | null {
+  if (ms == null) return null
+  if (ms < 1000) return `${ms} ms`
+  const seconds = ms / 1000
+  if (seconds < 60) return `${seconds.toFixed(1)}s`
+  const whole = Math.round(seconds)
+  return `${Math.floor(whole / 60)}m ${whole % 60}s`
+}

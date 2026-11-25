@@ -1,1 +1,257 @@
 @import "tailwindcss";
+
+/* Design tokens: Google Stitch "RepoIntel" design system (docs/implementationPlan.md, Step 7.1).
+   Light values are the :root set, dark values the .dark set. Dark is the default look.
+   Text colours were checked against every surface at WCAG AA (src/styles/contrast.test.ts); the muted
+   text colours differ from DESIGN.md where the original pair failed 4.5:1. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  --c-canvas: #ffffff;
+  --c-surface: #f8fafc;
+  --c-raised: #f1f5f9;
+  --c-overlay: #e2e8f0;
+  --c-line: rgba(0, 0, 0, 0.08);
+  --c-line-strong: #cbd5e1;
+  --c-fg: #0f172a;
+  --c-fg-2: #475569;
+  --c-muted: #5b6b80;
+  --c-primary: #2563eb;
+  --c-primary-fg: #ffffff;
+  --c-primary-text: #1d4ed8;
+  --c-ai: #7c3aed;
+  --c-ai-text: #5b21b6;
+  --c-ai-bg: #f5f0ff;
+  --c-focus: #2563eb;
+  --c-code: #f1f5f9;
+  --c-grid-dot: rgba(15, 23, 42, 0.06);
+
+  --t-critical: #e11d48;
+  --t-critical-fg: #9f1239;
+  --t-high: #ea580c;
+  --t-high-fg: #9a3412;
+  --t-medium: #d97706;
+  --t-medium-fg: #78350f;
+  --t-low: #0284c7;
+  --t-low-fg: #075985;
+  --t-info: #64748b;
+  --t-info-fg: #475569;
+  --t-success: #059669;
+  --t-success-fg: #065f46;
+  --t-running: #0284c7;
+  --t-running-fg: #075985;
+  --t-warning: #ca8a04;
+  --t-warning-fg: #713f12;
+  --t-failed: #dc2626;
+  --t-failed-fg: #991b1b;
+  --t-neutral: #64748b;
+  --t-neutral-fg: #475569;
+  --t-detected: #059669;
+  --t-detected-fg: #065f46;
+  --t-likely: #4f46e5;
+  --t-likely-fg: #3730a3;
+  --t-possible: #9333ea;
+  --t-possible-fg: #6b21a8;
+  --t-ai: #7c3aed;
+  --t-ai-fg: #5b21b6;
+  --t-primary: #2563eb;
+  --t-primary-fg: #1e40af;
+}
+
+.dark {
+  color-scheme: dark;
+  --c-canvas: #090d16;
+  --c-surface: #0f172a;
+  --c-raised: #1e293b;
+  --c-overlay: #334155;
+  --c-line: rgba(255, 255, 255, 0.08);
+  --c-line-strong: #334155;
+  --c-fg: #f8fafc;
+  --c-fg-2: #94a3b8;
+  --c-muted: #8392a8;
+  --c-primary: #2563eb;
+  --c-primary-fg: #ffffff;
+  --c-primary-text: #93b4ff;
+  --c-ai: #a855f7;
+  --c-ai-text: #d8b4fe;
+  --c-ai-bg: #1a1030;
+  --c-focus: #3b82f6;
+  --c-code: #060912;
+  --c-grid-dot: rgba(255, 255, 255, 0.04);
+
+  --t-critical: #f43f5e;
+  --t-critical-fg: #fb7185;
+  --t-high: #f97316;
+  --t-high-fg: #fb923c;
+  --t-medium: #fbbf24;
+  --t-medium-fg: #fbbf24;
+  --t-low: #38bdf8;
+  --t-low-fg: #38bdf8;
+  --t-info: #94a3b8;
+  --t-info-fg: #94a3b8;
+  --t-success: #10b981;
+  --t-success-fg: #34d399;
+  --t-running: #0284c7;
+  --t-running-fg: #38bdf8;
+  --t-warning: #eab308;
+  --t-warning-fg: #facc15;
+  --t-failed: #ef4444;
+  --t-failed-fg: #f87171;
+  --t-neutral: #64748b;
+  --t-neutral-fg: #94a3b8;
+  --t-detected: #10b981;
+  --t-detected-fg: #34d399;
+  --t-likely: #6366f1;
+  --t-likely-fg: #a5b4fc;
+  --t-possible: #a855f7;
+  --t-possible-fg: #d8b4fe;
+  --t-ai: #a855f7;
+  --t-ai-fg: #d8b4fe;
+  --t-primary: #3b82f6;
+  --t-primary-fg: #93b4ff;
+}
+
+@theme inline {
+  --color-canvas: var(--c-canvas);
+  --color-surface: var(--c-surface);
+  --color-raised: var(--c-raised);
+  --color-overlay: var(--c-overlay);
+  --color-line: var(--c-line);
+  --color-line-strong: var(--c-line-strong);
+  --color-fg: var(--c-fg);
+  --color-fg-2: var(--c-fg-2);
+  --color-muted: var(--c-muted);
+  --color-primary: var(--c-primary);
+  --color-primary-fg: var(--c-primary-fg);
+  --color-primary-text: var(--c-primary-text);
+  --color-ai: var(--c-ai);
+  --color-ai-text: var(--c-ai-text);
+  --color-ai-bg: var(--c-ai-bg);
+  --color-code: var(--c-code);
+
+  --font-sans: "Geist Variable", Geist, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --text-headline-xl: 32px;
+  --text-headline-xl--line-height: 40px;
+  --text-headline-lg: 24px;
+  --text-headline-lg--line-height: 32px;
+  --text-headline-md: 18px;
+  --text-headline-md--line-height: 24px;
+  --text-body-lg: 15px;
+  --text-body-lg--line-height: 22px;
+  --text-body-md: 13px;
+  --text-body-md--line-height: 18px;
+  --text-body-sm: 12px;
+  --text-body-sm--line-height: 16px;
+  --text-code-md: 12px;
+  --text-code-md--line-height: 16px;
+  --text-label-md: 11px;
+  --text-label-md--line-height: 14px;
+  --text-label-sm: 10px;
+  --text-label-sm--line-height: 12px;
+
+  --radius-sm: 2px;
+  --radius-DEFAULT: 4px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --shadow-overlay: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-size: 14px; /* 14px prose base (plan 7.1 item 2) */
+    font-variant-numeric: tabular-nums;
+    background: var(--c-canvas);
+    color: var(--c-fg);
+  }
+  body {
+    margin: 0;
+    background: var(--c-canvas);
+    color: var(--c-fg);
+    -webkit-font-smoothing: antialiased;
+  }
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+  }
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--c-focus);
+    outline-offset: 1px;
+    border-radius: 4px;
+  }
+  /* dark native controls follow the theme */
+  input,
+  select,
+  textarea {
+    color-scheme: inherit;
+  }
+}
+
+/* Tone chips: tint 12%, hairline 28%, text in the semantic hue (DESIGN.md "Severity & Status Chips"). */
+.tone {
+  --h: var(--t-neutral);
+  --f: var(--t-neutral-fg);
+  background: color-mix(in srgb, var(--h) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--h) 28%, transparent);
+  color: var(--f);
+}
+.tone-critical { --h: var(--t-critical); --f: var(--t-critical-fg); }
+.tone-high { --h: var(--t-high); --f: var(--t-high-fg); }
+.tone-medium { --h: var(--t-medium); --f: var(--t-medium-fg); }
+.tone-low { --h: var(--t-low); --f: var(--t-low-fg); }
+.tone-info { --h: var(--t-info); --f: var(--t-info-fg); }
+.tone-success { --h: var(--t-success); --f: var(--t-success-fg); }
+.tone-running { --h: var(--t-running); --f: var(--t-running-fg); }
+.tone-warning { --h: var(--t-warning); --f: var(--t-warning-fg); }
+.tone-failed { --h: var(--t-failed); --f: var(--t-failed-fg); }
+.tone-neutral { --h: var(--t-neutral); --f: var(--t-neutral-fg); }
+.tone-detected { --h: var(--t-detected); --f: var(--t-detected-fg); }
+.tone-likely { --h: var(--t-likely); --f: var(--t-likely-fg); }
+.tone-possible { --h: var(--t-possible); --f: var(--t-possible-fg); }
+.tone-ai { --h: var(--t-ai); --f: var(--t-ai-fg); }
+.tone-primary { --h: var(--t-primary); --f: var(--t-primary-fg); }
+
+/* The AI surface is used for AI-written text and nowhere else. */
+.ai-surface {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(99, 102, 241, 0.04));
+  border: 1px solid color-mix(in srgb, var(--c-ai) 35%, transparent);
+  border-radius: 8px;
+}
+:root:not(.dark) .ai-surface {
+  background: var(--c-ai-bg);
+}
+.ai-surface:hover {
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+}
+
+.dot-grid {
+  background-image: radial-gradient(var(--c-grid-dot) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+@keyframes ri-pulse {
+  50% { opacity: 0.35; }
+}
+@keyframes ri-shimmer {
+  to { background-position: -200% 0; }
+}
+.pulse { animation: ri-pulse 1.4s ease-in-out infinite; }
+.skeleton {
+  background: linear-gradient(90deg, var(--c-raised) 25%, var(--c-overlay) 50%, var(--c-raised) 75%);
+  background-size: 200% 100%;
+  animation: ri-shimmer 1.6s linear infinite;
+  border-radius: 4px;
+}
+@keyframes ri-spin { to { transform: rotate(360deg); } }
+.spin { animation: ri-spin 0.9s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse, .skeleton, .spin { animation: none; }
+  * { scroll-behavior: auto !important; transition: none !important; }
+}

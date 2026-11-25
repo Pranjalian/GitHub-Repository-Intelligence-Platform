@@ -1,9 +1,13 @@
 import { useState } from 'react'
+import Icon from './icons'
 
-export default function CopyButton({ value, label = 'Copy' }: { value: string; label?: string }) {
+/** Copies `value`. `label` is the visible text; `compact` shows only the icon (still labelled for screen readers). */
+export default function CopyButton({ value, label = 'Copy', compact }: { value: string; label?: string; compact?: boolean }) {
   const [copied, setCopied] = useState(false)
 
-  async function copy() {
+  async function copy(event: React.MouseEvent) {
+    event.stopPropagation()
+    event.preventDefault()
     try {
       await navigator.clipboard.writeText(value)
       setCopied(true)
@@ -18,9 +22,10 @@ export default function CopyButton({ value, label = 'Copy' }: { value: string; l
       type="button"
       onClick={copy}
       aria-label={`${label} ${value}`}
-      className="rounded border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-100"
+      className="inline-flex h-6 items-center gap-1 rounded border border-line-strong px-1.5 text-body-sm text-fg-2 hover:bg-raised hover:text-fg"
     >
-      {copied ? 'Copied' : label}
+      <Icon name={copied ? 'check-circle' : 'copy'} size={12} />
+      {!compact && (copied ? 'Copied' : label)}
     </button>
   )
 }
