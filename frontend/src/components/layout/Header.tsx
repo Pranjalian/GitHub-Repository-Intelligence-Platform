@@ -2,8 +2,10 @@ import { Link, useLocation } from 'react-router'
 import { useAIProviders } from '../../hooks/queries'
 import { useRepoContext } from '../../hooks/useRepoContext'
 import { formatDateTime, shortSha } from '../../lib/format'
-import { useTheme, type ThemeChoice } from '../../lib/theme'
+import { useSession } from '../../hooks/useSession'
 import { IconButton } from '../ui/Button'
+import UserMenu from '../auth/UserMenu'
+import ThemeToggle from './ThemeToggle'
 import CopyButton from '../ui/CopyButton'
 import Icon from '../ui/icons'
 import RunStatusLabel from '../ui/RunStatusLabel'
@@ -26,15 +28,12 @@ export function aiPill(data: AIProviders | undefined, failed: boolean): { text: 
   return { text, tone: provider.dataHandling === 'LOCAL' ? 'local' : 'hosted' }
 }
 
-const NEXT: Record<ThemeChoice, ThemeChoice> = { dark: 'light', light: 'system', system: 'dark' }
-const ICONS: Record<ThemeChoice, string> = { dark: 'moon', light: 'sun', system: 'monitor' }
-
 export default function Header({ onMenu }: { onMenu?: () => void }) {
   const ctx = useRepoContext()
   const location = useLocation()
   const providers = useAIProviders()
   const pill = aiPill(providers.data, providers.isError)
-  const { choice, setChoice } = useTheme()
+  const { authRequired } = useSession()
   const run = ctx.selected?.latestRun
   const pageName = PAGE_NAMES[location.pathname] ?? (location.pathname.startsWith('/investigations') ? 'Investigations' : '')
   const dot = { off: 'bg-[color:var(--t-neutral)]', local: 'bg-[color:var(--t-success)]', hosted: 'bg-[color:var(--t-warning)]', unavailable: 'bg-[color:var(--t-neutral)]' }[pill.tone]
@@ -75,9 +74,10 @@ export default function Header({ onMenu }: { onMenu?: () => void }) {
         </Link>
         <span className="hidden items-center gap-1 text-body-sm text-muted md:flex">
           <Icon name="shield" size={14} />
-          Local · read-only analysis
+          {authRequired ? 'Read-only analysis' : 'Local · read-only analysis'}
         </span>
-        <IconButton icon={ICONS[choice]} label={`Theme: ${choice}. Switch to ${NEXT[choice]}`} onClick={() => setChoice(NEXT[choice])} />
+        <ThemeToggle />
+        <UserMenu />
       </div>
     </header>
   )

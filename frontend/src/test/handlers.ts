@@ -4,6 +4,8 @@ import { aiProvidersDisabled } from './fixtures'
 
 // Default handlers; individual tests add overrides with server.use(...).
 export const handlers = [
+  // The shell asks who is signed in; by default no login is required (local use, AUTH_ENABLED=false).
+  http.get('/api/v1/auth/session', () => HttpResponse.json({ authRequired: false, authenticated: false })),
   http.get('/api/v1/ping', () => HttpResponse.json({ ok: true })),
   // AI is off unless a test says otherwise (as in the default backend configuration)
   http.get('/api/v1/ai/providers', () => HttpResponse.json(aiProvidersDisabled)),

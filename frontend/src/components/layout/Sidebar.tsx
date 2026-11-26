@@ -1,5 +1,6 @@
 import { Link, NavLink, useLocation, useSearchParams } from 'react-router'
 import { useRepoContext } from '../../hooks/useRepoContext'
+import { useSession } from '../../hooks/useSession'
 import { useRepositoryStats } from '../../hooks/queries'
 import { shortSha } from '../../lib/format'
 import { useIsDesktop } from '../../lib/useMediaQuery'
@@ -24,6 +25,7 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: { c
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const stats = useRepositoryStats()
+  const { authRequired } = useSession()
   const desktop = useIsDesktop()
   const rail = collapsed && desktop
   const snapshotQuery = ctx.selected ? `snapshot=${ctx.selected.id}` : ''
@@ -47,9 +49,9 @@ export default function Sidebar({ collapsed = false, onToggle, onNavigate }: { c
           <Icon name="logo" size={20} className="text-primary-text" />
           {!rail && <span className="truncate text-headline-md">RepoIntel</span>}
         </Link>
-        {!rail && <span className="tone tone-neutral rounded px-1.5 font-mono text-label-sm">LOCAL</span>}
+        {!rail && <span className="tone tone-neutral rounded px-1.5 font-mono text-label-sm">{authRequired ? 'SECURED' : 'LOCAL'}</span>}
       </div>
-      {!rail && <p className="px-2.5 pb-2 text-body-sm text-muted">Local single-user · no auth</p>}
+      {!rail && <p className="px-2.5 pb-2 text-body-sm text-muted">{authRequired ? 'Single-user · sign-in required' : 'Local single-user · no auth'}</p>}
 
       <p className={`px-2.5 pt-2 font-mono text-label-sm uppercase tracking-wider text-muted ${rail ? 'sr-only' : ''}`}>Global workspace</p>
       <NavLink to="/" end onClick={onNavigate} className={({ isActive }) => itemClass(isActive)} aria-label="Dashboard">

@@ -78,6 +78,9 @@ const P: Record<string, string> = {
   tag: 'M3 12V4h8l10 10-8 8z M7.5 8.5h.01',
   clock: 'M12 3a9 9 0 100 18 9 9 0 000-18z M12 7v5l3 2',
   code: 'M9 8l-5 4 5 4 M15 8l5 4-5 4',
+  user: 'M12 12a4 4 0 100-8 4 4 0 000 8z M4 21a8 8 0 0116 0',
+  logout: 'M10 4H5v16h5 M16 8l4 4-4 4 M20 12H9',
+  'eye-off': 'M3 3l18 18 M10.6 6.2A9.5 9.5 0 0112 6c6 0 10 6 10 6a17 17 0 01-3.2 3.8 M6.6 7.6A17 17 0 002 12s4 7 10 7a9.6 9.6 0 004.2-1 M9.9 9.9a3 3 0 004.2 4.2',
 }
 
 export type IconName = keyof typeof P | string

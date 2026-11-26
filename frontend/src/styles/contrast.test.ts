@@ -40,6 +40,16 @@ const tones = ['critical', 'high', 'medium', 'low', 'info', 'success', 'running'
 const surfaces = ['c-canvas', 'c-surface', 'c-raised']
 
 describe.each(Object.entries(themes))('WCAG AA contrast, %s theme', (_name, vars) => {
+  it('sign-in page: error text, muted text and the primary button meet 4.5:1 on the page and the card', () => {
+    // Step 8.4: the login page reuses existing tokens only; this pins the pairs it actually uses.
+    for (const surface of ['c-canvas', 'c-surface']) {
+      expect(ratio(rgb(vars['t-failed-fg']), rgb(vars[surface])), `error text on ${surface}`).toBeGreaterThanOrEqual(4.5)
+      expect(ratio(rgb(vars['c-muted']), rgb(vars[surface])), `footer text on ${surface}`).toBeGreaterThanOrEqual(4.5)
+      expect(ratio(rgb(vars['c-fg-2']), rgb(vars[surface])), `countdown text on ${surface}`).toBeGreaterThanOrEqual(4.5)
+    }
+    expect(ratio(rgb(vars['c-primary-fg']), rgb(vars['c-primary'])), 'Sign in button label').toBeGreaterThanOrEqual(4.5)
+  })
+
   it('body text colours meet 4.5:1 on every surface', () => {
     for (const text of ['c-fg', 'c-fg-2', 'c-muted', 'c-primary-text']) {
       for (const surface of [...surfaces, 'c-overlay']) {
