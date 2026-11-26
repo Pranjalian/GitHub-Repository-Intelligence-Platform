@@ -31,7 +31,8 @@ public class HashPassword {
 			System.err.println("BCrypt only uses the first 72 bytes; use a shorter password.");
 			System.exit(1);
 		}
-		System.out.println(new BCryptPasswordEncoder(12).encode(password));
+		System.out.print(new BCryptPasswordEncoder(12).encode(password) + '\n');
+		System.out.flush();
 	}
 
 }
