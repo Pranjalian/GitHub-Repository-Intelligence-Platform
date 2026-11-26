@@ -403,6 +403,41 @@ Full detail, deviations from the designs and verification: [mvp7-completion-repo
 
 ---
 
+## 4e. MVP 8 steps: Login (server-enforced authentication)
+
+Lets the application be deployed publicly (Railway backend, Vercel frontend) by adding a real login. The **backend** is the gate: with `AUTH_ENABLED=true` it answers `401` to every `/api/**` call without a session; the login page is only the interface for that rule. The default (`AUTH_ENABLED=false`) changes nothing for local use and Docker Compose.
+
+| Step | Title | One-liner |
+|---|---|---|
+| 8.1 | Decisions and threat model | One account from environment variables (BCrypt hash), server-side session in an `HttpOnly` cookie, CSRF cookie-to-header, same-origin `/api`, login throttling, one generic failure message, fail-closed startup. |
+| 8.2 | Backend authentication | Package `common.security`: `SecurityConfig` (permit-all when disabled), `OperatorAuthenticationProvider`, `LoginThrottle`, `SessionLifetimeSecurityContextRepository` (idle and absolute timeouts on the injectable clock), `AuthController` (`session`, `login`, `logout`), `AuthStartupValidator`, 401/403 problem bodies, prod profile without Swagger, cookie and password redaction. |
+| 8.3 | Hardening checks | The existing MockMvc suite runs behind the real filter chain with a signed-in test user (`-Dspring.profiles.active=authon`); rate limits and AI endpoints still apply after login; OpenAPI lists the auth endpoints and the 401 response; dependency review. |
+| 8.4 | Frontend login | `/login` outside the shell with every state (idle, submitting, wrong credentials, throttled countdown, expired, server error), `RequireSession` guard, safe `next`, CSRF header and one-time 401 handling in `api/client.ts`, user menu with Sign out. |
+| 8.5 | Deployment wiring | Railway variables and a plain Vercel `/api` rewrite are written down in [deployment-plan.md](deployment-plan.md); nothing here could be executed without a Railway or Vercel account. |
+| 8.6 | Documentation | README Authentication section, architecture section 21, this overview and the completion report. |
+
+```mermaid
+sequenceDiagram
+    participant B as Browser (SPA)
+    participant F as Spring Security filter chain
+    participant C as AuthController
+    B->>F: GET /api/v1/auth/session
+    F->>C: (open path)
+    C-->>B: 200 {authRequired:true, authenticated:false} + XSRF-TOKEN cookie
+    B->>F: POST /api/v1/auth/login + X-XSRF-TOKEN
+    F->>C: CSRF ok
+    C->>C: throttle check, BCrypt check, new session id
+    C-->>B: 200 + REPOINTEL_SESSION cookie (HttpOnly)
+    B->>F: GET /api/v1/repositories (cookie)
+    F-->>B: 200 (session valid: idle < 2 h, age < 12 h)
+    B->>F: GET /api/v1/repositories (no or expired cookie)
+    F-->>B: 401 problem body, the SPA goes to /login?expired=1&next=...
+```
+
+Full detail, deviations and verification: [mvp8-completion-report.md](mvp8-completion-report.md).
+
+---
+
 ## 5. Tools
 
 | Area | Tool | Used for | Since |
@@ -434,6 +469,7 @@ Full detail, deviations from the designs and verification: [mvp7-completion-repo
 | Frontend | react-markdown 10.1.0 | AI text as Markdown, without raw HTML, images or links | MVP 3 |
 | Frontend | @fontsource-variable/geist, @fontsource-variable/jetbrains-mono | Self-hosted fonts (SIL OFL 1.1), served from the app origin | MVP 7 |
 | Testing | vitest-axe, axe-core; @playwright/test (optional) | Accessibility checks in unit tests; optional real-browser smoke test | MVP 7 |
+| Backend security | Spring Security 7.1.2 (`spring-boot-starter-security`), BCrypt | Server-enforced login, session, CSRF | MVP 8 |
 | CI | GitHub Actions | Backend, frontend and Docker image jobs on every push to `main` | MVP 1 |
 
 ## 6. Quick start

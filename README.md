@@ -1,10 +1,10 @@
 # GitHub Repository Intelligence Platform
 
-Evidence-backed analysis of public GitHub repositories. Submit a public repository URL and get a commit-scoped report: technologies, structure, dependencies, code quality, secrets and security rules, tests and (real) coverage, plus an honest capability matrix that says what the platform could not analyze and why. For Java/Spring Boot it also discovers the **architecture**: layers, REST endpoints with request/response types, JPA entities and relationships, dependency injection chains, Maven module dependencies, dependency cycles and design-pattern candidates, with Mermaid diagrams. It is deterministic: **no AI and no AI key are needed**, and no code from the analyzed repository is ever executed. Optionally (MVP 3), an AI provider you configure (hosted Gemini, the project default, or OpenRouter after you acknowledge their data handling, or a local Ollama) can **explain** classes, methods and findings, suggest refactorings and summarise modules and technical debt; every answer is marked AI-generated and lists the evidence it was given. MVP 4 adds **code search** that needs no model (exact symbol lookup and full-text search in one commit) and optional **repository Q&A**: answers grounded in retrieved code with source links, or an explicit "not enough evidence". MVP 5 adds **change-impact analysis**: pick a class or method and see which callers, endpoints, entities, modules and tests may be affected, from the dependency graph of the parsed code (never from a model), with a transparent heuristic risk score and an explicit list of what the analysis cannot see. MVP 7 is a **UI redesign**: the whole interface was rebuilt from the Google Stitch designs (dark and light themes, a navigation shell, a findings inspector, themed architecture diagrams, designed loading, empty, error and "not supported" states) without changing what any analyzer, search or impact rule does.
+Evidence-backed analysis of public GitHub repositories. Submit a public repository URL and get a commit-scoped report: technologies, structure, dependencies, code quality, secrets and security rules, tests and (real) coverage, plus an honest capability matrix that says what the platform could not analyze and why. For Java/Spring Boot it also discovers the **architecture**: layers, REST endpoints with request/response types, JPA entities and relationships, dependency injection chains, Maven module dependencies, dependency cycles and design-pattern candidates, with Mermaid diagrams. It is deterministic: **no AI and no AI key are needed**, and no code from the analyzed repository is ever executed. Optionally (MVP 3), an AI provider you configure (hosted Gemini, the project default, or OpenRouter after you acknowledge their data handling, or a local Ollama) can **explain** classes, methods and findings, suggest refactorings and summarise modules and technical debt; every answer is marked AI-generated and lists the evidence it was given. MVP 4 adds **code search** that needs no model (exact symbol lookup and full-text search in one commit) and optional **repository Q&A**: answers grounded in retrieved code with source links, or an explicit "not enough evidence". MVP 5 adds **change-impact analysis**: pick a class or method and see which callers, endpoints, entities, modules and tests may be affected, from the dependency graph of the parsed code (never from a model), with a transparent heuristic risk score and an explicit list of what the analysis cannot see. MVP 8 adds an optional **server-enforced login** (one operator account, an `HttpOnly` session cookie, CSRF protection and login throttling) so the app can be deployed publicly. MVP 7 is a **UI redesign**: the whole interface was rebuilt from the Google Stitch designs (dark and light themes, a navigation shell, a findings inspector, themed architecture diagrams, designed loading, empty, error and "not supported" states) without changing what any analyzer, search or impact rule does.
 
-See [docs/](docs/) for the problem statement, architecture, implementation plan and the completion reports for [MVP 1](docs/mvp1-completion-report.md), [MVP 2](docs/mvp2-completion-report.md), [MVP 3](docs/mvp3-completion-report.md) [MVP 4](docs/mvp4-completion-report.md), [MVP 5](docs/mvp5-completion-report.md) and [MVP 7](docs/mvp7-completion-report.md) (the UI redesign).
+See [docs/](docs/) for the problem statement, architecture, implementation plan and the completion reports for [MVP 1](docs/mvp1-completion-report.md), [MVP 2](docs/mvp2-completion-report.md), [MVP 3](docs/mvp3-completion-report.md) [MVP 4](docs/mvp4-completion-report.md), [MVP 5](docs/mvp5-completion-report.md) and [MVP 7](docs/mvp7-completion-report.md) (the UI redesign) and [MVP 8](docs/mvp8-completion-report.md) (login).
 
-> Local single-user tool. There is no authentication yet: do not expose it to the public internet. A login (MVP 8, see [docs/implementationPlan.md](docs/implementationPlan.md)) is planned before any Railway/Vercel deployment ([docs/deployment-plan.md](docs/deployment-plan.md)).
+> **Open by default, login when you need it.** With `AUTH_ENABLED=false` (the default) there is no login and the stack is for local use only: ports are bound to `127.0.0.1`. **Never expose an instance with `AUTH_ENABLED=false` to a network.** With `AUTH_ENABLED=true` (MVP 8) the backend rejects every `/api/**` call that has no signed-in session; see [Authentication](#authentication-mvp-8) and the Railway/Vercel plan in [docs/deployment-plan.md](docs/deployment-plan.md).
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ Open http://localhost:5173 when all three services are healthy (`docker compose 
 | `docker compose down -v` | Stop and **delete** all analysis data |
 | `docker compose up -d postgres` | Database only, for `mvnw spring-boot:run` + `pnpm dev` with hot reload (no native PostgreSQL needed) |
 
-What runs: `postgres` (PostgreSQL 16, data in the `pgdata` volume), `backend` (Spring Boot on JRE 25, with a pinned Semgrep CLI so the Semgrep analyzer is available) and `frontend` (the built UI on nginx, which proxies `/api` to the backend). Containers run as non-root users, and every port is bound to `127.0.0.1` only, because there is no authentication. Analyzed repository code is still never executed.
+What runs: `postgres` (PostgreSQL 16, data in the `pgdata` volume), `backend` (Spring Boot on JRE 25, with a pinned Semgrep CLI so the Semgrep analyzer is available) and `frontend` (the built UI on nginx, which proxies `/api` to the backend). Containers run as non-root users, and every port is bound to `127.0.0.1` only, because the default configuration has no login (see Authentication to turn it on). Analyzed repository code is still never executed.
 
 Host ports can be changed with `POSTGRES_PORT`, `BACKEND_PORT` and `FRONTEND_PORT` in `.env`.
 
@@ -141,6 +141,57 @@ Open a repository and choose **Impact analysis** (route `/repositories/:id/impac
 - Optional AI (never needed): a change description can be turned into suggested symbols (you confirm one), and **Analyze and summarize with AI** adds a clearly marked summary of the result. The graph result is identical with AI off.
 - Snapshots analysed before MVP 5 have no test references: re-run the analysis with *Force full rescan* to link tests to the code they call (the page says so).
 
+## Authentication (MVP 8)
+
+Off by default. `AUTH_ENABLED=false` keeps the application open (local use only; Docker Compose binds every port to `127.0.0.1`). **Never expose an instance with `AUTH_ENABLED=false`.** For a shared or public deployment set `AUTH_ENABLED=true`: the **backend** then answers `401` to every `/api/**` call without a valid session (the login page is only the interface for that rule). Open paths: `/actuator/health`, `GET /api/v1/auth/session`, `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`.
+
+| Variable | Meaning |
+|---|---|
+| `AUTH_ENABLED` | `false` (default) or `true`. With `true` the application **refuses to start** unless the two values below are valid |
+| `AUTH_USERNAME` | The one account name |
+| `AUTH_PASSWORD_HASH` | BCrypt hash (`$2a$`, `$2b$` or `$2y$`, cost 12 recommended) of the password. Never the password itself, and never commit a real one |
+| `AUTH_SESSION_IDLE_TIMEOUT` / `AUTH_SESSION_ABSOLUTE_TIMEOUT` | Optional, defaults `PT2H` and `PT12H` |
+
+Create the hash (pick one; the password is not echoed and not stored):
+
+```sh
+# Apache htpasswd (Linux/macOS, or Git Bash if it ships htpasswd)
+htpasswd -nbBC 12 "" 'a-long-password' | cut -d: -f2 | tr -d '\n'
+
+# No extra tools: Java 25 and the project's own dependencies (from backend/)
+./mvnw -q dependency:build-classpath -Dmdep.outputFile=target/cp.txt -DincludeScope=runtime
+java -cp "$(cat target/cp.txt)" tools/HashPassword.java          # Git Bash / Linux / macOS
+java -cp (Get-Content target/cp.txt) tools/HashPassword.java     # PowerShell
+```
+
+Where to put it:
+
+- **Docker Compose / `.env`:** every `$` in the hash must be written `$$`, for example `AUTH_PASSWORD_HASH=$$2a$$12$$abc...`. Compose would otherwise try to substitute `$2a`, `$12` and so on.
+- **Railway's variable editor, a shell `export` (single quotes) or an IDE run configuration:** paste the hash exactly as printed.
+
+Run the full stack locally with the login on:
+
+```sh
+# .env
+AUTH_ENABLED=true
+AUTH_USERNAME=operator
+AUTH_PASSWORD_HASH=$$2a$$12$$...   # note the doubled dollars
+docker compose up --build -d       # then open http://localhost:5173 and sign in
+
+# without Docker (backend/, bash): note the single quotes around the hash
+AUTH_ENABLED=true AUTH_USERNAME=operator AUTH_PASSWORD_HASH='$2a$12$...' ./mvnw spring-boot:test-run
+# and in frontend/: npx -y pnpm@12.21.0 dev  (the Vite dev server proxies /api to :8080)
+```
+
+How it behaves:
+
+- **Session:** server-side, in memory; cookie `REPOINTEL_SESSION` (`HttpOnly`, `SameSite=Lax`, `Secure` in the `prod` profile). Ends after 2 hours without a request, or 12 hours after login regardless. A new session id is issued at every login; logout invalidates it on the server. A backend restart ends all sessions.
+- **CSRF:** the `XSRF-TOKEN` cookie must be copied into an `X-XSRF-TOKEN` header on every `POST`, `PUT`, `PATCH` and `DELETE` (the web app does this). Without it the call is `403`, even when signed in.
+- **Throttling:** 5 failed logins per client address and per username within 15 minutes lock that key for 15 minutes (`429` with `Retry-After`; even the right password is refused meanwhile). A success clears the counters. Every credential failure returns the same message, "Invalid username or password".
+- **Production profile (`SPRING_PROFILES_ACTIVE=prod`):** Swagger UI and `/v3/api-docs` are off, only `/actuator/health` is exposed, forwarded headers are honoured behind a proxy, and the session cookie is always `Secure`.
+- **Rotating the password:** generate a new hash, change `AUTH_PASSWORD_HASH`, redeploy. All sessions end.
+- **Deployment:** [docs/deployment-plan.md](docs/deployment-plan.md) (Railway backend, Vercel frontend with a plain `/api` rewrite).
+
 ## Configuration reference
 
 All keys live in `backend/src/main/resources/application.yml` and can be overridden with environment variables or `-D` properties.
@@ -155,6 +206,7 @@ All keys live in `backend/src/main/resources/application.yml` and can be overrid
 | Analyzer toggles | `analysis.analyzers.<analyzer-id>.enabled` and `.options.*` (for example `java-code-analyzer` option `include-tests`) |
 | Architecture | `analysis.analyzers.spring-architecture-analyzer.options.include-tests` (default false), `max-symbols` (50000), `max-edges` (200000), `max-file-kb` (512); layer, repository and package rules in `backend/src/main/resources/architecture/spring-architecture.yml` |
 | Vulnerability lookup | `analysis.vulnerabilities.osv.*` |
+| Login (MVP 8) | `auth.enabled` (`AUTH_ENABLED`), `auth.username` (`AUTH_USERNAME`), `auth.password-hash` (`AUTH_PASSWORD_HASH`), `auth.session.{idle-timeout, absolute-timeout}`, `auth.throttle.{max-failures, window, max-tracked-keys}`; session cookie settings `server.servlet.session.cookie.*` |
 | AI (optional) | `ai.enabled` (`AI_ENABLED`), `default-provider`, `fallback-providers`, `features.<feature>.{provider,model}`, `providers.<id>.{enabled, base-url, api-key, chat-model, data-handling-acknowledged, allowed-hosts, max-context-tokens, structured-output, input-price-per-million-tokens, output-price-per-million-tokens, currency}`, `limits.*`, `cache.{enabled,ttl}`, `token-estimate.chars-per-token`, `source.{allow-download,max-lines}`, `health-cache-ttl`, `rate-limit-cooldown`, `allow-hosted-for-private-repositories`, `setup-guide-url`; prompt templates in `backend/src/main/resources/ai/prompt/` |
 | Embeddings (optional) | `ai.providers.<id>.embedding-model` (`OLLAMA_EMBEDDING_MODEL`, `GEMINI_EMBEDDING_MODEL`), `ai.embedding.{provider (AI_EMBEDDING_PROVIDER), batch-size, max-input-chars, max-batches-per-index}` |
 | Impact analysis | `impact.{default-depth (IMPACT_DEFAULT_DEPTH), max-depth (IMPACT_MAX_DEPTH), max-components, max-graph-rows, max-picker-results, suggestion-candidates, diagram-nodes}` |
@@ -172,7 +224,7 @@ All keys live in `backend/src/main/resources/application.yml` and can be overrid
 - Architecture discovery reads source only, with **no classpath**: types and inherited methods from libraries are not resolved (kept by name, labelled *unresolved*); calls are resolved only when the receiver's declared type is visible; reflection, proxies, conditional beans, `@Bean` methods, XML configuration, interface-declared or functional endpoints and Gradle modules are not analysed; test sources are excluded by default. Layers from package names alone and all pattern candidates except Spring Data repositories are *Likely* or *Possible*, never *Detected*.
 - AI insights (optional) are explanations, not analysis results: they can be wrong, are marked AI-generated and list their evidence. They see at most a bounded excerpt plus parser facts (no classpath, no runtime behaviour); class source excerpts start at the declaration, so Javadoc above a class is not included. The per-analysis call budget is counted per analysis run, and an in-progress budget reservation is held in memory (one backend instance). Insights for non-Java repositories are limited to findings, modules and technical debt (no symbols).
 - Search and Q&A (MVP 4): indexing is a separate step per snapshot (not part of the analysis). Text search does not stem words (*policies* does not match *policy*). Symbol search covers the Java symbol graph only; other languages fall back to type and method names of indexed chunks where there are any (none for line windows). Semantic search was verified with a deterministic stand-in embedder in tests, not with a real embedding model (see the MVP 4 completion report). The Q&A budget in progress is held in memory (one backend instance), like the insight budget.
-- There is **no authentication**: this is a local single-user tool. Do not expose it to the public internet.
+- **Login (MVP 8)** is a single operator account: no registration, no password reset by email (change `AUTH_PASSWORD_HASH` and restart), no roles, no second factor. Sessions are held in memory, so a backend restart signs everyone out, and the login throttle is per process (one replica). With `AUTH_ENABLED=false` there is no authentication at all: never expose such an instance to a network.
 
 ## Run without Docker
 
@@ -233,6 +285,10 @@ Repository-derived text (file paths, code excerpts, findings) is untrusted: it m
 
 # frontend (from frontend/)
 pnpm lint && pnpm typecheck && pnpm test --run && pnpm build
+
+# backend with the login switched on for every MockMvc request (MVP 8; a signed-in test user and CSRF token are
+# added to each request, so the whole existing suite runs behind the real filter chain)
+./mvnw clean verify -Dspring.profiles.active=authon
 ```
 
 Backend database tests use embedded PostgreSQL (no H2, no Docker). The embedded binaries have no pgvector, so those tests use the in-process vector store; `PgVectorStoreTests` checks the pgvector store against a real database when `PGVECTOR_TEST_DB_URL` points to an empty test database with the extension (for example `CREATE DATABASE repointel_vector_test` in the Docker Compose database, then `PGVECTOR_TEST_DB_URL=jdbc:postgresql://localhost:5432/repointel_vector_test ./mvnw test -Dtest=PgVectorStoreTests`; it cleans that database).
@@ -271,6 +327,7 @@ Tests that need external CLIs (for example Semgrep) are tagged and excluded by d
 |---|---|
 | Java | 25 |
 | Spring Boot | 4.1.2 |
+| Spring Security (login, MVP 8) | 7.1.2, managed by the Spring Boot BOM (`spring-boot-starter-security`) |
 | PMD (in-process) | 7.29.0 |
 | JavaParser | 3.28.2 |
 | maven-model (POM reading only) | 3.9.16 |

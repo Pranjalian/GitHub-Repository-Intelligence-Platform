@@ -41,6 +41,11 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-repointel_dev}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       WORKSPACE_ROOT: /workspace
+      # Login (MVP 8). Off by default: the stack is open and bound to 127.0.0.1. Turn it on for any shared or
+      # public instance. The hash is BCrypt; in .env write every $ as $$ (see README, Authentication).
+      AUTH_ENABLED: ${AUTH_ENABLED:-false}
+      AUTH_USERNAME: ${AUTH_USERNAME:-}
+      AUTH_PASSWORD_HASH: ${AUTH_PASSWORD_HASH:-}
       ANALYSIS_VULNERABILITIES_OSV_ENABLED: ${ANALYSIS_VULNERABILITIES_OSV_ENABLED:-false}
       ANALYSIS_ANALYZERS_JAVA_CODE_ANALYZER_OPTIONS_INCLUDE_TESTS: ${ANALYSIS_ANALYZERS_JAVA_CODE_ANALYZER_OPTIONS_INCLUDE_TESTS:-false}
       REPOSITORY_INGESTION_MAX_REPOSITORY_SIZE_MB: ${REPOSITORY_INGESTION_MAX_REPOSITORY_SIZE_MB:-200}

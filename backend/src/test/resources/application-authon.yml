@@ -1,6 +1,6 @@
 # Test-only profile: runs the whole suite with the login enabled (./mvnw verify -Dspring.profiles.active=authon).
-# The hash below is BCrypt (cost 4) of a throwaway string used by no deployment; it is a fixture, not a secret.
+# The hash below is a well-formed but meaningless placeholder (no password matches it); the suite never signs in with it.
 auth:
   enabled: true
   username: operator
-  password-hash: "$2a$04$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+  password-hash: "$2a$04$aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"

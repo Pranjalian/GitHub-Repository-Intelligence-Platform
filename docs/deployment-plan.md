@@ -153,7 +153,7 @@ Read Google's current terms, quotas and data-use policy for your key type before
 
 ### 3.5 Backend changes required in this repo (small)
 
-The authentication code is **MVP 8** (Steps 8.2 and 8.3 of [implementationPlan.md](implementationPlan.md)): login endpoints, session and CSRF handling, throttling, fail-closed startup, Swagger and OpenAPI disabled in `prod`, `server.forward-headers-strategy=framework` in `prod` (so `Secure` cookies and the client address behind Railway's proxy work), log redaction of cookies and passwords. Do those first, on their own branch, and test them like any backend change (`./mvnw clean verify`, both `auth.enabled` values).
+The authentication code is **MVP 8** (Steps 8.2 and 8.3 of [implementationPlan.md](implementationPlan.md)): login endpoints, session and CSRF handling, throttling, fail-closed startup, Swagger and OpenAPI disabled in `prod`, `server.forward-headers-strategy=framework` in `prod` (so the client address behind Railway's proxy reaches the login throttle), and `server.servlet.session.cookie.secure=true` in `prod` (measured in MVP 8: forwarded headers alone do not make Tomcat's session cookie `Secure`), log redaction of cookies and passwords. Do those first, on their own branch, and test them like any backend change (`./mvnw clean verify`, both `auth.enabled` values).
 
 Deployment-only additions on top of MVP 8: `backend/railway.toml` (3.3) and the Railway variables above. The existing token bucket (10 per minute on `POST /repositories/analyze`) stays as the cost guard behind the login.
 

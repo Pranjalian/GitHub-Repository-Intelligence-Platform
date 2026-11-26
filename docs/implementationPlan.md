@@ -1938,19 +1938,19 @@ MVP 7 was executed without MVP 6. Everything below was **not built** and is **no
 9. Configuration: `AUTH_ENABLED`, `AUTH_USERNAME`, `AUTH_PASSWORD_HASH` in `application.yml`, `compose.yaml` (default `false`) and `.env.example`. **A BCrypt hash contains `$` characters:** write each `$` as `$$` in `compose.yaml` and `.env` files read by Compose; in Railway's variable editor paste it as is. Document a command to produce the hash (for example `htpasswd -nbBC 12 "" 'the-password' | cut -d: -f2`, or a one-line Java/Spring CLI alternative) and never put a real hash in the repository.
 
 **Tests to write:**
-- [ ] Integration (embedded PostgreSQL, `auth.enabled=true`): protected path without session → 401 problem body; with a session → 200
-- [ ] Login success returns a new session id; the old id from before login is not accepted afterwards
-- [ ] Wrong password and unknown user return the same status and body; timing difference within a generous bound (not a flaky strict assertion)
-- [ ] Throttle: 5 failures → 6th returns 429 with `Retry-After`; a correct password during lockout is still refused; counters are independent per key; success clears the counter; the lock expires (use an injectable clock)
-- [ ] CSRF: login and a protected `POST` without the header → 403; with the header → success; `GET` needs none
-- [ ] Logout invalidates the session server-side (the same cookie replayed afterwards → 401)
-- [ ] Idle and absolute timeouts end the session (injectable clock)
-- [ ] `GET /api/v1/auth/session` is 200 in every state and never leaks the username when unauthenticated
-- [ ] `/actuator/health` answers 200 without a session; `/actuator/info`, Swagger and `/v3/api-docs` do not in `prod`
-- [ ] `auth.enabled=false`: the whole existing test suite behaves exactly as before (all current e2e tests unchanged)
-- [ ] Startup refuses with `auth.enabled=true` and a missing, blank or malformed hash; the message contains no secret value
-- [ ] A planted password and a planted session id never appear in logs (redaction test)
-- [ ] Architecture test: the `security` package depends only on `common`; no feature package depends on it except through the filter chain
+- [x] Integration (embedded PostgreSQL, `auth.enabled=true`): protected path without session → 401 problem body; with a session → 200
+- [x] Login success returns a new session id; the old id from before login is not accepted afterwards
+- [x] Wrong password and unknown user return the same status and body; timing difference within a generous bound (not a flaky strict assertion) *(verified: same 401 status and body over HTTP; timing at unit level, median ratio of wrong-user to wrong-password within 0.4 to 2.5)*
+- [x] Throttle: 5 failures → 6th returns 429 with `Retry-After`; a correct password during lockout is still refused; counters are independent per key; success clears the counter; the lock expires (use an injectable clock) *(counters independent per key and the lock expiring are unit tests with a movable clock; the rest over HTTP)*
+- [x] CSRF: login and a protected `POST` without the header → 403; with the header → success; `GET` needs none
+- [x] Logout invalidates the session server-side (the same cookie replayed afterwards → 401)
+- [x] Idle and absolute timeouts end the session (injectable clock)
+- [x] `GET /api/v1/auth/session` is 200 in every state and never leaks the username when unauthenticated
+- [x] `/actuator/health` answers 200 without a session; `/actuator/info`, Swagger and `/v3/api-docs` do not in `prod` *(prod profile test: 404 even when signed in; 401 or not 200 when signed out)*
+- [x] `auth.enabled=false`: the whole existing test suite behaves exactly as before (all current e2e tests unchanged) *(full suite 862 tests green with `ImpactGraphPerformanceTests` excluded: a latency budget that fails identically on unmodified `main` on this machine; also green with `-Dspring.profiles.active=authon`, 862 tests, which runs every MockMvc request signed in)*
+- [x] Startup refuses with `auth.enabled=true` and a missing, blank or malformed hash; the message contains no secret value
+- [x] A planted password and a planted session id never appear in logs (redaction test)
+- [x] Architecture test: the `security` package depends only on `common`; no feature package depends on it except through the filter chain
 
 ---
 
@@ -1987,15 +1987,15 @@ MVP 7 was executed without MVP 6. Everything below was **not built** and is **no
 6. Optional Stitch prompt for the login screen (if you want a designed version first): "Design the Sign in screen for RepoIntel, same design system as the other screens, dark and light: a centered 400 px card with the logo, a Username field, a Password field with a show/hide toggle, a primary Sign in button, an inline error state, a throttled state with a countdown and a session-expired note. No social buttons, no registration, no marketing text."
 
 **Tests to write:**
-- [ ] Unit: login form renders both fields with the right `autocomplete` values; Enter submits; the password toggle works and is labelled
-- [ ] Unit: each state (submitting, wrong credentials with focus and cleared password, throttled countdown disables then re-enables, expired note, server error) using mock API responses
-- [ ] Unit: route guard: loading → splash only; unauthenticated → redirect with `next`; authenticated on `/login` → redirect; `authRequired=false` → no redirect and no login UI
-- [ ] Unit: `next` sanitiser: `//evil.com`, `https://evil.com`, `/\evil`, `javascript:` and encoded variants fall back to `/`; `/repositories/1?tab=quality` is kept
-- [ ] Unit: `client.ts` adds the CSRF header only to state-changing methods; a `401` triggers exactly one redirect and clears the cache; the auth endpoints themselves never trigger it
-- [ ] Unit: logout clears the cache and navigates to `/login`
-- [ ] Accessibility (`vitest-axe`) on the login page in both themes; contrast check of the new colour pairs
-- [ ] No `dangerouslySetInnerHTML`, no external request (the bundle scan from MVP 7 still passes)
-- [ ] Browser check (optional Playwright job): with `AUTH_ENABLED=true` the stack shows the login, a wrong password shows the error, a correct one lands on the dashboard, reload keeps the session, sign out returns to the login, and there are no CSP errors
+- [x] Unit: login form renders both fields with the right `autocomplete` values; Enter submits; the password toggle works and is labelled
+- [x] Unit: each state (submitting, wrong credentials with focus and cleared password, throttled countdown disables then re-enables, expired note, server error) using mock API responses
+- [x] Unit: route guard: loading → splash only; unauthenticated → redirect with `next`; authenticated on `/login` → redirect; `authRequired=false` → no redirect and no login UI
+- [x] Unit: `next` sanitiser: `//evil.com`, `https://evil.com`, `/\evil`, `javascript:` and encoded variants fall back to `/`; `/repositories/1?tab=quality` is kept
+- [x] Unit: `client.ts` adds the CSRF header only to state-changing methods; a `401` triggers exactly one redirect and clears the cache; the auth endpoints themselves never trigger it
+- [x] Unit: logout clears the cache and navigates to `/login`
+- [x] Accessibility (`vitest-axe`) on the login page in both themes; contrast check of the new colour pairs
+- [x] No `dangerouslySetInnerHTML`, no external request (the bundle scan from MVP 7 still passes)
+- [x] Browser check (optional Playwright job): with `AUTH_ENABLED=true` the stack shows the login, a wrong password shows the error, a correct one lands on the dashboard, reload keeps the session, sign out returns to the login, and there are no CSP errors *(run in Chromium against the built app served by a Node stand-in for nginx with the same security headers and the backend from `spring-boot:test-run`; the Docker stack itself was not available)*
 
 ---
 
@@ -2021,16 +2021,16 @@ MVP 7 was executed without MVP 6. Everything below was **not built** and is **no
 
 ### MVP 8: Exit Criteria Checklist
 
-- [ ] With `AUTH_ENABLED=true`, every `/api/**` call except the auth endpoints answers `401` without a session, from the Railway URL directly and through Vercel
-- [ ] With `AUTH_ENABLED=false` (default) nothing changes: all previous tests and the Docker Compose run behave as before
-- [ ] The application refuses to start with `AUTH_ENABLED=true` and a missing or malformed password hash
-- [ ] Login uses an `HttpOnly` session cookie, a new session id per login, CSRF protection, throttling with `Retry-After`, and one generic failure message
-- [ ] No password, hash, session id or CSRF token appears in logs, URLs, error bodies or browser storage
-- [ ] Login page implemented in both themes with every state of 8.4, keyboard operable, WCAG AA, no CSP errors
-- [ ] Expired session or `401` returns the user to `/login` once, then back to the page they wanted (safe `next` only)
-- [ ] Vercel uses a plain `/api` rewrite; no shared-secret proxy remains in the plan or the code
-- [ ] `/actuator/health` open for Railway; Swagger and OpenAPI docs not exposed in `prod`
-- [ ] README, architecture, deployment plan and completion report updated
+- [ ] With `AUTH_ENABLED=true`, every `/api/**` call except the auth endpoints answers `401` without a session, from the Railway URL directly and through Vercel *(not ticked: verified directly against the backend and through a Node stand-in for nginx, not from a Railway URL or through Vercel)*
+- [ ] With `AUTH_ENABLED=false` (default) nothing changes: all previous tests and the Docker Compose run behave as before *(not ticked: all tests pass, but the Docker Compose run could not be checked because Docker is not installed here)*
+- [x] The application refuses to start with `AUTH_ENABLED=true` and a missing or malformed password hash
+- [x] Login uses an `HttpOnly` session cookie, a new session id per login, CSRF protection, throttling with `Retry-After`, and one generic failure message
+- [x] No password, hash, session id or CSRF token appears in logs, URLs, error bodies or browser storage *(logs: tested with a planted password, session id, CSRF token and hash; browser storage: unit test and Playwright; the password only ever travels in the POST body; error bodies for 401 asserted)*
+- [x] Login page implemented in both themes with every state of 8.4, keyboard operable, WCAG AA, no CSP errors *(both themes by unit tests, token contrast test and screenshots; a human still has to look at it, see the completion report)*
+- [x] Expired session or `401` returns the user to `/login` once, then back to the page they wanted (safe `next` only)
+- [x] Vercel uses a plain `/api` rewrite; no shared-secret proxy remains in the plan or the code *(nothing in the code; the plan's wording still names the pair only to say it is deleted; `frontend/vercel.json` was drafted outside this MVP)*
+- [x] `/actuator/health` open for Railway; Swagger and OpenAPI docs not exposed in `prod`
+- [x] README, architecture, deployment plan and completion report updated *(deployment plan: only the Secure-cookie remark corrected)*
 
 ---
 
@@ -2214,4 +2214,9 @@ After each MVP, verify that **all prior exit criteria still pass**:
 - **Password reset** without redeploying (an admin CLI command).
 - **Audit log** of logins and failures (redacted, bounded).
 - **Distributed throttle** (database or Redis) if the backend ever runs more than one replica.
+- **Client address behind proxies:** with `forward-headers-strategy=framework` the throttle trusts the leftmost `X-Forwarded-For` entry, which a client can set. The per-username key still limits guessing; if the per-address key must be reliable, configure Tomcat's `RemoteIpValve` with the exact proxy addresses (Railway's range was not verified).
+- **Browser check in CI:** run `frontend/e2e/auth.spec.ts` against Docker Compose with `AUTH_ENABLED=true` (needs a seeded hash secret in CI); it was only run against a stand-in for nginx.
+- **Verify the `$$` rule in `.env`** on a machine with Docker (the README states it from the Compose documentation, not from a run), and consider reading the hash from a file secret instead of an environment variable.
+- **`ImpactGraphPerformanceTests` budget** (2 s per typical traversal) is machine dependent: it fails on unmodified `main` on a developer Windows laptop. Make the budget configurable or run it only in a dedicated profile.
+- **Rotate the CSRF token at login** (the cookie currently keeps the same value for the browser session) and add an `Origin` check as a second defence.
 
