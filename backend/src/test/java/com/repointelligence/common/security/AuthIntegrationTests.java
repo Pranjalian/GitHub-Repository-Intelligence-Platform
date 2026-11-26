@@ -99,6 +99,9 @@ class AuthIntegrationTests {
 		assertThat(reply.status()).isEqualTo(200);
 		assertThat(JsonPath.<String>read(reply.body(), "$.status")).isEqualTo("UP");
 		assertThat(reply.body()).doesNotContain("components");
+		// nginx and Vercel send these; a duplicate X-Frame-Options value from the backend would be invalid
+		assertThat(reply.header("X-Frame-Options")).isNull();
+		assertThat(reply.header("Strict-Transport-Security")).isNull();
 	}
 
 	@Test

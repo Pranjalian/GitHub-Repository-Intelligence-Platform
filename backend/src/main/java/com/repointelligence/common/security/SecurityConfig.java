@@ -54,8 +54,9 @@ class SecurityConfig {
 		return http
 			.csrf(csrf -> csrf.csrfTokenRepository(csrfTokenRepository)
 				.csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
-			// Cache-Control is set per response (no-store on the auth endpoints); frame and sniffing protection stay on.
-			.headers(headers -> headers.cacheControl(cache -> cache.disable()).httpStrictTransportSecurity(hsts -> hsts.disable()))
+			// No default security headers: nginx and Vercel already send the CSP, X-Frame-Options and nosniff (a second,
+			// duplicate X-Frame-Options value is invalid), and Cache-Control is set per response (no-store on /auth/*).
+			.headers(headers -> headers.disable())
 			.requestCache(cache -> cache.disable())
 			.logout(logout -> logout.disable())
 			.securityContext(context -> context.securityContextRepository(securityContextRepository))
