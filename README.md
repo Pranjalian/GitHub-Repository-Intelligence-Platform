@@ -192,6 +192,16 @@ How it behaves:
 - **Rotating the password:** generate a new hash, change `AUTH_PASSWORD_HASH`, redeploy. All sessions end.
 - **Deployment:** [docs/deployment-plan.md](docs/deployment-plan.md) (Railway backend, Vercel frontend with a plain `/api` rewrite).
 
+## Deploying to Railway and Vercel
+
+The full procedure, with every variable and check, is [docs/deployment-plan.md](docs/deployment-plan.md). In short:
+
+- **Never deploy with `AUTH_ENABLED=false`.** An open instance on a public URL lets anyone spend your GitHub token, your Gemini quota and your Railway bill, and read every report.
+- **Railway (backend and database):** a PostgreSQL service, a `backend` service with Root Directory `/backend` and config-as-code path `/backend/railway.toml`, one replica, and a volume at `/workspace`. Variables: `SPRING_PROFILES_ACTIVE=prod`, `PORT=8080`, `DB_URL` / `DB_USERNAME` / `DB_PASSWORD` (from the Postgres service), `GITHUB_TOKEN`, `AUTH_ENABLED=true`, `AUTH_USERNAME`, `AUTH_PASSWORD_HASH`, and for Gemini `AI_ENABLED`, `AI_PROVIDERS_GEMINI_ENABLED`, `GEMINI_API_KEY`, `GEMINI_CHAT_MODEL`, `AI_PROVIDERS_GEMINI_DATA_HANDLING_ACKNOWLEDGED=true`. The default AI provider is Gemini.
+- **Vercel (frontend):** Root Directory `frontend`. [`frontend/vercel.json`](frontend/vercel.json) sends the same security headers as nginx and rewrites `/api/**` to Railway. **Replace `REPLACE-WITH-RAILWAY-DOMAIN` with your backend's domain before deploying.** `frontend/src/test/vercelConfig.test.ts` checks that the headers still match `nginx.conf`.
+- **Check from outside:** `/actuator/health` returns 200, `/api/v1/repositories` returns 401 without a session, Swagger returns 404; through the Vercel URL, sign in, reload, sign out and run one analysis. If analyses fail with a permission error on `/workspace`, set `RAILWAY_RUN_UID=0`.
+- **Not verified yet:** the Docker Compose stack, the session cookie and `Retry-After` passing through Vercel's rewrite, and Vercel's time limit for rewritten requests (keep `AI_TIMEOUT_SECONDS` below it). These are listed as checks in the deployment plan.
+
 ## Configuration reference
 
 All keys live in `backend/src/main/resources/application.yml` and can be overridden with environment variables or `-D` properties.
