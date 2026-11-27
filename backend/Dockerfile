@@ -11,10 +11,12 @@ COPY mvnw pom.xml ./
 # A Windows checkout may have CRLF line endings despite .gitattributes.
 RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
 
+# Dependencies get their own layer, so they are cached until pom.xml changes. (A BuildKit cache mount is not
+# used: Railway rejects `--mount=type=cache` without an id.)
+RUN ./mvnw -B -q dependency:go-offline
+
 COPY src/ src/
-# The Maven repository (and the wrapper's Maven download) is cached between builds.
-RUN --mount=type=cache,target=/root/.m2 \
-    ./mvnw -B -q package -Dmaven.test.skip=true \
+RUN ./mvnw -B -q package -Dmaven.test.skip=true \
  && cp "$(find target -maxdepth 1 -name '*.jar' ! -name '*-plain.jar' | head -n 1)" /app.jar
 
 # ---- Runtime stage ----
