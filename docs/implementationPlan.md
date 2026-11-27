@@ -1280,7 +1280,7 @@ Steps within an MVP are **sequential** unless marked as parallelizable. Cross-MV
 
 **Tests:**
 - [x] Unit: traversal returns expected callers/dependents to depth N on a fixture; cycles do not loop (`SnapshotImpactGraphTests`)
-- [x] Performance: traversal on a medium fixture within an agreed latency budget (`ImpactGraphPerformanceTests`: 22,000 symbols and 64,000 edges; worst-case hub 0.7 to 1.7 s, typical method 71 ms; budgets 12 s and 2 s)
+- [x] Performance: traversal on a medium fixture within an agreed latency budget (`ImpactGraphPerformanceTests`: 22,000 symbols and 64,000 edges; worst-case hub 0.7 to 1.7 s, typical method 71 ms; budgets 12 s and, since the MVP 8 follow-up, 5 s for a mid-graph target: on a slower machine a typical type took 1.7 to 2.4 s, which straddled the original 2 s)
 
 ---
 

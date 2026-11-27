@@ -46,8 +46,14 @@ class ImpactGraphPerformanceTests {
 	 */
 	private static final long BUDGET_MS = 12_000;
 
-	/** A typical target (an ordinary method with a handful of dependents) must answer interactively. */
-	private static final long TYPICAL_BUDGET_MS = 2_000;
+	/**
+	 * A mid-graph target must answer interactively. Measured on a slower Windows machine: typical METHOD 170 to 290 ms,
+	 * typical TYPE 1.7 to 2.4 s (in this skewed synthetic graph the "typical" type still reaches thousands of edge rows,
+	 * far more than a real class). The first 2 s limit sat inside that run-to-run spread, so the test failed without any
+	 * change to the code. 5 s keeps the guard against a missing index or a runaway query (minutes) without depending on
+	 * the speed of the machine.
+	 */
+	private static final long TYPICAL_BUDGET_MS = 5_000;
 
 	@Autowired
 	private EntityManager em;
@@ -144,6 +150,7 @@ class ImpactGraphPerformanceTests {
 				slowest = Math.max(slowest, ms);
 			}
 		}
+		long typicalSlowest = 0;
 		UUID typical = methodIds.get(methodIds.size() / 2);
 		for (Granularity granularity : Granularity.values()) {
 			UUID start = granularity == Granularity.METHOD ? typical : typeIds.get(typeIds.size() / 2);
@@ -152,10 +159,13 @@ class ImpactGraphPerformanceTests {
 			Traversal traversal = graph.dependents(List.of(start), granularity, 5);
 			long ms = (System.nanoTime() - started) / 1_000_000;
 			report.append("typical %s depth=5 reached=%d ms=%d%n".formatted(granularity, traversal.reached().size(), ms));
-			assertThat(ms).as("typical %s traversal", granularity).isLessThan(TYPICAL_BUDGET_MS);
+			typicalSlowest = Math.max(typicalSlowest, ms);
 		}
+		// write the measurements before asserting, so a failing run still leaves its numbers behind
 		Files.writeString(Path.of("target/impact-performance.txt"), report.toString());
 		System.out.println(report);
+		assertThat(typicalSlowest).as("slowest typical traversal (ms), see target/impact-performance.txt")
+			.isLessThan(TYPICAL_BUDGET_MS);
 		assertThat(slowest).as("slowest traversal (ms), see target/impact-performance.txt").isLessThan(BUDGET_MS);
 	}
 
