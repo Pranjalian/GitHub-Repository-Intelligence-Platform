@@ -45,10 +45,13 @@ ENV PATH="/opt/semgrep/bin:${PATH}" \
 
 WORKDIR /app
 COPY --from=build --chown=app:app /app.jar /app/app.jar
-USER app
+# The container starts as root only to fix the owner of the /workspace volume, then the entrypoint drops to the
+# non-root "app" user (setpriv) before the JVM starts; the application never runs as root.
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod 0755 /app/docker-entrypoint.sh
 
 EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=5s --start-period=90s --retries=6 \
     CMD curl -fsS http://localhost:8080/actuator/health || exit 1
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["/app/docker-entrypoint.sh", "java", "-jar", "/app/app.jar"]
