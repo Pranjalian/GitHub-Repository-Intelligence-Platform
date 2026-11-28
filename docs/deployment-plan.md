@@ -86,7 +86,7 @@ Rules for both:
 
 ### 3.3 Backend service
 
-**Build:** Railway builds `backend/Dockerfile` as it is (multi-stage: Temurin 25 JDK build, Temurin 25 JRE runtime with Python venv + Semgrep 1.186.0, non-root user `app`). No code change is needed to build it. Expect a large image and a long first build (Semgrep install); keep Docker layer caching on.
+**Build:** Railway builds `backend/Dockerfile` as it is (multi-stage: Temurin 25 JDK build, Temurin 25 JRE runtime with Python venv + Semgrep 1.186.0, non-root user `app`). The Dockerfile uses no BuildKit cache mount (Railway rejects `--mount=type=cache` without an id); Maven dependencies get their own layer instead. Expect a large image and a long first build (Semgrep install); keep Docker layer caching on.
 
 **Config file** (new, `backend/railway.toml`):
 
@@ -132,7 +132,9 @@ numReplicas = 1                   # must stay 1, see below
 | `REPOSITORY_INGESTION_MAX_REPOSITORY_SIZE_MB` | `200` (lower to `100` to save cost) | Pre-check on repository size |
 | `ANALYSIS_JOBS_MAX_ANALYSIS_DURATION` | `PT15M` | Per-run deadline |
 | `JAVA_TOOL_OPTIONS` | `-XX:MaxRAMPercentage=75` (already the image default) | Leaves about 25% of memory for the Semgrep child process |
-| `RAILWAY_RUN_UID` | `0` | Only if the volume is not writable by the image's non-root `app` user (see 3.4) **(verify)** |
+| `RAILWAY_RUN_UID` | (leave unset) | Not needed: `backend/docker-entrypoint.sh` fixes the volume owner and drops to the non-root user (3.4). Setting it to `0` would keep the whole process as root |
+| `REPOSITORY_INGESTION_MAX_EXTRACTED_SIZE_MB` / `REPOSITORY_SUBMISSION_MAX_PENDING_JOBS` | `250` / `2` | For a 500 MB workspace volume (trial plan): at most 2 x 250 MB extracted at once |
+| `AUTH_THROTTLE_WINDOW` | optional, for example `PT10S` | Login lockout window (default `PT15M` after 5 failures). Shorter is more convenient and weaker; the password must then be long and random |
 
 Read Google's current terms, quotas and data-use policy for your key type before enabling Gemini (free-tier data may be used to improve products; verify). Leave `OLLAMA_*` unset and `AI_PROVIDERS_OLLAMA_ENABLED=false`. Set **`AI_TIMEOUT_SECONDS` below the Vercel rewrite timeout** (see 4.3). If you use Gemini embeddings for semantic search: `AI_EMBEDDING_PROVIDER=gemini` and `GEMINI_EMBEDDING_MODEL` (the embedding default is still `ollama` in the code).
 
@@ -149,7 +151,7 @@ Read Google's current terms, quotas and data-use policy for your key type before
 
 - Attach a Railway **volume** to `backend` mounted at `/workspace`, sized 5 GB to start (extracted size is capped at 500 MB per snapshot; `max-pending-jobs: 10` bounds concurrency).
 - Without a volume the container's ephemeral disk is used. It works, but a restart in the middle of an analysis loses the workspace, and ephemeral disk limits apply **(verify)**.
-- The image runs as the non-root user `app`. If Railway mounts the volume root-owned and the backend cannot write, either set `RAILWAY_RUN_UID=0` **(verify; weakens the non-root hardening, so prefer the next option)** or add an entrypoint step that `chown`s `/workspace` before dropping privileges. Test this in the first deploy (Phase 3, check 6).
+- Railway mounts the volume root-owned, so the non-root `app` user could not write to it (the first analysis failed with `AccessDeniedException` during ingestion; measured). `backend/docker-entrypoint.sh` is the fix: the container starts as root, `chown`s `/workspace`, sets `HOME=/app` and drops to `app` with `setpriv` before the JVM starts. `RAILWAY_RUN_UID=0` is not needed. Verified: an analysis of spring-petclinic completed after this change.
 
 ### 3.5 Backend changes required in this repo (small)
 
@@ -336,7 +338,7 @@ Rules (unchanged from Appendix C.1): never commit secrets, never put them in `ve
 | Session lost on every backend redeploy | You must sign in again | Accepted; Spring Session JDBC is the upgrade (Appendix C.8) |
 | Vercel rewrite changes cookies, body or timing | Login or AI calls fail | Verified in Phase 3; fallback is a small forwarding function (4.3) |
 | Vercel limit on a rewritten request shorter than AI call time | Insight/Q&A calls fail with 504 | Keep `AI_TIMEOUT_SECONDS` below the limit (4.3) |
-| Non-root `app` user cannot write to the volume | Every analysis fails at ingestion | Test in Phase 3; chown in an entrypoint step, or `RAILWAY_RUN_UID=0` as a last resort |
+| Non-root `app` user cannot write to the volume | Every analysis fails at ingestion | Fixed by the entrypoint `chown` and privilege drop (3.4); `RAILWAY_RUN_UID=0` is not used |
 | Memory pressure (PMD + Semgrep + JVM) | Restarts during large analyses | 2 GB+ RAM, repository size cap, `max-pending-jobs`; watch metrics |
 | Shared GitHub egress IP without a token | 60 requests/hour shared | Token is mandatory (3.3) |
 | Scaling beyond one instance | Budget counters and job pool are in memory | Keep `numReplicas = 1`; revisit (Appendix C.4) before scaling |
