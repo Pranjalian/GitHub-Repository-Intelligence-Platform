@@ -1,4 +1,5 @@
 import { useCoverage, useTests } from '../../hooks/queries'
+import { primaryLanguage } from '../../lib/primaryLanguage'
 import type { ConsolidatedReport, ReportSection, Severity } from '../../types/api'
 import { StatCard } from '../ui/Layout'
 
@@ -35,7 +36,7 @@ export function findingTotals(report: ConsolidatedReport): FindingTotals | null 
 export default function SummaryCards({ report, repositoryId, snapshotId }: { report: ConsolidatedReport; repositoryId: string; snapshotId: string }) {
   const tests = useTests(repositoryId, snapshotId)
   const coverage = useCoverage(repositoryId, snapshotId)
-  const language = [...report.technologies].filter((t) => t.kind === 'LANGUAGE').sort((a, b) => (b.sharePercent ?? 0) - (a.sharePercent ?? 0))[0]
+  const language = primaryLanguage(report.technologies.filter((t) => t.kind === 'LANGUAGE'))
   const framework = report.technologies.find((t) => t.kind === 'FRAMEWORK')
   const build = report.technologies.find((t) => t.kind === 'BUILD_TOOL')
   const summary = report.structure.summary as Record<string, unknown> | null

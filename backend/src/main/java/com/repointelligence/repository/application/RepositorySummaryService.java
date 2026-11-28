@@ -108,10 +108,9 @@ public class RepositorySummaryService {
 			Map<AnalysisCategory, List<ExecutionStatus>> statuses = statusByRun.getOrDefault(run.getId(), Map.of());
 			List<TechnologyFinding> tech = techByRun.getOrDefault(run.getId(), List.of());
 
-			TechnologyFinding language = tech.stream()
-				.filter(t -> t.getKind() == TechnologyKind.LANGUAGE)
-				.max(Comparator.comparing((TechnologyFinding t) -> t.getSharePercent() == null ? java.math.BigDecimal.ZERO : t.getSharePercent())
-					.thenComparing(TechnologyFinding::getTechnology, Comparator.reverseOrder()))
+			TechnologyFinding language = PrimaryLanguage
+				.choose(tech.stream().filter(t -> t.getKind() == TechnologyKind.LANGUAGE).toList(),
+						TechnologyFinding::getTechnology, TechnologyFinding::getSharePercent)
 				.orElse(null);
 			List<String> frameworks = tech.stream()
 				.filter(t -> t.getKind() == TechnologyKind.FRAMEWORK)
